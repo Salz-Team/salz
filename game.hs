@@ -1,8 +1,12 @@
 import Data.List
+import Data.Maybe
 import System.Environment
+import System.Exit
 import System.Process
 import System.IO
 import GHC.IO.Handle
+import Text.Read
+
 
 data MapSize = MapSize Int Int
 
@@ -20,40 +24,89 @@ data Map = Map
   , turnm :: Int
   }
 
+main :: IO ()
+main = getArgs >>= handleArgs >>= setup >>= gameTurn
 
--- Get Input
 
-main = do
-  args <- getArgs
-  if length args /= 4
-  then error $ "Usage:\n game  w h play1 play2"
-  else return ()
+-- Handle Arguments
+data Options = Options
+  { oMapWidth :: Int
+  , oMapHeight :: Int
+  , oPlayer1Path :: String
+  , oPlayer2Path :: String
+  } deriving (Eq)
 
-  let mw = read $ args!!0
-  let mh = read $ args!!1
-  putStrLn $ args!!0 ++ " " ++ args!!1
-  let p1path = args!!2
-  let p2path = args!!3
+handleArgs :: [String] -> IO (Maybe Options)
+handleArgs [a, b, c, d] =
+  case readOptions [a, b, c, d] of
+  Nothing -> usage >> pure Nothing
+  Just o -> pure (Just o)
 
-  (stdin1, stdout1, stderr1, proc1) <- runInteractiveCommand p1path
-  (stdin2, stdout2, stderr2, proc2) <- runInteractiveCommand p2path
+handleArgs ["-h"] = usage >> pure Nothing
+handleArgs _ = usage >> pure Nothing
 
-  hPutStr stdin1 (show mh ++ " " ++ show mw ++ "\n")  
-  hPutStr stdin2 (show mh ++ " " ++ show mw ++ "\n")  
-  hFlush stdin1
-  hFlush stdin2
+maybeRead = fmap fst . listToMaybe . reads
+
+usage :: IO ()
+usage = hPutStrLn stderr "Usage:\ngame w h play1 play2"
+
+readOptions :: [String] -> Maybe Options
+readOptions [a, b, c, d] = do
+  w <- maybeRead a
+  h <- maybeRead a
+  return (Options w h c d)
+
+-- Setup Players
+
+type Orientation = Bool
+
+data Player = Player 
+  { pstdin :: Handle
+  , pstdout :: Handle
+  , pname :: String
+  }
+
+data GameState = GameState
+  { gsplayer1 :: Player
+  , gsplayer2 :: Player
+  , gsmap :: Map
+  }
+
+setupPlayer :: Map -> String -> IO Player
+setupPlayer map path = do
+  (stdin, stdout, _, _) <- runInteractiveCommand path
+  --Send Map
+  let (MapSize mw mh) = sizem map
+  hPutStr stdin ((show mw) ++ " " ++ (show mh))
+  name <- hGetLine stdout
+  return $ Player
+    { pstdin = stdin
+    , pstdout = stdin
+    , pname = name
+    }
   
-  name1 <- hGetLine stdout1
-  name2 <- hGetLine stdout2
-  putStrLn (name1 ++ " " ++ name2)
- 
-  let gamemap = Map [] (MapSize mw mh) 0
-  
-  gameTurn stdin1 stdin2 stdout1 stdout2 gamemap
 
-  return ()
+setup:: Maybe Options -> IO (Maybe GameState)
+setup Nothing = pure Nothing
+setup (Just options) = do
+  let gm = Map [] (MapSize (oMapWidth options) (oMapHeight options)) 0
+  player1 <- setupPlayer gm (oPlayer1Path options)
+  player2 <- setupPlayer gm (oPlayer2Path options)
+  putStrLn ((pname player1) ++ " " ++ (pname player2))
+  return $ Just $ GameState
+    { gsplayer1 = player1
+    , gsplayer2 = player2
+    , gsmap = gm
+    }
   
-gameTurn stdin1 stdin2 stdout1 stdout2 gamemap = do
+gameTurn Nothing = pure ()
+gameTurn (Just gs) = do
+  let stdout1 = pstdout $ gsplayer1 gs
+  let stdout2 = pstdout $ gsplayer2 gs
+  let stdin1 = pstdin $ gsplayer1 gs
+  let stdin2 = pstdin $ gsplayer2 gs
+  let gamemap = gsmap gs
+
   play1raw <- hGetLine stdout1
   play2raw <- hGetLine stdout2
   let play1 = map (\b -> Cell 1 b) $ map read $ words play1raw
@@ -72,9 +125,10 @@ gameTurn stdin1 stdin2 stdout1 stdout2 gamemap = do
   putStrLn $ unwords $ map show $ cellsm ngamemap
 --  print pigamemap
 --  print ngamemap
+  
   if isWin ngamemap == 0
-  then gameTurn stdin1 stdin2 stdout1 stdout2 ngamemap
-  else return () -- print $ isWin ngamemap
+  then gameTurn $ Just $ gs {gsmap = ngamemap}
+  else print $ isWin ngamemap
 
 isWin gameMap 
   | p1 > 0 && p2 > 0 = 3
@@ -84,7 +138,7 @@ isWin gameMap
   | otherwise = 0
   where
     p1 = length $ filter (\(Cell x y) -> x == (div mw 3) &&  y == (div mh 3)) $ cellsm gameMap
-    p2 = length $ filter (\(Cell x y) -> x == mw + 1 - (div mw 3) &&  y == mh + 1 - (div mh 3)) $ cellsm gameMap
+    p2 = length $ filter (\(Cell x y) -> x == mw - (div mw 3) &&  y == mh - (div mh 3)) $ cellsm gameMap
     MapSize mw mh = sizem gameMap
     t = turnm gameMap
   
