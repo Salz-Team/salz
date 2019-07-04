@@ -1,0 +1,7 @@
+version: "3"
+services:
+  visualizer:
+    build: ./visualizer
+    container_name: purescript
+    volumes:
+      - ./visualizer:/home/pureuser/src

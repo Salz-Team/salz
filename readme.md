@@ -5,6 +5,10 @@
 - tournament.hs :: orchestrates matchmaker with database, ranker, and game.hs to run matches
 - apiserver.hs :: servant that adds players to database/access match history...
 
+The database should have:
+- games history :: all games ever played
+
+- players :: all bots ever submitted, all games ever played
 
 # Documentation
 

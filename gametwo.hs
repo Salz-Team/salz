@@ -7,14 +7,18 @@ import System.IO
 import GHC.IO.Handle
 import Text.Read
 
+import mylib
+
+
+-- Types
 data Cell = Cell 
   {cX :: Int
   ,cY :: Int
-  ,
+  ,cOwn :: Int
   } deriving (Eq)
 
 instance Show Cell where
-  show (Cell x y) = unwords $ map show [x,y]
+  show (Cell x y o) = unwords $ map show [x,y,o]
 
 data Map = Map 
   { mCells ::  [Cell]
@@ -22,42 +26,6 @@ data Map = Map
   , mH :: Int
   , mTurn :: Int
   }
-
-main :: IO ()
-main = getArgs >>= handleArgs >>= setup >>= gameTurn
-
-
--- Handle Arguments
-data Options = Options
-  { oMapWidth :: Int
-  , oMapHeight :: Int
-  , oPlayer1Path :: String
-  , oPlayer2Path :: String
-  } deriving (Eq)
-
-handleArgs :: [String] -> IO (Maybe Options)
-handleArgs [a, b, c, d] =
-  case readOptions [a, b, c, d] of
-  Nothing -> usage >> pure Nothing
-  Just o -> pure (Just o)
-
-handleArgs ["-h"] = usage >> pure Nothing
-handleArgs _ = usage >> pure Nothing
-
-maybeRead = fmap fst . listToMaybe . reads
-
-usage :: IO ()
-usage = hPutStrLn stderr "Usage:\ngame w h play1 play2"
-
-readOptions :: [String] -> Maybe Options
-readOptions [a, b, c, d] = do
-  w <- maybeRead a
-  h <- maybeRead a
-  return (Options w h c d)
-
--- Setup Players
-
-type Orientation = Bool
 
 data Player = Player 
   { pStdin :: Handle
@@ -71,18 +39,48 @@ data GameState = GameState
   , gsMap :: Map
   }
 
+
+-- Main
+main :: IO ()
+main = getArgs >>= handleArgs >>= setup >>= gameTurn
+
+
+-- Handle Arguments
+data Options = Options
+  { oMapWidth :: Int
+  , oMapHeight :: Int
+  , oPlayer1Path :: String
+  , oPlayer2Path :: String
+  } deriving (Eq)
+
+handleArgs :: [String] -> IO (Maybe Options)
+handleArgs [a, b, c, d] = (readOptions [a,b,c,d]) `onNothing` usage
+handleArgs ["-h"] = usage >> pure Nothing
+handleArgs _ = usage >> pure Nothing
+
+usage :: IO ()
+usage = hPutStrLn stderr "Usage:\ngame w h play1 play2"
+
+readOptions :: [String] -> Maybe Options
+readOptions [a, b, c, d] = do
+  w <- maybeRead a
+  h <- maybeRead a
+  return (Options w h c d)
+
+
+-- Setup Players
 setupPlayer :: Map -> String -> IO Player
 setupPlayer map path = do
   (stdin, stdout, _, _) <- runInteractiveCommand path
-  --Send Map
   hPutStr stdin ((show (Mw map)) ++ " " ++ (show (Mh map)))
+
   name <- hGetLine stdout
+
   return $ Player
     { pStdin = stdin
     , pStdout = stdin
     , pName = name
     }
-  
 
 setup:: Maybe Options -> IO (Maybe GameState)
 setup Nothing = pure Nothing
@@ -102,13 +100,26 @@ setup (Just options) = do
 
 
 -- Game Turn
-
--- Format 
-readPlayerCommands :: Player -> Bool -> IO (Maybe [Cell])
-readPlayerCommands p False = do
+readPlayerCommand :: Player -> Int -> IO (Maybe [Cell])
+readPlayerCommand p 0 = do
   let pstdout = pStdout p
   rawline <- hGetLine pstdout
-  let ints = sequence $ map (\b -> Cell 1 b) $ map maybeRead $ words rawline
+  let ints = readToInts rawline
+
+  onNothing ints (hPutStrLn stderr ("Failed to read " ++ (pName p) ++ " input"))
+
+
+  if checkBounds
+  then hPutStrLn stderr ((pName p) ++ " played out of bounds.")
+  else 
+  
+  
+  where
+    readToInts :: String -> (Maybe [Int])
+    readToInts ln = sequence $ map maybeRead $ words ln
+
+    checkBounds :: Int -> [Int] -> Bool
+    checkBounds h x = isJust $ find (\i -> i < 1 || i > h) h
   
   
  
