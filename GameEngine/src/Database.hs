@@ -44,7 +44,8 @@ formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i
 
 -- saveGame can throw exceptions from the Database.PostgreSQL.Simple class
 -- these exceptions are not handled
-readPlayers :: T.Text -> IO ([(Int, T.Text, T.Text, T.Text, T.Text)])
+-- (playerid, username, botdir, updatedbot, newbotdir, botstatus)
+readPlayers :: T.Text -> IO ([(Int, T.Text, T.Text, Bool, T.Text, T.Text)])
 readPlayers connectionString = do
   conn <- connectPostgreSQL (TE.encodeUtf8 connectionString)
   let mquery = "SELECT * FROM players"

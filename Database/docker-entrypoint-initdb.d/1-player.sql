@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS players (playerid INTEGER PRIMARY KEY, 
                                     username VARCHAR,
-                                    currentBotDir VARCHAR,
-                                    previousBotDir VARCHAR,
+                                    botdir VARCHAR,
+                                    updatedbot BOOL,
+                                    newbotdir VARCHAR,
                                     botstatus VARCHAR)
