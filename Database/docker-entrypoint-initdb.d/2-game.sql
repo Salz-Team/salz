@@ -3,4 +3,4 @@ CREATE TABLE IF NOT EXISTS game (id SERIAL PRIMARY KEY,
                    x INTEGER,
                    y INTEGER,
                    playerid INTEGER REFERENCES players(playerid),
-                   time TIMESTAMP)
+                   generated_at TIMESTAMP)
