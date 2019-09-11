@@ -25,10 +25,8 @@ dependencies:
 - text
 - process
 - transformers
-- beam-core
-- beam-sqlite
-- sqlite-simple
-- beam-migrate
+- postgresql-simple
+- time
 
 library:
   source-dirs: src
