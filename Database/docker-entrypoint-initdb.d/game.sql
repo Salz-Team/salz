@@ -1,4 +1,4 @@
-create table game (id integer primary key, 
+create table game (id serial primary key, 
                    turnId integer,
                    x integer,
                    y integer,
