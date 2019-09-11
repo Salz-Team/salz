@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, StandaloneDeriving, FlexibleInstances #-}
 
-module Database (saveGame) where
+module Database ( saveGame
+                , readPlayers) where
     
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.Time
@@ -26,7 +27,7 @@ saveGame :: T.Text -> MT.Game h w  -> IO ()
 saveGame connectionString g = do
   conn <- connectPostgreSQL (TE.encodeUtf8 connectionString)
 
-  let mquery = "INSERT INTO game (turnid, x, y, playerid, timestamp) Values (?,?,?,?,?)"
+  let mquery = "INSERT INTO game (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?)"
   time <- Finite <$> zonedTimeToLocalTime <$> getZonedTime :: IO (LocalTimestamp)
   let cells = (MT.bCells $ MT.board g)
   let turn = MT.turn g
@@ -40,3 +41,13 @@ formatTurn :: Int
            -> MT.Cell w h MT.CellInfo
            -> (Int, Int, Int, Int, LocalTimestamp)
 formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i, time)
+
+-- saveGame can throw exceptions from the Database.PostgreSQL.Simple class
+-- these exceptions are not handled
+readPlayers :: T.Text -> IO ([(Int, T.Text, T.Text, T.Text, T.Text)])
+readPlayers connectionString = do
+  conn <- connectPostgreSQL (TE.encodeUtf8 connectionString)
+  let mquery = "SELECT * FROM players"
+  result <- query_ conn mquery
+  close conn
+  return result
