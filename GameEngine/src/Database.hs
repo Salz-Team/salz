@@ -3,57 +3,37 @@
 module Database where
     
 import Control.Applicative
-import Database.SQLite.Simple.FromRow
-import Database.SQLite.Simple
+import Database.PostgreSQL.Simple.ToRow
+import Database.PostgreSQL.Simple
+import Database.PostgreSQL.Simple.Time
 import Data.Modular
 import qualified Data.Text as T
-import Types
+import qualified Data.Text.Encoding as TE
+import qualified Types as MT
+import Data.Time.LocalTime
 
 
+-- connectPostgreSQL uses the libpq connection string
+-- For example:
+--   "host='localhost' port=5432 dbname='postgres' user='postgres' password='mysecretpasswrd'"
 
--- instance FromRow Cell where
---     fromRow = TestField <$> field <*> field
--- 
--- conn <- open "test.db"
--- execute conn "INSERT INTO test (str) VALUES (?)"
---   (Only ("test string 2" :: String))
--- r <- query_ conn "SELECT * from test" :: IO [TestField]
--- mapM_ print r
--- close conn
--- 
+data SaveStatus = Success | Failure
 
--- addTurn dbstring g turn = do
---     conn <- open dbstring
---     execute_ conn "CREATE TABLE board_(?) (id INTEGER PRIMARY KEY, x INTEGER, y INTEGER, owner INTEGER)"
--- 
+saveGame :: T.Text -> MT.Game h w  -> IO (SaveStatus)
+saveGame connectionString g = do
+  conn <- connectPostgreSQL (TE.encodeUtf8 connectionString) 
+  let query = "INSERT INTO game (turnid, x, y, playerid, timestamp) Values (?,?,?,?,?)"
+  time <- Finite <$> zonedTimeToLocalTime <$> getZonedTime :: IO (LocalTimestamp)
+  let turn = MT.turn g
+  let rows = map (formatTurn turn time) (MT.bCells $ MT.board g)
 
--- deriving instance Show (Cell w h CellInfo)
-instance ToRow (Cell w h CellInfo)
-  where
-    toRow (Cell x y (CellInfo i)) = toRow (unMod x, unMod y, i)
+  rowsEffected <- executeMany conn query rows
 
-
--- instance
-
-saveGame :: T.Text -> Game w h -> IO ()
-saveGame dbstring g = do
-  conn <- open (T.unpack dbstring)
-  let t = turn g
-  execute_ conn $ Query $ "CREATE TABLE board_" `T.append` (T.pack (show t)) `T.append` " (id INTEGER PRIMARY KEY, x INTEGER, y INTEGER, owner INTEGER)"
-  let cl = bCells $ board g
-  mapM (saveCell conn t) cl
   close conn
-  return ()
+  return Success
 
-saveCell :: Connection -> Int -> Cell w h CellInfo -> IO ()
-saveCell conn t c = do
-  let query = Query $ "INSERT INTO board_" `T.append` (T.pack (show t)) `T.append` " (x, y, owner) Values (?,?,?)"
-  execute conn query c
-  return ()
-
-
--- return (player id, username, currentbot, oldbot)
--- readPlayers :: T.Text -> IO ((Int, Text, Text, Text))
--- readPlayers dbstring = do
---   conn <- open (T.unpack dbstring)
---   r <- query_ conn "SELECT * from players" :: IO []
+formatTurn :: Int
+           -> LocalTimestamp
+           -> MT.Cell w h MT.CellInfo
+           -> (Int, Int, Int, Int, LocalTimestamp)
+formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i, time)
