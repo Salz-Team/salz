@@ -1,26 +1,45 @@
 {
   "name": "salz-frontend",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A web frontend for salz",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Lugarun/salz.git"
-  },
-  "keywords": [
-    "salz"
-  ],
   "author": "Lugarun, Mosiman, Japorized",
-  "license": "BSD-3-Clause",
-  "bugs": {
-    "url": "https://github.com/Lugarun/salz/issues"
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
+    "test": "jest"
   },
-  "homepage": "https://github.com/Lugarun/salz#readme",
+  "lint-staged": {
+    "*.{js,vue}": "eslint"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
   "dependencies": {
+    "nuxt": "^2.0.0",
+    "nuxt-buefy": "^0.3.2",
     "pixi-viewport": "^4.2.2",
     "pixi.js": "^5.1.3"
+  },
+  "devDependencies": {
+    "@nuxtjs/eslint-config": "^1.0.1",
+    "@nuxtjs/eslint-module": "^1.0.0",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^6.1.0",
+    "eslint-plugin-nuxt": ">=0.4.2",
+    "eslint-config-prettier": "^4.1.0",
+    "eslint-plugin-prettier": "^3.0.1",
+    "prettier": "^1.16.4",
+    "husky": "^2.6.0",
+    "lint-staged": "^8.2.1",
+    "@vue/test-utils": "^1.0.0-beta.27",
+    "babel-jest": "^24.1.0",
+    "jest": "^24.1.0",
+    "vue-jest": "^4.0.0-0"
   }
 }

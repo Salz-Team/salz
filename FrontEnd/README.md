@@ -1,21 +1,22 @@
-# salz Front End
+# salz-frontend
 
----
+> A web frontend for salz
 
-## Status
+## Build Setup
 
-* Yet to integrate with our RESTful API
-* Still deciding if a JS framework is necessary, or would a static site generator suffice
-* Looking to add a grid-like map as background of game interface
+``` bash
+# install dependencies
+$ npm run install
 
----
+# serve with hot reload at localhost:3000
+$ npm run dev
 
-## Usage
+# build for production and launch server
+$ npm run build
+$ npm run start
 
+# generate static project
+$ npm run generate
 ```
-# From root of repo
-cd FrontEnd/
-$BROWSER index.html
-```
 
-Replace `$BROWSER` with your web browser of choice.
+For detailed explanation on how things work, check out [Nuxt.js docs](https://nuxtjs.org).
