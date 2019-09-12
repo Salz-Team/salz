@@ -15,7 +15,6 @@
 ```
 # From root of repo
 cd FrontEnd/
-npm install
 $BROWSER index.html
 ```
 
