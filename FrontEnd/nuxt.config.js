@@ -23,7 +23,11 @@ export default {
   /*
    ** Global CSS
    */
-  css: [],
+  css: [
+    '@assets/css/bulma-configs.scss',
+    '@assets/css/styles.scss',
+    '@assets/css/bulma-local.scss'
+  ],
   /*
    ** Plugins to load before mounting the App
    */
@@ -51,4 +55,4 @@ export default {
      */
     extend(config, ctx) {}
   }
-}
+};
