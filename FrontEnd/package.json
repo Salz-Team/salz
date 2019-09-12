@@ -1,0 +1,26 @@
+{
+  "name": "salz-frontend",
+  "version": "0.0.1",
+  "description": "A web frontend for salz",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lugarun/salz.git"
+  },
+  "keywords": [
+    "salz"
+  ],
+  "author": "Lugarun, Mosiman, Japorized",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/Lugarun/salz/issues"
+  },
+  "homepage": "https://github.com/Lugarun/salz#readme",
+  "dependencies": {
+    "pixi-viewport": "^4.2.2",
+    "pixi.js": "^5.1.3"
+  }
+}
