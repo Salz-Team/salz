@@ -60,7 +60,7 @@ export default {
           to: { name: 'game' }
         }
       ]
-    }
+    };
   }
-}
+};
 </script>
