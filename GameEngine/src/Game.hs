@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TupleSections #-}
 
 module Game where
     
@@ -7,54 +7,67 @@ import PlayerBotHandler
 import Board
 import Step
 import Types
-import qualified Database as B
+import qualified BotBuilder as BB
+import qualified Database as DB
 import qualified Data.Text as T
 import GHC.TypeLits hiding (Mod)
 import Data.Maybe
-import Data.Either
+import qualified Data.Either as E
 import Data.Modular
-
-initializeGame :: (KnownNat w, KnownNat h) => [T.Text] -> IO (Game w h)
-initializeGame playerExes = do
-
-  -- random starting locations
-  let startingLocations = map getStartLoc [1..(length playerExes)]
-
-  let p = map (\(i, src) -> Player i src) $ zip [0..] startingLocations
-  let b = foldr (\p1 b1 -> fillStartingLocation b1 p1) (Board []) p
-
-  return $ Game b (zip p playerExes) 0
-
-fillStartingLocation :: (KnownNat w, KnownNat h) =>
-  Board w h CellInfo -> Player -> Board w h CellInfo
-fillStartingLocation b p = Board { bCells = nCell:(bCells b) }
-  where
-    nCell = Cell x y (CellInfo pid)
-    y = toMod $ snd $ pPlayerSource p
-    x = toMod $ fst $ pPlayerSource p
-    pid = pPlayerId p
-
-getStartLoc :: Int -> (Int, Int)
-getStartLoc seed = (seed * 5790153, seed * 57281)
 
 
 gameLoop :: (KnownNat w, KnownNat h) => Game w h -> IO ()
-gameLoop game = do
-  commands <- playerTurn game
+gameLoop g = do
+  dbplayerinfo <- DB.readPlayers (dbconnstring g)
+  builtstatus <- buildNewBots dbplayerinfo
+  DB.writeBuildResults builtstatus
 
-  let (filteredgame, filteredCommands) = kickBadPlayers game commands
-  let ngame = applyCommands filteredgame filteredCommands
-  let steppedgame = ngame {board = step (board ngame), turn = (turn ngame) + 1}
-  B.saveGame "test.db" steppedgame
+  -- Start new players bots, replace old bots with new bots
+  g1 <- updatePlayerBotHandlers g DB.readPlayers
+  g2 <- createNewPlayerStarts g1
 
-  putStrLn "Players Applied"
-  putStrLn $ fromJust $ display (board ngame) 1 1 70 70
-  putStrLn "Stepped"
-  putStrLn $ fromJust $ display (board steppedgame) 1 1 70 70
+  botResults <- botTurns g2
+  botStatus <- handleBadBots botResults
 
-  if (bCells $ board steppedgame) == []
-  then putStrLn "Done"
-  else gameLoop steppedgame
+  DB.writeBotResults botStatus
+
+  commands <- getLegalCommands botResults
+  g3 <- applyCommands g2 commands
+
+  g4 <- stepGame g3
+
+  gameLoop g4
+
+-- [(playerid, username, botdir, updatedbot, newbotdir, botstatus)] ->
+buildNewBots :: [(Int, T.Text, T.Text, Bool, T.Text, T.Text)] -> IO ([(Int, E.Either T.Text T.Text)])
+buildNewBots playerinfo  = mapM buildBot $ filter isNewBots playerinfo
+  where
+    isNewBots :: (Int, T.Text, T.Text, Bool, T.Text, T.Text) -> Bool
+    isNewBots (_, _, _, b, _, _) = b
+
+    buildBot :: (Int, T.Text, T.Text, Bool, T.Text, T.Text) -> IO (Int, E.Either T.Text T.Text)
+    buildBot (pid, _, _, _, nbdir, _) = (pid, ) <$> BB.buildBot nbdir
+
+updatePlayerBotHandlers :: Game w h -> readplayers -> IO (Game w h)
+updatePlayerBotHandlers = undefined
+
+createNewPlayerStarts :: Game w h -> IO (Game w h)
+createNewPlayerStarts = undefined
+
+botTurns :: Game w h -> IO (botresults)
+botTurns = undefined
+
+handleBadBots :: botresults -> IO (botStatus)
+handleBadBots = undefined
+
+getLegalCommands :: botresults -> IO (commands)
+getLegalCommands = undefined
+
+applyCommands :: Game w h -> commands -> IO (Game w h)
+applyCommands = undefined
+
+stepGame :: Game w h -> IO (Game w h)
+stepGame = undefined
 
 playerTurn :: (KnownNat w, KnownNat h) => Game w h -> IO ([Either ParseError [Command]])
 playerTurn g = do
@@ -67,12 +80,12 @@ kickBadPlayers :: Game w h -> [Either ParseError a] -> (Game w h, [a])
 kickBadPlayers g pcl = (g {players = nps g}, cmds g)
   where
     zippedPlayersCommands g1 = zipWith (\ma b -> (\a -> (a, b)) <$> ma)  pcl $ players g1
-    filteredPlayers g1 = rights $ zippedPlayersCommands g1
+    filteredPlayers g1 = E.rights $ zippedPlayersCommands g1
     nps g1 = map snd $ filteredPlayers g1
     cmds g1 = map fst $ filteredPlayers g1
 
-applyCommands :: (KnownNat h, KnownNat w) => Game h w -> [[Command]] -> Game h w
-applyCommands g cl = g {board = nboard}
+applyCommands2 :: (KnownNat h, KnownNat w) => Game h w -> [[Command]] -> Game h w
+applyCommands2 g cl = g {board = nboard}
   where
     nboard = foldl (applyCommand (board g)) (board g) $ zip (map (pPlayerId . fst) $ players g) cl
 

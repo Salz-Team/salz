@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings, StandaloneDeriving, FlexibleInstances #-}
 
 module Database ( saveGame
-                , readPlayers) where
+                , readPlayers
+                , writeBuildResults
+                , writeBotResults ) where
     
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.Time
@@ -10,6 +12,7 @@ import Prelude hiding (catch)
 import Data.Time.LocalTime
 import Data.Modular
 
+import qualified Data.Either as E
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Types as MT
@@ -52,3 +55,9 @@ readPlayers connectionString = do
   result <- query_ conn mquery
   close conn
   return result
+
+writeBuildResults :: [(Int, E.Either T.Text T.Text)] -> IO ()
+writeBuildResults _ = return ()
+
+writeBotResults:: [Int] -> IO ()
+writeBotResults _ = return ()

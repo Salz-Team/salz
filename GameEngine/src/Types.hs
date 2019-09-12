@@ -12,6 +12,7 @@ data Game w h = Game
   { board :: Board w h CellInfo
   , players :: [(Player, T.Text)]
   , turn :: Int
+  , dbconnstring :: T.Text
   }
 
 data Cell (w :: Nat) (h :: Nat) i = Cell
