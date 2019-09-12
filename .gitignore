@@ -1,1 +1,7 @@
 experiment
+
+# npm stuff
+node_modules/
+
+# Japorized's dev artifacts
+tags
