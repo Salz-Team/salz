@@ -3,6 +3,7 @@ module PlayerBotHandler
   , ParseError
   , initializePlayer
   , playerTakeTurn
+  , updatePlayerBot
   )
     where
 
@@ -11,18 +12,23 @@ import Board
 import Player
 
 import qualified Data.Text as T
-import Data.Either()
+import qualified Data.Either as E
 import Text.Read
 import Types
 
 
 initializePlayer :: T.Text -> IO (PlayerBotHandler)
-initializePlayer t = PlayerBotHandler <$> createExternalProcess t
+initializePlayer t = PlayerBotHandler . Right <$> createExternalProcess t
+
+-- start new bot process, create new player if needed
+-- if there is an error store it in the bothandler
+updatePlayerBot :: Game w h -> (Int, T.Text) -> IO (Game w h)
+updatePlayerBot g _ = return g
 
 playerTakeTurn :: Board h w CellInfo -> T.Text -> IO (Either ParseError [Command])
 playerTakeTurn b t = do
     pbh <- initializePlayer t
-    let e = eph pbh
+    let (Right e) = eph pbh
     res <- timedCallandResponse 500 e parsedBoard
     let transres = translateLeft (Extern) res
     cleanPlayer e
