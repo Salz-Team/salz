@@ -28,14 +28,13 @@ gameLoop g = do
   g2 <- createNewPlayerStarts g1
 
   botResults <- botTurns g2
-  botStatus <- handleBadBots botResults
 
-  DB.writeBotResults botStatus
+  DB.writeBotResults $ botResults
 
-  commands <- getLegalCommands botResults
-  g3 <- applyCommands g2 commands
+  let commands = getLegalCommands botResults
+  let g3 = applyCommands g2 commands
 
-  g4 <- stepGame g3
+  let g4 = stepGame g3
 
   gameLoop g4
 
@@ -60,19 +59,16 @@ updatePlayerBotHandlers g results = CM.foldM updatePlayerBot g $ E.rights $ map 
 createNewPlayerStarts :: Game w h -> IO (Game w h)
 createNewPlayerStarts = undefined
 
-botTurns :: Game w h -> IO (botresults)
-botTurns = undefined
+botTurns :: Game w h -> IO ([(Int, E.Either T.Text [Command])])
+botTurns _ = return []
 
-handleBadBots :: botresults -> IO (botStatus)
-handleBadBots = undefined
-
-getLegalCommands :: botresults -> IO (commands)
+getLegalCommands :: [(Int, E.Either T.Text [Command])] -> [(Int, Command)]
 getLegalCommands = undefined
 
-applyCommands :: Game w h -> commands -> IO (Game w h)
+applyCommands :: Game w h -> [(Int, Command)] -> Game w h
 applyCommands = undefined
 
-stepGame :: Game w h -> IO (Game w h)
+stepGame :: Game w h -> Game w h
 stepGame = undefined
 
 playerTurn :: (KnownNat w, KnownNat h) => Game w h -> IO ([Either ParseError [Command]])
