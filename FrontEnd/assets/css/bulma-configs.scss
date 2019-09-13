@@ -1,11 +1,14 @@
 // Import Bulma's core
 @import "~bulma/sass/utilities/_all";
+@import "~assets/css/functions";
 
 $size-1: 3rem;
 
 // Set your colors
 $primary: #8c67ef;
 $primary-invert: findColorInvert($primary);
+$primary-darker-05: darkenHexColor($primary, 0.05);
+$primary-darker-10: darkenHexColor($primary, 0.10);
 $twitter: #4099FF;
 $twitter-invert: findColorInvert($twitter);
 
