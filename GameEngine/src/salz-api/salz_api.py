@@ -39,6 +39,18 @@ def hello_world():
 
     return f"{users}"
 
+@app.route('/frames')
+@db_session
+def get_frames():
+
+    # get the last 10 turnids
+    framenums = select(g.turnid for g in Game).order_by(desc(1))[:10]
+
+    playerframes = select((g.turnid, g.playerid, group_concat(g.x), group_concat(g.y)) for g in Game if g.turnid in framenums)[:]
+
+    return f"{framenums}"
+
+
 if __name__ == '__main__':
     app.debug = True
     app.run(host='0.0.0.0', port='8080')
