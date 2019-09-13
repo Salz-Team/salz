@@ -10,6 +10,7 @@ import Types
 import qualified BotBuilder as BB
 import qualified Database as DB
 import qualified Data.Text as T
+import qualified Control.Monad as CM
 import GHC.TypeLits hiding (Mod)
 import Data.Maybe
 import qualified Data.Either as E
@@ -19,11 +20,11 @@ import Data.Modular
 gameLoop :: (KnownNat w, KnownNat h) => Game w h -> IO ()
 gameLoop g = do
   dbplayerinfo <- DB.readPlayers (dbconnstring g)
-  builtstatus <- buildNewBots dbplayerinfo
-  DB.writeBuildResults (dbconnstring g) builtstatus
+  buildstatus <- buildNewBots dbplayerinfo
+  DB.writeBuildResults (dbconnstring g) buildstatus
 
   -- Start new players bots, replace old bots with new bots
-  g1 <- updatePlayerBotHandlers g DB.readPlayers
+  g1 <- updatePlayerBotHandlers g buildstatus
   g2 <- createNewPlayerStarts g1
 
   botResults <- botTurns g2
@@ -38,7 +39,7 @@ gameLoop g = do
 
   gameLoop g4
 
--- [(playerid, username, botdir, updatedbot, newbotdir, botstatus)] ->
+-- [(playerid, username, botdir, updatedbot, newbotdir, botstatus)]
 buildNewBots :: [(Int, T.Text, T.Text, Bool, T.Text, T.Text)] -> IO ([(Int, E.Either T.Text T.Text)])
 buildNewBots playerinfo  = mapM buildBot $ filter isNewBots playerinfo
   where
@@ -48,8 +49,13 @@ buildNewBots playerinfo  = mapM buildBot $ filter isNewBots playerinfo
     buildBot :: (Int, T.Text, T.Text, Bool, T.Text, T.Text) -> IO (Int, E.Either T.Text T.Text)
     buildBot (pid, _, _, _, nbdir, _) = (pid, ) <$> BB.buildBot nbdir
 
-updatePlayerBotHandlers :: Game w h -> readplayers -> IO (Game w h)
-updatePlayerBotHandlers = undefined
+
+updatePlayerBotHandlers :: Game w h -> [(Int, E.Either T.Text T.Text)] -> IO (Game w h)
+updatePlayerBotHandlers g results = CM.foldM updatePlayerBot g $ E.rights $ map wrapInEither results
+  where
+    wrapInEither (pid, Left msg) = Left (pid, msg)
+    wrapInEither (pid, Right path) = Right (pid, path)
+
 
 createNewPlayerStarts :: Game w h -> IO (Game w h)
 createNewPlayerStarts = undefined
