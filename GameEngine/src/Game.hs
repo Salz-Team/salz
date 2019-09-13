@@ -20,7 +20,7 @@ gameLoop :: (KnownNat w, KnownNat h) => Game w h -> IO ()
 gameLoop g = do
   dbplayerinfo <- DB.readPlayers (dbconnstring g)
   builtstatus <- buildNewBots dbplayerinfo
-  DB.writeBuildResults builtstatus
+  DB.writeBuildResults (dbconnstring g) builtstatus
 
   -- Start new players bots, replace old bots with new bots
   g1 <- updatePlayerBotHandlers g DB.readPlayers

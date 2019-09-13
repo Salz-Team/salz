@@ -56,8 +56,19 @@ readPlayers connectionString = do
   close conn
   return result
 
-writeBuildResults :: [(Int, E.Either T.Text T.Text)] -> IO ()
-writeBuildResults _ = return ()
 
-writeBotResults:: [Int] -> IO ()
+writeBuildResults :: T.Text -> [(Int, E.Either T.Text T.Text)] -> IO ()
+writeBuildResults connectionString buildresults = do
+  conn <- connectPostgreSQL (TE.encodeUtf8 connectionString)
+  mapM (writeResult conn) buildresults
+  close conn
+  return ()
+  where
+    errorQuery = "UPDATE players SET updatedbot = False, botstatus = ? WHERE playerid = ?;"
+    successQuery = "UPDATE players SET updatedbot = False, botstatus = 'Successful Build', newbotdir = ? WHERE playerid = ?;"
+
+    writeResult :: Connection -> (Int, E.Either T.Text T.Text) -> IO ()
+    writeResult conn1 (i, Left errMsg) = execute conn1 errorQuery (errMsg, i) >> return ()
+    writeResult conn1 (i, Right newPath) = execute conn1 successQuery (newPath, i) >> return ()
+
 writeBotResults _ = return ()
