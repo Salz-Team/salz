@@ -22,7 +22,7 @@ initializePlayer t = PlayerBotHandler . Right <$> createExternalProcess t
 
 -- start new bot process, create new player if needed
 -- if there is an error store it in the bothandler
-updatePlayerBot :: Game w h -> (Int, T.Text) -> IO (Game w h)
+updatePlayerBot :: Game w h -> (Int, FilePath) -> IO (Game w h)
 updatePlayerBot g _ = return g
 
 playerTakeTurn :: Board h w CellInfo -> T.Text -> IO (Either ParseError [Command])

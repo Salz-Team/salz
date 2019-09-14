@@ -6,6 +6,7 @@ First:
 
 Second: basic functionallity works with database
 - buildBot
+- run bots safely: checkout cgexec, cgroup, etc..
 
 Last:
 - database :: handle exceptions

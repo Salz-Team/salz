@@ -24,6 +24,8 @@ dependencies:
 - modular-arithmetic
 - text
 - process
+- filepath
+- temporary
 - transformers
 - postgresql-simple
 - time

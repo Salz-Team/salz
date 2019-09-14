@@ -20,7 +20,7 @@ import Data.Modular
 gameLoop :: (KnownNat w, KnownNat h) => Game w h -> IO ()
 gameLoop g = do
   dbplayerinfo <- DB.readPlayers (dbconnstring g)
-  buildstatus <- buildNewBots dbplayerinfo
+  buildstatus <- buildNewBots (botDir g) dbplayerinfo
   DB.writeBuildResults (dbconnstring g) buildstatus
 
   -- Start new players bots, replace old bots with new bots
@@ -39,17 +39,17 @@ gameLoop g = do
   gameLoop g4
 
 -- [(playerid, username, botdir, updatedbot, newbotdir, botstatus)]
-buildNewBots :: [(Int, T.Text, T.Text, Bool, T.Text, T.Text)] -> IO ([(Int, E.Either T.Text T.Text)])
-buildNewBots playerinfo  = mapM buildBot $ filter isNewBots playerinfo
+buildNewBots :: FilePath -> [(Int, T.Text, FilePath, Bool, FilePath, T.Text)] -> IO ([(Int, E.Either T.Text FilePath)])
+buildNewBots botDir playerinfo  = mapM buildBot $ filter isNewBots playerinfo
   where
-    isNewBots :: (Int, T.Text, T.Text, Bool, T.Text, T.Text) -> Bool
+    isNewBots :: (Int, T.Text, FilePath, Bool, FilePath, T.Text) -> Bool
     isNewBots (_, _, _, b, _, _) = b
 
-    buildBot :: (Int, T.Text, T.Text, Bool, T.Text, T.Text) -> IO (Int, E.Either T.Text T.Text)
-    buildBot (pid, _, _, _, nbdir, _) = (pid, ) <$> BB.buildBot nbdir
+    buildBot :: (Int, T.Text, FilePath, Bool, FilePath, T.Text) -> IO (Int, E.Either T.Text FilePath)
+    buildBot (pid, _, _, _, nbdir, _) = (pid, ) <$> BB.buildBot nbdir botDir
 
 
-updatePlayerBotHandlers :: Game w h -> [(Int, E.Either T.Text T.Text)] -> IO (Game w h)
+updatePlayerBotHandlers :: Game w h -> [(Int, E.Either T.Text FilePath)] -> IO (Game w h)
 updatePlayerBotHandlers g results = CM.foldM updatePlayerBot g $ E.rights $ map wrapInEither results
   where
     wrapInEither (pid, Left msg) = Left (pid, msg)

@@ -14,6 +14,7 @@ data Game w h = Game
   , players :: [(Player, T.Text)]
   , turn :: Int
   , dbconnstring :: T.Text
+  , botDir :: FilePath
   }
 
 data Cell (w :: Nat) (h :: Nat) i = Cell
