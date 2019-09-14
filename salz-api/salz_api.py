@@ -4,11 +4,26 @@ from datetime import datetime
 import psycopg2
 import json
 from pony.orm import *
+import time
 
 app = Flask(__name__)
 
 db = Database()
-db.bind(provider='postgres', user='postgres', password='mysecretpassword', host='localhost', port=5432, database='postgres')
+
+
+def wait_for_connection():
+    retries = 0
+    max_retries = 10
+
+    while retries < max_retries:
+        try:
+            db.bind(provider='postgres', user='postgres', password='mysecretpassword', host='salz-db', port=5432, database='postgres')
+        except pony.orm.dbapiprovider.OperationalError as error:
+            print("Could not connect to postgres database. Retrying in 3 seconds")
+            retries += 1
+            time.sleep(3)
+
+db.bind(provider='postgres', user='postgres', password='mysecretpassword', host='salz-db', port=5432, database='postgres')
 
 # this is already pretty shittiliy organized anyways, so why not throw some constants up here eh
 
