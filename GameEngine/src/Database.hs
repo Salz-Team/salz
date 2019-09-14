@@ -48,7 +48,7 @@ formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i
 -- saveGame can throw exceptions from the Database.PostgreSQL.Simple class
 -- these exceptions are not handled
 -- (playerid, username, botdir, updatedbot, newbotdir, botstatus)
-readPlayers :: T.Text -> IO ([(Int, T.Text, T.Text, Bool, T.Text, T.Text)])
+readPlayers :: T.Text -> IO ([(Int, T.Text, FilePath, Bool, FilePath, T.Text)])
 readPlayers connectionString = do
   conn <- connectPostgreSQL (TE.encodeUtf8 connectionString)
   let mquery = "SELECT * FROM players"
@@ -57,7 +57,7 @@ readPlayers connectionString = do
   return result
 
 
-writeBuildResults :: T.Text -> [(Int, E.Either T.Text T.Text)] -> IO ()
+writeBuildResults :: T.Text -> [(Int, E.Either T.Text FilePath)] -> IO ()
 writeBuildResults connectionString buildresults = do
   conn <- connectPostgreSQL (TE.encodeUtf8 connectionString)
   mapM (writeResult conn) buildresults
@@ -67,7 +67,7 @@ writeBuildResults connectionString buildresults = do
     errorQuery = "UPDATE players SET updatedbot = False, botstatus = ? WHERE playerid = ?;"
     successQuery = "UPDATE players SET updatedbot = False, botstatus = 'Successful Build', newbotdir = ? WHERE playerid = ?;"
 
-    writeResult :: Connection -> (Int, E.Either T.Text T.Text) -> IO ()
+    writeResult :: Connection -> (Int, E.Either T.Text FilePath) -> IO ()
     writeResult conn1 (i, Left errMsg) = execute conn1 errorQuery (errMsg, i) >> return ()
     writeResult conn1 (i, Right newPath) = execute conn1 successQuery (newPath, i) >> return ()
 
