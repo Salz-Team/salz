@@ -3,9 +3,7 @@
     <navbar />
 
     <section class="main-content columns">
-      <div class="container column is-12">
-        <nuxt />
-      </div>
+      <nuxt />
     </section>
   </div>
 </template>

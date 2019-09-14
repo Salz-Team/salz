@@ -1,8 +1,5 @@
 <template id="salz-game-view">
-  <div id="salz-game-inner-view">
-    Testing Pixi with Viewport plugin<br />
-    scroll to zoom | drag<br />
-  </div>
+  <div id="salz-game-inner-view"></div>
 </template>
 
 <script charset="utf-8">
