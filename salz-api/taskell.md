@@ -1,6 +1,5 @@
 ## To Do
 
-- Frame endpoint
 - Auth endpoints
 - Bot endpoints
 
@@ -17,3 +16,4 @@
 
 - Basic server up and running
 - Mock up database data
+- Frame endpoint
