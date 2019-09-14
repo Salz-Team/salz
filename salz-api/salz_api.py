@@ -1,12 +1,19 @@
 from flask import Flask
+from flask import jsonify
 from datetime import datetime
 import psycopg2
+import json
 from pony.orm import *
 
 app = Flask(__name__)
 
 db = Database()
 db.bind(provider='postgres', user='postgres', password='mysecretpassword', host='localhost', port=5432, database='postgres')
+
+# this is already pretty shittiliy organized anyways, so why not throw some constants up here eh
+
+DEFAULT_TURNHISTORY = 100
+
 
 set_sql_debug(True)
 
@@ -42,13 +49,19 @@ def hello_world():
 @app.route('/frames')
 @db_session
 def get_frames():
+    maxFrame = db.select('* FROM get_latest_turnid()')[0]
+    
+    endFrame = maxFrame - DEFAULT_TURNHISTORY
 
-    # get the last 10 turnids
-    framenums = select(g.turnid for g in Game).order_by(desc(1))[:10]
+    frames = db.select('* from get_frames($endFrame, $maxFrame)')
 
-    playerframes = select((g.turnid, g.playerid, group_concat(g.x), group_concat(g.y)) for g in Game if g.turnid in framenums)[:]
+    jsonframes = [json.loads(x) for x in frames]
 
-    return f"{framenums}"
+    response = app.response_class(
+            response = json.dumps({"frames" : jsonframes}),
+            status = 200,
+            mimetype='application/json')
+    return response
 
 
 if __name__ == '__main__':
