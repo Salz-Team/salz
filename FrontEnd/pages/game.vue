@@ -55,7 +55,14 @@ export default {
       .drag()
       .pinch()
       .wheel()
-      .decelerate();
+      .decelerate()
+      .clampZoom({
+        minWidth: vpWorldWidth / 10,
+        minHeight: vpWorldHeight / 10,
+        maxWidth: vpWorldWidth * 10,
+        maxHeight: vpWorldHeight * 10
+      });
+
     // hotkeys
     document.onkeypress = function(e) {
       switch (e.keyCode) {
