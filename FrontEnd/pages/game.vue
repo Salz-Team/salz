@@ -2,34 +2,48 @@
   <div id="salz-game-inner-view"></div>
 </template>
 
+<style lang="scss">
+#salz-game-inner-view {
+  height: 100vh;
+}
+</style>
+
 <script charset="utf-8">
 export default {
   async mounted() {
     const PIXI = await import('pixi.js');
     const Viewport = await import('pixi-viewport');
 
-    let type = 'WebGL';
-    if (!PIXI.utils.isWebGLSupported()) {
-      type = 'canvas';
-    }
+    const wrapper = document.querySelector('#salz-game-inner-view');
 
-    PIXI.utils.sayHello(type);
+    const appWidth = Math.max(
+      document.documentElement.clientWidth,
+      window.innerWidth || 0
+    );
+    const appHeight = Math.max(
+      document.documentElement.clientHeight,
+      window.innerHeight || 0
+    );
 
     const app = new PIXI.Application({
-      width: 500,
-      height: 500,
+      width: appWidth,
+      height: appHeight,
       backgroundColor: 0x000000,
+      resizeTo: document.querySelector('.main-content'),
       resolution: window.devicePixelRatio || 1
     });
-    document.querySelector('#salz-game-inner-view').appendChild(app.view);
+    wrapper.appendChild(app.view);
 
+    const vpWorldWidth = 1000;
+    const vpWorldHeight = 1000;
     const viewport = new Viewport.Viewport({
       screenWidth: window.innerWidth,
       screenHeight: window.innerHeight,
-      worldWidth: 1000,
-      worldHeight: 1000,
+      worldWidth: vpWorldWidth,
+      worldHeight: vpWorldHeight,
       interaction: app.renderer.plugins.interaction
     });
+    viewport.moveCenter(0, 0);
     app.stage.addChild(viewport);
     viewport
       .drag()
@@ -72,6 +86,9 @@ export default {
       sprite.width = sprite.height = 10;
       sprite.position.set(coord.x * 10, coord.y * 10);
     }
+    window.addEventListener('resize', (event) => {
+      app.resize();
+    });
   }
 };
 </script>
