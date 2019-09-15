@@ -10,6 +10,16 @@
 
 <script charset="utf-8">
 export default {
+  data() {
+    return {
+      frames: []
+    };
+  },
+  async asyncData(ctx) {
+    // return {
+    //   frames: await ctx.app.$framesRepo.frames()
+    // };
+  },
   async mounted() {
     const PIXI = await import('pixi.js');
     const Viewport = await import('pixi-viewport');
