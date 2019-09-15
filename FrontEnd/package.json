@@ -21,6 +21,7 @@
     }
   },
   "dependencies": {
+    "@nuxtjs/axios": "^5.6.0",
     "nuxt": "^2.0.0",
     "nuxt-buefy": "^0.3.2",
     "pixi-viewport": "^4.2.2",
