@@ -47,10 +47,17 @@ export default {
     'nuxt-buefy',
     // Info: https://axios.nuxtjs.org/setup
     '@nuxtjs/axios',
+    // Doc: https://markdown-it.github.io/markdown-it/
+    '@nuxtjs/markdownit'
   ],
   axios: {
     // proxyHeaders: false
     baseURL: 'http://127.0.0.1:8080/'
+  },
+  markdownit: {
+    preset: 'default',
+    html: true,
+    typographer: true,
   },
   /*
    ** Build configuration

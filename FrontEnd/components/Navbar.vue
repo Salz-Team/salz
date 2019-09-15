@@ -84,6 +84,11 @@ export default {
           to: { name: 'index' }
         },
         {
+          title: 'About',
+          icon: 'book',
+          to: { name: 'about' }
+        },
+        {
           title: 'Inspire',
           icon: 'lightbulb',
           to: { name: 'inspire' }

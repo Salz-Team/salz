@@ -1,3 +1,35 @@
+@import '~assets/css/bulma-configs';
+
+h1 {
+  font-size: $size-1;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: $size-2;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: $size-3;
+  font-weight: 500;
+}
+
+h4 {
+  font-size: $size-4;
+  font-weight: 500;
+}
+
+h5 {
+  font-size: $size-5;
+  font-weight: 500;
+}
+
+h6 {
+  font-size: $size-6;
+  font-weight: 500;
+}
+
 .menu-list {
   list-style: none;
 }
