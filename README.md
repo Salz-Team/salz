@@ -32,3 +32,9 @@ For now, hit the `/frames/` endpoint. I.e., `localhost:8080/frames`
 ## Bot Requirements
 Bots should be submitted as a .tar file containing a `run.sh` and a `build.sh`
 in the root directory.
+
+---
+
+## Website
+
+See `FrontEnd/README.md`.
