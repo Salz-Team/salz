@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import jsonify
+from flask_cors import CORS
 from datetime import datetime
 import psycopg2
 import json
@@ -7,6 +8,8 @@ from pony.orm import *
 import time
 
 app = Flask(__name__)
+CORS(app)
+
 
 db = Database()
 
