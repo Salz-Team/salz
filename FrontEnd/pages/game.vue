@@ -14,6 +14,12 @@ export default {
     const PIXI = await import('pixi.js');
     const Viewport = await import('pixi-viewport');
 
+    document.cancelFullScreen =
+      document.cancelFullScreen ||
+      document.webkitCancelFullScreen ||
+      document.mozCancelFullScreen;
+
+    let isFullscreen = false;
     const wrapper = document.querySelector('#salz-game-inner-view');
 
     const appWidth = Math.max(
@@ -50,6 +56,24 @@ export default {
       .pinch()
       .wheel()
       .decelerate();
+    // hotkeys
+    document.onkeypress = function(e) {
+      switch (e.keyCode) {
+        case 102: // f
+          fullscreen(app.view, !isFullscreen);
+          break;
+      }
+    };
+
+    const btn = createTextButton(
+      'Fullscreen',
+      { padding: 10, fill: '#FF0000' },
+      () => {
+        fullscreen(app.view, !isFullscreen);
+      }
+    );
+    btn.x = appWidth - btn.width - 20;
+    btn.y = appHeight - btn.height - 20;
 
     // This is a dummy data set
     const frame = [
@@ -86,8 +110,50 @@ export default {
       sprite.width = sprite.height = 10;
       sprite.position.set(coord.x * 10, coord.y * 10);
     }
+
+    function fullscreen(el, value) {
+      el.addEventListener('webkitfullscreenchange', onFullscreenChange);
+      el.addEventListener('mozfullscreenchange', onFullscreenChange);
+      el.addEventListener('fullscreenchange', onFullscreenChange);
+
+      if (value) {
+        if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        } else {
+          el.mozRequestFullScreen();
+        }
+      } else {
+        document.cancelFullScreen();
+      }
+    }
+
+    function onFullscreenChange() {
+      isFullscreen = !isFullscreen;
+    }
+
+    function createTextButton(text, style, fn) {
+      const btn = new PIXI.Text(text, style);
+      btn.interactive = true;
+      btn.buttonMode = true;
+      btn.on('click', fn);
+      app.stage.addChild(btn);
+
+      return btn;
+    }
+
     window.addEventListener('resize', (event) => {
       app.resize();
+
+      const appWidth = Math.max(
+        document.documentElement.clientWidth,
+        window.innerWidth || 0
+      );
+      const appHeight = Math.max(
+        document.documentElement.clientHeight,
+        window.innerHeight || 0
+      );
+      btn.x = appWidth - btn.width - 20;
+      btn.y = appHeight - btn.height - 20;
     });
   }
 };
