@@ -1,3 +1,14 @@
+const api_baseurl = () => {
+  switch (process.env.FRONTEND_ENV) {
+    case "prod":
+    case "docker-dev":
+      return "http://salz-api:8080";
+    case "dev":
+    default: 
+      return "http://localhost:8080";
+  }
+}
+
 export default {
   mode: 'spa',
   /*
@@ -52,7 +63,7 @@ export default {
   ],
   axios: {
     // proxyHeaders: false
-    baseURL: 'http://127.0.0.1:8080/'
+    baseURL: api_baseurl()
   },
   markdownit: {
     preset: 'default',

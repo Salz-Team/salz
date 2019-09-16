@@ -1,5 +1,5 @@
 export default ($axios) => (resource) => ({
-  frames() {
+  index() {
     return $axios.$get(`${resource}`);
   }
 });
