@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, abort
 from flask import jsonify
 from flask_cors import CORS
 from datetime import datetime
@@ -6,9 +6,21 @@ import psycopg2
 import json
 from pony.orm import *
 import time
+import os
 
 app = Flask(__name__)
 CORS(app)
+
+
+# Load up env vars
+
+PGDB = os.getenv("POSTGRES_DB", "postgres")
+PGUSER = os.getenv("POSTGRES_USER", "postgres")
+PGPASS = os.getenv("POSTGRES_PASSWORD", "mysecretpassword")
+PGPORT = os.getenv("POSTGRES_PORT", "5432")
+PGHOST = os.getenv("POSTGRES_HOST", "localhost")
+
+DEFAULT_TURNHISTORY = 100
 
 db = Database()
 
@@ -19,7 +31,7 @@ def wait_for_connection():
 
     while (retries < max_retries) and not succeeded:
         try:
-            db.bind(provider='postgres', user='postgres', password='mysecretpassword', host='salz-db', port=5432, database='postgres')
+            db.bind(provider='postgres', user=PGUSER, password=PGPASS, host=PGHOST, port=PGPORT, database=PGDB)
             succeeded = True
             return True
         except pony.orm.dbapiprovider.OperationalError as error:
@@ -32,11 +44,7 @@ def wait_for_connection():
 
 wait_for_connection()
 
-# this is already pretty shittiliy organized anyways, so why not throw some constants up here eh
-
-DEFAULT_TURNHISTORY = 100
-
-
+# TODO add debug env vars to set this
 set_sql_debug(True)
 
 # classes corresponding to tables in the db
@@ -68,11 +76,24 @@ def get_frames():
     print(args)
 
     if ('startframe' in args) and ('endframe' in args):
-        startFrame = args['startframe']
-        endFrame = args['endframe']
+
+        try:
+            sf = int(args['startframe'])
+            ef = int(args['endframe'])
+        except ValueError as e:
+            return abort(400)
+
+        startFrame = sf
+        endFrame = ef
     elif ('numframes' in args):
+
+        try:
+            nf = int(args['numframes'])
+        except ValueError as e:
+            return abort(400)
+
         endFrame = db.select('* FROM get_latest_turnid()')[0]
-        startFrame = endFrame - args['numframes']
+        startFrame = endFrame - nf
 
     else:
         endFrame = db.select('* FROM get_latest_turnid()')[0]
