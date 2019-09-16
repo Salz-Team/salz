@@ -12,17 +12,20 @@
 export default {
   data() {
     return {
-      frames: []
+      index: []
     };
   },
   async asyncData(ctx) {
-    // return {
-    //   frames: await ctx.app.$framesRepo.frames()
-    // };
+    return {
+      index: await ctx.app.$framesRepo.index()
+    };
   },
   async mounted() {
     const PIXI = await import('pixi.js');
     const Viewport = await import('pixi-viewport');
+    this.index.frames.forEach((frame) => {
+      console.log(frame['1']);
+    });
 
     document.cancelFullScreen =
       document.cancelFullScreen ||

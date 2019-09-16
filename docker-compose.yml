@@ -22,3 +22,9 @@ services:
       - POSTGRES_PASSWORD=mysecretpassword
       - POSTGRES_PORT=5432
       - POSTGRES_HOST=salz-db
+  salz-web:
+    build: FrontEnd
+    ports:
+      - "3000:3000"
+    expose:
+      - "3000"
