@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask import jsonify
 from flask_cors import CORS
 from datetime import datetime
@@ -63,11 +63,22 @@ db.generate_mapping()
 @app.route('/frames')
 @db_session
 def get_frames():
-    maxFrame = db.select('* FROM get_latest_turnid()')[0]
+    args = request.args
     
-    endFrame = maxFrame - DEFAULT_TURNHISTORY
+    print(args)
 
-    frames = db.select('* from get_frames($endFrame, $maxFrame)')
+    if ('startframe' in args) and ('endframe' in args):
+        startFrame = args['startframe']
+        endFrame = args['endframe']
+    elif ('numframes' in args):
+        endFrame = db.select('* FROM get_latest_turnid()')[0]
+        startFrame = endFrame - args['numframes']
+
+    else:
+        endFrame = db.select('* FROM get_latest_turnid()')[0]
+        startFrame = endFrame - DEFAULT_TURNHISTORY
+
+    frames = db.select('* from get_frames($startFrame, $endFrame)')
 
     # pony not decoding the json, so I guess I gotta.
     jsonframes = [json.loads(x) for x in frames]
