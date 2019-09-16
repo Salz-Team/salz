@@ -35,7 +35,7 @@ CREATE OR REPLACE FUNCTION get_frames(startFrame INTEGER, endFrame INTEGER)
 AS $$
 BEGIN
 	RETURN QUERY SELECT
-		json_build_object(K.turnid, json_agg(K)) "frames"
+		json_agg(K) "frames"
 		FROM (SELECT * FROM get_playerframes(startFrame, endFrame)) K
 	GROUP BY K.turnid
 	ORDER BY K.turnid;

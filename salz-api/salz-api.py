@@ -10,23 +10,27 @@ import time
 app = Flask(__name__)
 CORS(app)
 
-
 db = Database()
-
 
 def wait_for_connection():
     retries = 0
     max_retries = 10
+    succeeded = False
 
-    while retries < max_retries:
+    while (retries < max_retries) and not succeeded:
         try:
             db.bind(provider='postgres', user='postgres', password='mysecretpassword', host='salz-db', port=5432, database='postgres')
+            succeeded = True
+            return True
         except pony.orm.dbapiprovider.OperationalError as error:
             print("Could not connect to postgres database. Retrying in 3 seconds")
             retries += 1
             time.sleep(3)
 
-db.bind(provider='postgres', user='postgres', password='mysecretpassword', host='salz-db', port=5432, database='postgres')
+    print("Couldn't connect to the database: max retries exceeded")
+    exit(1)
+
+wait_for_connection()
 
 # this is already pretty shittiliy organized anyways, so why not throw some constants up here eh
 
@@ -56,14 +60,6 @@ class Players(db.Entity):
 db.generate_mapping()
 
 # things accessing the db need to have the db_session decorator
-@app.route('/')
-@db_session
-def hello_world():
-
-    users = select(p.username for p in Players)[:]
-
-    return f"{users}"
-
 @app.route('/frames')
 @db_session
 def get_frames():
@@ -73,6 +69,7 @@ def get_frames():
 
     frames = db.select('* from get_frames($endFrame, $maxFrame)')
 
+    # pony not decoding the json, so I guess I gotta.
     jsonframes = [json.loads(x) for x in frames]
 
     response = app.response_class(
@@ -81,8 +78,6 @@ def get_frames():
             mimetype='application/json')
     return response
 
-
 if __name__ == '__main__':
     app.debug = True
     app.run(host='0.0.0.0', port='8080')
-
