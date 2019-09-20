@@ -3,7 +3,7 @@
 module Game where
     
 import Player
-import PlayerBotHandler
+import qualified PlayerBotHandler as PBH
 import Board
 import Step
 import Types
@@ -50,7 +50,7 @@ buildNewBots botDir playerinfo  = mapM buildBot $ filter isNewBots playerinfo
 
 
 updatePlayerBotHandlers :: Game w h -> [(Int, E.Either T.Text FilePath)] -> IO (Game w h)
-updatePlayerBotHandlers g results = CM.foldM updatePlayerBot g $ E.rights $ map wrapInEither results
+updatePlayerBotHandlers g results = CM.foldM PBH.updatePlayerBot g $ E.rights $ map wrapInEither results
   where
     wrapInEither (pid, Left msg) = Left (pid, msg)
     wrapInEither (pid, Right path) = Right (pid, path)
@@ -71,14 +71,14 @@ applyCommands = undefined
 stepGame :: Game w h -> Game w h
 stepGame = undefined
 
-playerTurn :: (KnownNat w, KnownNat h) => Game w h -> IO ([Either ParseError [Command]])
+playerTurn :: (KnownNat w, KnownNat h) => Game w h -> IO ([Either T.Text [Command]])
 playerTurn g = do
   mapM playerTurn1 (players g)
   where
-    playerTurn1 (p, pbh) = playerTakeTurn (playerVisibleBoard p) pbh
+    playerTurn1 (p, pbh) = PBH.playerTakeTurn (playerVisibleBoard p) pbh
     playerVisibleBoard p = (Board (filter (isVisible (board g) (pPlayerId p)) $ (bCells (board g))))
 
-kickBadPlayers :: Game w h -> [Either ParseError a] -> (Game w h, [a])
+kickBadPlayers :: Game w h -> [Either T.Text a] -> (Game w h, [a])
 kickBadPlayers g pcl = (g {players = nps g}, cmds g)
   where
     zippedPlayersCommands g1 = zipWith (\ma b -> (\a -> (a, b)) <$> ma)  pcl $ players g1

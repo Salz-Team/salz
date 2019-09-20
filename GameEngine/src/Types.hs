@@ -11,7 +11,7 @@ import qualified Data.Either as E
 
 data Game w h = Game
   { board :: Board w h CellInfo
-  , players :: [(Player, T.Text)]
+  , players :: [(Player, PlayerBotHandler)]
   , turn :: Int
   , dbconnstring :: T.Text
   , botDir :: FilePath
@@ -46,5 +46,3 @@ data PlayerBotHandler = PlayerBotHandler
   { eph :: E.Either T.Text ExternalProcessHandler
   } 
 
-data ParseError = OddNumOfCoordinates | NonIntCoordinate |  Extern Error
-  deriving Show
