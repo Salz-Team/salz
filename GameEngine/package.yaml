@@ -27,8 +27,11 @@ dependencies:
 - filepath
 - temporary
 - transformers
+- either
 - postgresql-simple
 - time
+- mtl
+- directory
 
 library:
   source-dirs: src
