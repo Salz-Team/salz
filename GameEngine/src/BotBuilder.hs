@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module BotBuilder ( buildBot
+                  , BuildError
                   ) where
 
 import qualified System.IO.Temp as TF
@@ -23,9 +24,15 @@ data BuildError = BuildError T.Text
 
 instance CE.Exception BuildError
 
--- tarPath -> builddir -> finisheddir -> IO (either failmessage pathtorun.sh)
 buildBot :: FilePath -> FilePath -> IO ( E.Either T.Text FilePath )
-buildBot tarPath targetDir = TF.withSystemTempDirectory "build" $ \buildDir -> do
+buildBot tarPath targetDir = translate <$> CE.try (buildBot_ tarPath targetDir)
+  where
+    translate (Left (BuildError t)) = Left t
+    translate (Right fp) = Right fp
+
+-- tarPath -> builddir -> finisheddir -> IO (either failmessage pathtorun.sh)
+buildBot_ :: FilePath -> FilePath -> IO ( FilePath )
+buildBot_ tarPath targetDir = TF.withSystemTempDirectory "build" $ \buildDir -> do
   (_, _, _, p1) <- SP.createProcess (SP.proc "tar" ["xf", tarPath]){ SP.cwd = Just buildDir}
   ec <- SP.waitForProcess p1
   if (ec == SE.ExitSuccess)
@@ -56,7 +63,7 @@ buildBot tarPath targetDir = TF.withSystemTempDirectory "build" $ \buildDir -> d
   then return ()
   else CE.throwIO $ BuildError $ "The run script is missing."
 
-  return ( E.Right runScriptPath )
+  return ( runScriptPath )
 
 -- Possible Exceptions:
 -- just IOError?
