@@ -25,6 +25,7 @@
   "dependencies": {
     "@nuxtjs/axios": "^5.6.0",
     "@nuxtjs/markdownit": "^1.2.6",
+    "hotkeys-js": "^3.7.2",
     "nuxt": "^2.0.0",
     "nuxt-buefy": "^0.3.2",
     "pixi-viewport": "^4.2.2",
