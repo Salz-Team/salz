@@ -56,11 +56,24 @@ updatePlayerBotHandlers g results = CM.foldM PBH.updatePlayerBot g $ E.rights $ 
     wrapInEither (pid, Right path) = Right (pid, path)
 
 
-createNewPlayerStarts :: Game w h -> IO (Game w h)
-createNewPlayerStarts = undefined
+createNewPlayerStarts :: (KnownNat w, KnownNat h) => Game w h -> IO (Game w h)
+createNewPlayerStarts g = return $ g {board = nboard, players = initializedplayers ++ nplayers}
+  where
+    uninitializedplayers = filter (\((p), _) -> pPlayerSource p == (-1, -1)) (players g)
+    initializedplayers = filter (\((p), _) -> pPlayerSource p /= (-1, -1)) (players g)
+    nboard = foldl fillStartingLocation (board g) $ map fst nplayers
+    nplayers = map (\(p, e) -> (p {pPlayerSource = getStartLoc (pPlayerId p)}, e)) uninitializedplayers
+
+getStartLoc :: Int -> (Int, Int)
+getStartLoc seed = (seed * 5790153, seed * 57281)
+
 
 botTurns :: Game w h -> IO ([(Int, E.Either T.Text [Command])])
-botTurns _ = return []
+botTurns g = mapM (\(p, e) -> (pify $ pPlayerId p) <$> PBH.playerTakeTurn b e)  pl
+  where
+    b = board g
+    pl = players g
+    pify p x = (p, x)
 
 getLegalCommands :: [(Int, E.Either T.Text [Command])] -> [(Int, Command)]
 getLegalCommands = undefined
