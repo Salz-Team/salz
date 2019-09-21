@@ -1,0 +1,6 @@
+@function darkenHexColor($color, $decimal)
+  $color-rgb: ('red': red($color),'green': green($color),'blue': blue($color))
+  @each $name, $value in $color-rgb
+    $value: $value - ( $decimal * 255 )
+    $color-rgb: map-merge($color-rgb, ($name: $value))
+  @return unquote("rgb(" + map-values($color-rgb) + ")")
