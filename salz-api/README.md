@@ -4,6 +4,49 @@
 
 Endpoints currently implemented
 
+### `/login`
+
+Accessing the `/login` endpoint challenges the user's identity via Github. The callback for this is `/login/auth` which returns a JWT token.
+
+The user visits `/login`, gets redirected to Github login, then redirected again to `/login/auth`
+
+###  `/login/auth`
+
+This endpoint is only for OAuth. After the user's identity is verified, an access token is sent back with this endpoint. We don't need to actually maintain access to the Github profile data. We encode the username, email, and JWT expiry time into a JWT token. The token is sent back in the following form:
+
+```
+{
+	token: "eyj0eXAiOjk...."
+}
+```
+
+Requests that require authorization via JWT must include an authorization header with the JWT token specifying the bearer schema. E.g.:
+
+```
+... headers
+Authorization: Bearer ejy0eXAi0jk....
+... more headers
+```
+
+Tokens currently set to expire after 30 minutes, subject to change.
+
+### `/user`
+
+Protected endpoint. Requires a signed JWT bearer token. 
+
+Returns user data in the following form (more to be added later, probably)
+
+```
+{
+	"email" : "mrpanino420@loo.ca",
+	"exp" : 42042069,
+	"login" : "feridun"
+}
+```
+
+where the email, login properties are the email and username of the Github account.
+
+
 ### `/frames/`
 
 `/frames` returns JSON of the following form:
