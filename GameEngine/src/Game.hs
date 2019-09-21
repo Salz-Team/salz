@@ -31,7 +31,7 @@ gameLoop g = do
 
   DB.writeBotResults $ botResults
 
-  let commands = getLegalCommands botResults
+  let commands = getLegalCommands g2  botResults
   let g3 = applyCommands g2 commands
 
   let g4 = stepGame g3
@@ -75,14 +75,21 @@ botTurns g = mapM (\(p, e) -> (pify $ pPlayerId p) <$> PBH.playerTakeTurn b e)  
     pl = players g
     pify p x = (p, x)
 
-getLegalCommands :: [(Int, E.Either T.Text [Command])] -> [(Int, Command)]
-getLegalCommands = undefined
+getLegalCommands :: (KnownNat w, KnownNat h) => Game w h -> [(Int, E.Either T.Text [Command])] -> [(Int, Command)]
+getLegalCommands g rsp = filter pp collapsed
+  where
+    pp (pid, cmd) = not $ isCommandValid (board g) pid cmd
+    nonbrokenbots = map (\(a, b) -> (a, E.fromRight [] b)) $ filter (\(_, x) -> E.isLeft x) rsp
+    collapsed = concat $ map (\(pid, lst) -> map (\a -> (pid, a)) lst) nonbrokenbots
 
-applyCommands :: Game w h -> [(Int, Command)] -> Game w h
-applyCommands = undefined
+applyCommands :: (KnownNat w, KnownNat h) => Game w h -> [(Int, Command)] -> Game w h
+applyCommands g cl = g {board = nboard}
+  where
+    nboard = foldl (applyCommand (board g)) (board g) $ map (\(a, b) -> (a, [b])) cl
 
-stepGame :: Game w h -> Game w h
-stepGame = undefined
+stepGame :: (KnownNat w, KnownNat h) => Game w h -> Game w h
+stepGame g = g {board = step (board g), turn = (turn g) + 1}
+
 
 playerTurn :: (KnownNat w, KnownNat h) => Game w h -> IO ([Either T.Text [Command]])
 playerTurn g = do
