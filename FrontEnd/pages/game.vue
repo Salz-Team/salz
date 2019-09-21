@@ -10,6 +10,10 @@
 
 <script charset="utf-8">
 import { fullscreen } from '../lib/game-rendering/fullscreen';
+import Frame from '../lib/game-rendering/frame';
+
+// This is a dummy data set
+import { importedData } from '../lib/game-rendering/testData';
 
 export default {
   data() {
@@ -51,6 +55,7 @@ export default {
 
     const vpWorldWidth = 1000;
     const vpWorldHeight = 1000;
+
     const viewport = new Viewport.Viewport({
       screenWidth: window.innerWidth,
       screenHeight: window.innerHeight,
@@ -72,20 +77,6 @@ export default {
         maxHeight: vpWorldHeight * 10
       });
 
-    // hotkeys
-    document.onkeydown = function(e) {
-      switch (e.keyCode) {
-        case 70: // f
-          fullscreen(app.view);
-          break;
-        case 37: // left
-          viewport.removeChildren(0, viewport.length);
-          break;
-        case 39: // right
-          break;
-      }
-    };
-
     // const btn = createTextButton(
     //   'Fullscreen',
     //   { padding: 10, fill: '#FF0000' },
@@ -96,60 +87,37 @@ export default {
     // btn.x = appWidth - btn.width - 20;
     // btn.y = appHeight - btn.height - 20;
 
-    // This is a dummy data set
-    const frames = [
-      [
-        {
-          playerid: 0,
-          color: '0xff0000',
-          coords: [{ x: 0, y: 1 }, { x: 20, y: 50 }, { x: 50, y: 20 }]
-        },
-        {
-          playerid: 1,
-          color: '0x00ff00',
-          coords: [{ x: 50, y: 0 }, { x: 0, y: 50 }, { x: 20, y: 20 }]
-        },
-        {
-          playerid: 2,
-          color: '0x0000ff',
-          coords: [{ x: -20, y: 0 }, { x: 0, y: -50 }, { x: 20, y: -20 }]
-        }
-      ],
-      [
-        {
-          playerid: 0,
-          color: '0xff0000',
-          coords: [{ x: 1, y: 1 }, { x: 21, y: 50 }, { x: 51, y: 20 }]
-        },
-        {
-          playerid: 1,
-          color: '0x00ff00',
-          coords: [{ x: 51, y: 0 }, { x: 1, y: 50 }, { x: 21, y: 20 }]
-        },
-        {
-          playerid: 2,
-          color: '0x0000ff',
-          coords: [{ x: -19, y: 0 }, { x: 1, y: -50 }, { x: 21, y: -20 }]
-        }
-      ]
-    ];
+    let curFrame = 0;
+    const maxFrame = importedData.length;
+    let frame = new Frame(viewport, importedData[0]);
+    frame.draw();
 
-    frames[0].forEach(function(player) {
-      drawCells(player.coords, player.color);
-    });
-
-    function drawCells(coords, color) {
-      coords.forEach(function(coord) {
-        drawCell(coord, color);
-      });
-    }
-
-    function drawCell(coord, color) {
-      const sprite = viewport.addChild(new PIXI.Sprite(PIXI.Texture.WHITE));
-      sprite.tint = color;
-      sprite.width = sprite.height = 10;
-      sprite.position.set(coord.x * 10, coord.y * 10);
-    }
+    // hotkeys
+    document.onkeydown = function(e) {
+      switch (e.keyCode) {
+        case 70: // f
+          fullscreen(app.view);
+          break;
+        case 72: // h
+          if (curFrame > 0) {
+            viewport.removeChildren(0, viewport.length);
+            frame = new Frame(viewport, importedData[--curFrame]);
+            frame.draw();
+          }
+          break;
+        case 76: // l
+          if (curFrame < maxFrame - 1) {
+            viewport.removeChildren(0, viewport.length);
+            frame = new Frame(viewport, importedData[++curFrame]);
+            frame.draw();
+          }
+          break;
+        case 37: // left
+          break;
+        case 39: // right
+          break;
+      }
+    };
 
     // to be refactored so that it can be used with image assets
     // function createTextButton(text, style, fn) {
