@@ -1,15 +1,19 @@
-from flask import Flask, request, abort
-from flask import jsonify
+from flask import Flask, request, abort, url_for, session
+from flask import jsonify, redirect
 from flask_cors import CORS
-from datetime import datetime
+import datetime
 import psycopg2
 import json
 from pony.orm import *
-import time
 import os
+from authlib.flask.client import OAuth
+import jwt
+from functools import wraps
 
 app = Flask(__name__)
+app.secret_key = "verysecret"
 CORS(app)
+oauth = OAuth(app)
 
 
 # Load up env vars
@@ -19,6 +23,74 @@ PGUSER = os.getenv("POSTGRES_USER", "postgres")
 PGPASS = os.getenv("POSTGRES_PASSWORD", "mysecretpassword")
 PGPORT = os.getenv("POSTGRES_PORT", "5432")
 PGHOST = os.getenv("POSTGRES_HOST", "localhost")
+
+
+
+oauth.register(
+    name='github',
+    client_id=os.getenv("GITHUB_CLIENT"),
+    client_secret=os.getenv("GITHUB_SECRET"),
+    client_kwargs={
+            'scope': 'user:email',
+            'token_placement' : 'header',
+            'token_endpoint_auth_method': 'client_secret_basic'},
+            #},
+    api_base_url='https://api.github.com/',
+    access_token_url='https://github.com/login/oauth/access_token',
+    authorize_url='https://github.com/login/oauth/authorize'
+
+)
+
+
+
+def jwt_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        authHeader = request.headers.get('Authorization')
+
+        if authHeader:
+            try:
+                schema, token = authHeader.split(' ')
+                decoded = jwt.decode(token, app.secret_key)
+                print("all gucci")
+            except jwt.ExpiredSignatureError:
+                return "Expired token"
+            except jwt.InvalidSignatureError:
+                return "Invalid token"
+            except Error as e:
+                print(e)
+        else:
+            return "Token required"
+        return f(*args, **kwargs)
+    return decorated
+
+@app.route('/user')
+@jwt_auth
+def userdata():
+    # already been verified by jwt_auth
+    authHeader = request.headers.get('Authorization')
+    payload = jwt.decode(authHeader.split(' ')[1], app.secret_key)
+
+    return payload
+
+
+@app.route('/login')
+def login():
+    return oauth.github.authorize_redirect(callback=url_for('authorized', _external=True))
+
+@app.route('/login/auth')
+def authorized():
+    token = oauth.github.authorize_access_token()
+    resp = oauth.github.get('user')
+    profile = resp.json()
+    payload = {
+            "login" : profile['login'],
+            "email" : profile['email'],
+            "exp" : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+            }
+    jwtoken = jwt.encode(payload, app.secret_key)
+    return jsonify({'token' : jwtoken.decode('UTF-8')})
+
 
 DEFAULT_TURNHISTORY = 100
 
@@ -54,7 +126,7 @@ class Game(db.Entity):
     x = Required(int)
     y = Required(int)
     playerid = Required(int)
-    generated_at = Required(datetime)
+    generated_at = Required(datetime.datetime)
 
 class Players(db.Entity):
     playerid = PrimaryKey(int, auto=True)
