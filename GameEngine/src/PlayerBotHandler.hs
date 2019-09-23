@@ -37,7 +37,7 @@ updatePlayerBot g (playerid, newBotPath) = do
 
 playerTakeTurn :: Board h w CellInfo -> PlayerBotHandler -> IO (Either T.Text [Command])
 playerTakeTurn b pbh = do
-  if E.isRight $ eph pbh
+  if E.isLeft $ eph pbh
   then return $ Left "Bot handler doesn't exist"
   else do
     let (Right e) = eph pbh

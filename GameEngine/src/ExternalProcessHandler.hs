@@ -11,6 +11,7 @@ module ExternalProcessHandler
 
 import Control.Monad()
 import Control.Monad.Trans.Except
+import qualified System.FilePath as FP
 import qualified Control.Monad.Trans.Class as TM
 import qualified Data.Text as T
 import Data.Either()
@@ -32,7 +33,7 @@ data Error = OutOfTime | EndOfFile | StdoutClosed
 
 createExternalProcess :: FilePath -> IO ExternalProcessHandler
 createExternalProcess path = do
-  (psin, psout, pserr, p) <- runInteractiveCommand path
+  (psin, psout, pserr, p) <- runInteractiveProcess "bash" [path] (Just $ FP.dropFileName path) Nothing
   return $ ExternalProcessHandler psin psout pserr p
 
 cleanPlayer :: ExternalProcessHandler -> IO ()

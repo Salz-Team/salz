@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
+{-# LANGUAGE OverloadedStrings, TupleSections, DataKinds #-}
 
 module Game where
     
@@ -11,31 +11,51 @@ import qualified BotBuilder as BB
 import qualified Database as DB
 import qualified Data.Text as T
 import qualified Control.Monad as CM
+import qualified Control.Concurrent as CC
+
 import GHC.TypeLits hiding (Mod)
 import Data.Maybe
 import qualified Data.Either as E
 import Data.Modular
 
 
+startGameEngine :: T.Text -> IO ()
+startGameEngine dbstring = do
+  let g = Game (Board []) [] 1 dbstring "/tmp/" :: Game 100 100
+  gameLoop g
+
 gameLoop :: (KnownNat w, KnownNat h) => Game w h -> IO ()
 gameLoop g = do
+  putStrLn
+  putStrLn $ "New turn" ++ (show (turn g))
+  putStrLn
+
+  putStrLn $ "Reading Player info"
   dbplayerinfo <- DB.readPlayers (dbconnstring g)
+  putStrLn $ "Build new bots"
   buildstatus <- buildNewBots (botDir g) dbplayerinfo
+  putStrLn $ "Write build results"
   DB.writeBuildResults (dbconnstring g) buildstatus
 
+  putStrLn $ "Update new Player bots"
   -- Start new players bots, replace old bots with new bots
   g1 <- updatePlayerBotHandlers g buildstatus
   g2 <- createNewPlayerStarts g1
 
+  putStrLn
+  putStrLn $ "Players:"
+  print $ map fst (players g)
   botResults <- botTurns g2
 
   DB.writeBotResults $ botResults
 
   let commands = getLegalCommands g2  botResults
   let g3 = applyCommands g2 commands
-
   let g4 = stepGame g3
 
+  DB.saveGame (dbconnstring g) g4
+
+  CC.threadDelay 1000000
   gameLoop g4
 
 -- [(playerid, username, botdir, updatedbot, newbotdir, botstatus)]
@@ -61,8 +81,8 @@ createNewPlayerStarts g = return $ g {board = nboard, players = initializedplaye
   where
     uninitializedplayers = filter (\((p), _) -> pPlayerSource p == (-1, -1)) (players g)
     initializedplayers = filter (\((p), _) -> pPlayerSource p /= (-1, -1)) (players g)
-    nboard = foldl fillStartingLocation (board g) $ map fst nplayers
     nplayers = map (\(p, e) -> (p {pPlayerSource = getStartLoc (pPlayerId p)}, e)) uninitializedplayers
+    nboard = foldl fillStartingLocation (board g) $ map fst nplayers
 
 getStartLoc :: Int -> (Int, Int)
 getStartLoc seed = (seed * 5790153, seed * 57281)
@@ -78,8 +98,8 @@ botTurns g = mapM (\(p, e) -> (pify $ pPlayerId p) <$> PBH.playerTakeTurn b e)  
 getLegalCommands :: (KnownNat w, KnownNat h) => Game w h -> [(Int, E.Either T.Text [Command])] -> [(Int, Command)]
 getLegalCommands g rsp = filter pp collapsed
   where
-    pp (pid, cmd) = not $ isCommandValid (board g) pid cmd
-    nonbrokenbots = map (\(a, b) -> (a, E.fromRight [] b)) $ filter (\(_, x) -> E.isLeft x) rsp
+    pp (pid, cmd) = isCommandValid (board g) pid cmd
+    nonbrokenbots = map (\(a, b) -> (a, E.fromRight [] b)) $ filter (\(_, x) -> not $E.isLeft x) rsp
     collapsed = concat $ map (\(pid, lst) -> map (\a -> (pid, a)) lst) nonbrokenbots
 
 applyCommands :: (KnownNat w, KnownNat h) => Game w h -> [(Int, Command)] -> Game w h
