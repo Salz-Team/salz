@@ -26,9 +26,9 @@ startGameEngine dbstring = do
 
 gameLoop :: (KnownNat w, KnownNat h) => Game w h -> IO ()
 gameLoop g = do
-  putStrLn
+  putStrLn ""
   putStrLn $ "New turn" ++ (show (turn g))
-  putStrLn
+  putStrLn ""
 
   putStrLn $ "Reading Player info"
   dbplayerinfo <- DB.readPlayers (dbconnstring g)
@@ -42,7 +42,7 @@ gameLoop g = do
   g1 <- updatePlayerBotHandlers g buildstatus
   g2 <- createNewPlayerStarts g1
 
-  putStrLn
+  putStrLn ""
   putStrLn $ "Players:"
   print $ map fst (players g)
   botResults <- botTurns g2
