@@ -6,6 +6,7 @@ import psycopg2
 import json
 from pony.orm import *
 import os
+import shutil
 from authlib.flask.client import OAuth
 import jwt
 from functools import wraps
@@ -42,6 +43,9 @@ oauth.register(
 )
 
 
+def jwtobject(header):
+    schema, token = header.split(' ')
+    return jwt.decode(token, app.secret_key)
 
 def jwt_auth(f):
     @wraps(f)
@@ -50,8 +54,7 @@ def jwt_auth(f):
 
         if authHeader:
             try:
-                schema, token = authHeader.split(' ')
-                decoded = jwt.decode(token, app.secret_key)
+                decoded = jwtobject(authHeader)
                 print("all gucci")
             except jwt.ExpiredSignatureError:
                 return "Expired token"
@@ -73,6 +76,39 @@ def userdata():
 
     return payload
 
+@app.route('/user/upload', methods=['POST'])
+@jwt_auth
+@db_session
+def userupload():
+    f = request.files['bot']
+
+    # get username from JWT
+    obj = jwtobject(request.headers.get('Authorization'))
+
+    username = obj['login']
+
+    playerid = select(p.playerid for p in Players if p.username == username )[0]
+
+    # upload bot
+    # - move "new" into old
+    # - stick it into volume (e.g. /playerid/new )
+    # - update the database
+
+    # =================
+
+    # 0. if not exists, create stuff I need
+
+    os.mkdirs(f'/tarbots/{playerid}/newbot/', exist_ok=True)
+    
+    # 1. nuke the old folder
+
+    return "WIP FUNCTION"
+
+
+
+    
+
+
 
 @app.route('/login')
 def login():
@@ -86,8 +122,15 @@ def authorized():
     payload = {
             "login" : profile['login'],
             "email" : profile['email'],
-            "exp" : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
             }
+
+    # create new Player object in database
+
+    with db_session:
+        if len(select(p for p in Players if p.username == profile['login'])) == 0:
+            db.insert("players", username = profile['login'], updatedbot = False)
+
     jwtoken = jwt.encode(payload, app.secret_key)
     return jsonify({'token' : jwtoken.decode('UTF-8')})
 
