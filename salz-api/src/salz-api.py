@@ -7,6 +7,7 @@ import json
 from pony.orm import *
 import os
 import shutil
+import time
 from authlib.flask.client import OAuth
 import jwt
 from functools import wraps
@@ -25,7 +26,7 @@ PGPASS = os.getenv("POSTGRES_PASSWORD", "mysecretpassword")
 PGPORT = os.getenv("POSTGRES_PORT", "5432")
 PGHOST = os.getenv("POSTGRES_HOST", "localhost")
 
-BOTLOCATION = os.getenv("BOT_BASE_LOCATION", ".")
+BOTLOCATION = os.getenv("BOTLOCATION", ".")
 
 
 
