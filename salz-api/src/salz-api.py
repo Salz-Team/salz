@@ -25,6 +25,8 @@ PGPASS = os.getenv("POSTGRES_PASSWORD", "mysecretpassword")
 PGPORT = os.getenv("POSTGRES_PORT", "5432")
 PGHOST = os.getenv("POSTGRES_HOST", "localhost")
 
+BOTLOCATION = os.getenv("BOT_BASE_LOCATION", ".")
+
 
 
 oauth.register(
@@ -80,33 +82,28 @@ def userdata():
 @jwt_auth
 @db_session
 def userupload():
+
     f = request.files['bot']
 
-    # get username from JWT
+    # get username from JWT, then playerid
     obj = jwtobject(request.headers.get('Authorization'))
-
     username = obj['login']
+    playerid = select(p.playerid for p in Players if p.username == username )[:][0]
 
-    playerid = select(p.playerid for p in Players if p.username == username )[0]
+    # 1. nuke the old folder (if exists) and remake
+    newbotLocation = os.path.join(BOTLOCATION, 'tarbots', f'{playerid}', 'newbot')
+    if os.path.exists(newbotLocation):
+        shutil.rmtree(newbotLocation)
+    os.makedirs(newbotLocation, exist_ok=True)
 
-    # upload bot
-    # - move "new" into old
-    # - stick it into volume (e.g. /playerid/new )
-    # - update the database
+    # 2. Save the new file
+    f.save(os.path.join(newbotLocation, "bot.tar"))
 
-    # =================
+    # 3. Update the database
+    Players[playerid].newbotdir = newbotLocation
+    Players[playerid].updatedbot = True
 
-    # 0. if not exists, create stuff I need
-
-    os.mkdirs(f'/tarbots/{playerid}/newbot/', exist_ok=True)
-    
-    # 1. nuke the old folder
-
-    return "WIP FUNCTION"
-
-
-
-    
+    return ""
 
 
 
@@ -124,9 +121,7 @@ def authorized():
             "email" : profile['email'],
             "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
             }
-
     # create new Player object in database
-
     with db_session:
         if len(select(p for p in Players if p.username == profile['login'])) == 0:
             db.insert("players", username = profile['login'], updatedbot = False)
