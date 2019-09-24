@@ -1,10 +1,12 @@
 from python:3.7
 
-COPY . /app
-WORKDIR /app
-
+COPY Pipfile /
 RUN pip install pipenv
 RUN pipenv install
+
+COPY src/ /app
+WORKDIR /app
+
 
 EXPOSE 8080
 

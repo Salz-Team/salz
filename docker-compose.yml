@@ -1,7 +1,7 @@
 version: '3'
 services:
   salz-db:
-    build: Database
+    build: salz-db
     ports:
       - "5432:5432"
     expose:
@@ -22,9 +22,26 @@ services:
       - POSTGRES_PASSWORD=mysecretpassword
       - POSTGRES_PORT=5432
       - POSTGRES_HOST=salz-db
+    volumes:
+      - "botfiles:/data"
+  salz-core:
+    build: salz-core
+    depends_on:
+      - salz-db
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_PORT=5432
+      - POSTGRES_HOST=salz-db
+    volumes:
+      - "botfiles:/data"
   salz-web:
     build: FrontEnd
     ports:
       - "3000:3000"
     expose:
       - "3000"
+
+volumes:
+  botfiles:

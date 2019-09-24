@@ -35,3 +35,13 @@ packPlayerMap b p = map toRelativeCoord $ filter (isVisible b pi1) (bCells b)
 isCommandValid :: (KnownNat w, KnownNat h) =>
   Board h w CellInfo -> PlayerId -> Command -> Bool
 isCommandValid b pi1 (Flip x y) = isFlipable b (Cell (toMod x) (toMod y) ()) pi1
+
+fillStartingLocation :: (KnownNat w, KnownNat h) =>
+  Board w h CellInfo -> Player -> Board w h CellInfo
+fillStartingLocation b p = Board { bCells = nCell:(bCells b) }
+  where
+    nCell = Cell x y (CellInfo pid)
+    y = toMod $ snd $ pPlayerSource p
+    x = toMod $ fst $ pPlayerSource p
+    pid = pPlayerId p
+

@@ -6,10 +6,15 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
+requests-oauthlib = "==1.1.0"
 flask = "*"
+flask-oauthlib = "*"
+oauthlib = "*"
 pony = "*"
 psycopg2 = "*"
 flask-cors = "*"
+authlib = "*"
+pyjwt = "*"
 
 [requires]
 python_version = "3.7"

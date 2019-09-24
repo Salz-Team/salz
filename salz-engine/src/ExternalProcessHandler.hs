@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module ExternalProcessHandler
   ( ExternalProcessHandler
   , Error
@@ -10,6 +11,7 @@ module ExternalProcessHandler
 
 import Control.Monad()
 import Control.Monad.Trans.Except
+import qualified System.FilePath as FP
 import qualified Control.Monad.Trans.Class as TM
 import qualified Data.Text as T
 import Data.Either()
@@ -29,40 +31,40 @@ data ExternalProcessHandler = ExternalProcessHandler
 data Error = OutOfTime | EndOfFile | StdoutClosed
   deriving (Show)
 
-createExternalProcess :: T.Text -> IO ExternalProcessHandler
+createExternalProcess :: FilePath -> IO ExternalProcessHandler
 createExternalProcess path = do
-  (psin, psout, pserr, p) <- runInteractiveCommand $ T.unpack path
+  (psin, psout, pserr, p) <- runInteractiveProcess "bash" [path] (Just $ FP.dropFileName path) Nothing
   return $ ExternalProcessHandler psin psout pserr p
 
 cleanPlayer :: ExternalProcessHandler -> IO ()
 cleanPlayer eh = do
   cleanupProcess (Just $ pstdin eh, Just $ pstdout eh, Just $ pstderr eh, pproc eh)
 
-timedCallandResponse :: Int -> ExternalProcessHandler -> T.Text -> IO (Either Error T.Text)
+timedCallandResponse :: Int -> ExternalProcessHandler -> T.Text -> IO (Either T.Text T.Text)
 timedCallandResponse time eph call = runExceptT $ do
   --give map
   TM.lift $ hPutStr (pstdin eph) $ (T.unpack call) ++ "\n"
   TM.lift $ hFlush (pstdin eph)
 
   -- check stdout
-  check EndOfFile $ hIsEOF (pstdout eph)
+  check "EndOfFile" $ hIsEOF (pstdout eph)
   TM.lift $ putStrLn "Done checks"
 
-  response <- ExceptT $ eitherTimeout time OutOfTime $ hGetLine (pstdout eph)
+  response <- ExceptT $ eitherTimeout time "OutOfTime" $ hGetLine (pstdout eph)
 
   return $ T.pack response
 
-replaceExecutable :: T.Text -> ExternalProcessHandler -> IO ExternalProcessHandler
+replaceExecutable :: FilePath -> ExternalProcessHandler -> IO ExternalProcessHandler
 replaceExecutable path _ = createExternalProcess path
 
-check :: Error-> IO Bool -> ExceptT Error IO ()
+check :: T.Text -> IO Bool -> ExceptT T.Text IO ()
 check er f = do
   open <- TM.lift f
   if open
   then ExceptT (return (Left er))
   else ExceptT (return (Right ()))
 
-eitherTimeout :: Int -> Error -> IO a -> IO (Either Error a)
+eitherTimeout :: Int -> T.Text -> IO a -> IO (Either T.Text a)
 eitherTimeout time errorMsg action = do
   maybeResult <- timeout time action
   return $ fromMay maybeResult

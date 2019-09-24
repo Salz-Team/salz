@@ -1,6 +1,6 @@
-name:                APIServer
+name:                Oba
 version:             0.1.0.0
-github:              "githubuser/APIServer"
+github:              "githubuser/Oba"
 license:             BSD3
 author:              "Author name here"
 maintainer:          "example@example.com"
@@ -17,52 +17,53 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/APIServer#readme>
+description:         Please see the README on GitHub at <https://github.com/githubuser/Oba#readme>
 
 dependencies:
 - base >= 4.7 && < 5
-- warp
+- modular-arithmetic
 - text
-- servant
-- servant-server
-- servant-multipart
-- wai
-- wai-extra
-- wai-middleware-static
-- blaze-html
-- blaze-markup
-- aeson
-- directory
-- lucid
-- http-media
+- process
+- filepath
+- temporary
+- transformers
+- either
+- postgresql-simple
 - time
-- string-conversions
-- bytestring
-- attoparsec
-- base-compat
 - mtl
+- directory
 
 library:
   source-dirs: src
 
 executables:
-  APIServer-exe:
+  Oba-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
+    - -Wall
+    - -Wcompat
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wredundant-constraints
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - APIServer
+    - Oba
 
 tests:
-  APIServer-test:
+  Oba-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
+    - -Wall
+    - -Wcompat
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wredundant-constraints
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - APIServer
+    - Oba
