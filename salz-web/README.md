@@ -1,4 +1,4 @@
-# salz-frontend
+# salz-web
 
 > A web frontend for salz
 
@@ -20,3 +20,7 @@ $ npm run generate
 ```
 
 For detailed explanation on how things work, check out [Nuxt.js docs](https://nuxtjs.org).
+
+## Dev Notes
+
+* For tentative colorscheme reference, see `specs/Color show off.png`.
