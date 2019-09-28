@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS players (playerid INTEGER PRIMARY KEY, 
+CREATE TABLE IF NOT EXISTS players (playerid SERIAL PRIMARY KEY, 
                                     username VARCHAR,
                                     botdir VARCHAR,
                                     updatedbot BOOL,

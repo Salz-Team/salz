@@ -6,6 +6,8 @@ import psycopg2
 import json
 from pony.orm import *
 import os
+import shutil
+import time
 from authlib.flask.client import OAuth
 import jwt
 from functools import wraps
@@ -23,6 +25,8 @@ PGUSER = os.getenv("POSTGRES_USER", "postgres")
 PGPASS = os.getenv("POSTGRES_PASSWORD", "mysecretpassword")
 PGPORT = os.getenv("POSTGRES_PORT", "5432")
 PGHOST = os.getenv("POSTGRES_HOST", "localhost")
+
+BOTLOCATION = os.getenv("BOTLOCATION", ".")
 
 
 
@@ -42,6 +46,9 @@ oauth.register(
 )
 
 
+def jwtobject(header):
+    schema, token = header.split(' ')
+    return jwt.decode(token, app.secret_key)
 
 def jwt_auth(f):
     @wraps(f)
@@ -50,8 +57,7 @@ def jwt_auth(f):
 
         if authHeader:
             try:
-                schema, token = authHeader.split(' ')
-                decoded = jwt.decode(token, app.secret_key)
+                decoded = jwtobject(authHeader)
                 print("all gucci")
             except jwt.ExpiredSignatureError:
                 return "Expired token"
@@ -73,6 +79,34 @@ def userdata():
 
     return payload
 
+@app.route('/user/upload', methods=['POST'])
+@jwt_auth
+@db_session
+def userupload():
+
+    f = request.files['bot']
+
+    # get username from JWT, then playerid
+    obj = jwtobject(request.headers.get('Authorization'))
+    username = obj['login']
+    playerid = select(p.playerid for p in Players if p.username == username )[:][0]
+
+    # 1. nuke the old folder (if exists) and remake
+    newbotLocation = os.path.join(BOTLOCATION, 'tarbots', f'{playerid}', 'newbot')
+    if os.path.exists(newbotLocation):
+        shutil.rmtree(newbotLocation)
+    os.makedirs(newbotLocation, exist_ok=True)
+
+    # 2. Save the new file
+    f.save(os.path.join(newbotLocation, "bot.tar"))
+
+    # 3. Update the database
+    Players[playerid].newbotdir = newbotLocation
+    Players[playerid].updatedbot = True
+
+    return ""
+
+
 
 @app.route('/login')
 def login():
@@ -86,8 +120,13 @@ def authorized():
     payload = {
             "login" : profile['login'],
             "email" : profile['email'],
-            "exp" : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
             }
+    # create new Player object in database
+    with db_session:
+        if len(select(p for p in Players if p.username == profile['login'])) == 0:
+            db.insert("players", username = profile['login'], updatedbot = False)
+
     jwtoken = jwt.encode(payload, app.secret_key)
     return jsonify({'token' : jwtoken.decode('UTF-8')})
 

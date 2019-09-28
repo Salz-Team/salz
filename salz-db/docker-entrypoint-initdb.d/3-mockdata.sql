@@ -1,7 +1,7 @@
 INSERT INTO players VALUES 
-	(1, 'mosiman', '/tmp/mosiman/old', false, '/tmp/mosiman/new', 'BUILDING'),
-	(2, 'japorized', '/tmp/japorized/old', false, '/tmp/japorized/new', 'ACTIVE'),
-	(3, 'lugarun', '/tmp/lugarun/old', false, '/tmp/lugarun/new', 'CRASH');
+	(DEFAULT, 'fucklukas', '/tmp/mosiman/old', false, '/tmp/mosiman/new', 'BUILDING'),
+	(DEFAULT, 'japorized', '/tmp/japorized/old', false, '/tmp/japorized/new', 'ACTIVE'),
+	(DEFAULT, 'lugarun', '/tmp/lugarun/old', false, '/tmp/lugarun/new', 'CRASH');
 
 
 
