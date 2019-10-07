@@ -1,6 +1,7 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Board
+import Game
 
 main :: IO ()
-main = return ()
+main = startGameEngine "host='localhost' port=5432 dbname='postgres' user='postgres' password='mysecretpasswrd'"

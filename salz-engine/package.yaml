@@ -1,6 +1,6 @@
-name:                Oba
+name:                salz-engine
 version:             0.1.0.0
-github:              "githubuser/Oba"
+github:              "lugarun"
 license:             BSD3
 author:              "Author name here"
 maintainer:          "example@example.com"
@@ -37,7 +37,7 @@ library:
   source-dirs: src
 
 executables:
-  Oba-exe:
+  salz-engine:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -50,10 +50,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - Oba
+    - salz-engine
 
 tests:
-  Oba-test:
+  salz-engine-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -66,4 +66,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - Oba
+    - salz-engine

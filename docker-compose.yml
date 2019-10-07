@@ -24,8 +24,8 @@ services:
       - POSTGRES_HOST=salz-db
     volumes:
       - "botfiles:/data"
-  salz-core:
-    build: salz-core
+  salz-engine:
+    build: salz-engine
     depends_on:
       - salz-db
     environment:
@@ -37,7 +37,7 @@ services:
     volumes:
       - "botfiles:/data"
   salz-web:
-    build: FrontEnd
+    build: salz-web
     ports:
       - "3000:3000"
     expose:
