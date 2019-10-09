@@ -12,10 +12,12 @@ import Prelude hiding (catch)
 import Data.Time.LocalTime
 import Data.Modular
 
+import qualified Control.Concurrent as CC
 import qualified Data.Either as E
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Types as MT
+import Control.Exception
 
 
 -- connectPostgreSQL uses the libpq connection string
@@ -28,7 +30,7 @@ data SaveStatus = Success | Failure
 -- these exceptions are not handled
 saveGame :: T.Text -> MT.Game h w  -> IO ()
 saveGame connectionString g = do
-  conn <- connectPostgreSQL (TE.encodeUtf8 connectionString)
+  conn <- connectRepeat connectionString
 
   let mquery = "INSERT INTO game (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?)"
   time <- Finite <$> zonedTimeToLocalTime <$> getZonedTime :: IO (LocalTimestamp)
@@ -50,7 +52,7 @@ formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i
 -- (playerid, username, botdir, updatedbot, newbotdir, botstatus)
 readPlayers :: T.Text -> IO ([(Int, T.Text, FilePath, Bool, FilePath, T.Text)])
 readPlayers connectionString = do
-  conn <- connectPostgreSQL (TE.encodeUtf8 connectionString)
+  conn <- connectRepeat connectionString
   let mquery = "SELECT * FROM players"
   result <- query_ conn mquery
   close conn
@@ -59,7 +61,8 @@ readPlayers connectionString = do
 
 writeBuildResults :: T.Text -> [(Int, E.Either T.Text FilePath)] -> IO ()
 writeBuildResults connectionString buildresults = do
-  conn <- connectPostgreSQL (TE.encodeUtf8 connectionString)
+  conn <- connectRepeat connectionString
+
   mapM (writeResult conn) buildresults
   close conn
   return ()
@@ -72,3 +75,15 @@ writeBuildResults connectionString buildresults = do
     writeResult conn1 (i, Right newPath) = execute conn1 successQuery (newPath, i) >> return ()
 
 writeBotResults _ = return ()
+
+
+connectRepeat :: T.Text -> IO Connection
+connectRepeat t = catch con handle
+  where
+    con = connectPostgreSQL (TE.encodeUtf8 t)
+    handle :: IOError -> IO Connection
+    handle _ = do
+      CC.threadDelay 10000000
+      connectRepeat t
+
+
