@@ -8,7 +8,7 @@ export default class Frame {
 
   draw() {
     this.frame.forEach((player) => {
-      this.drawCells(player.coords, player.color);
+      this.drawCells(player.pos, player.color);
     });
   }
 
