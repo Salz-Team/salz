@@ -6,7 +6,11 @@
   >
     <div class="navbar-brand">
       <a class="navbar-item" href="/">
-        <img src="~assets/buefy.png" alt="Buefy" height="28" />
+        <img
+          src="/assets/images/full-logo/full-logo@96h-white.png"
+          alt="salz"
+          height="28"
+        />
       </a>
 
       <div class="navbar-burger">
