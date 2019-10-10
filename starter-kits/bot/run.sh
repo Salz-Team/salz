@@ -1,2 +1,2 @@
 cd $(pwd)
-stack runghc ./gliderplayer.hs
+runghc ./gliderplayer.hs

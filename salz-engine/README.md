@@ -18,6 +18,7 @@ start with `stack ghci` by running the command the command in the `./app/Main.hs
 First:
 - player :: flipable only if other player can't flip there
 - step :: cell only created if clear owner
+- get player bot error messages into database
 
 Second: basic functionallity works with database
 - run and build bots safely: checkout cgexec, cgroup, etc..

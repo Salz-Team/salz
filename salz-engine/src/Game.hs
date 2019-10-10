@@ -32,7 +32,9 @@ gameLoop g = do
   putStrLn $ "New turn" ++ (show (turn g))
   putStrLn ""
 
-  putStrLn $ "Reading Player info"
+
+  putStrLn "Reading Player info"
+
   dbplayerinfo <- filterMaybies <$> DB.readPlayers (dbconnstring g)
   putStrLn $ "Build new bots"
   buildstatus <- buildNewBots (botDir g) dbplayerinfo
@@ -44,10 +46,14 @@ gameLoop g = do
   g1 <- updatePlayerBotHandlers g buildstatus
   g2 <- createNewPlayerStarts g1
 
+  putStrLn $ "Number of active cell is " ++ (show (length (bCells (board g2))))
+
   putStrLn ""
   putStrLn $ "Players:"
-  print $ map fst (players g)
+  print $ map fst (players g2)
   botResults <- botTurns g2
+
+  print botResults
 
   DB.writeBotResults $ botResults
 
