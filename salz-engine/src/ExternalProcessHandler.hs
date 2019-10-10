@@ -44,7 +44,7 @@ timedCallandResponse :: Int -> ExternalProcessHandler -> T.Text -> IO (Either T.
 timedCallandResponse time eph call = runExceptT $ do
   --give map
   TM.lift $ hPutStr (pstdin eph) $ (T.unpack call) ++ "\n"
-  TM.lift $ hFlush (pstdin eph)
+  -- TM.lift $ hFlush (pstdin eph)
 
   -- check stdout
   check "EndOfFile" $ hIsEOF (pstdout eph)

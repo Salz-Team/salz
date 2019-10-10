@@ -33,15 +33,15 @@ buildBot tarPath targetDir = translate <$> CE.try (buildBot_ tarPath targetDir)
 -- tarPath -> builddir -> finisheddir -> IO (either failmessage pathtorun.sh)
 buildBot_ :: FilePath -> FilePath -> IO ( FilePath )
 buildBot_ tarPath targetDir = TF.withSystemTempDirectory "build" $ \buildDir -> do
-  (_, _, _, p1) <- SP.createProcess (SP.proc "tar" ["xf", tarPath]){ SP.cwd = Just buildDir}
+  (_, _, _, p1) <- SP.createProcess (SP.proc "tar" ["xf", tarPath]){ SP.cwd = Just targetDir}
   ec <- SP.waitForProcess p1
   if (ec == SE.ExitSuccess)
-  then SP.createProcess (SP.proc "rm" [tarPath])
+  then return () -- SP.createProcess (SP.proc "rm" [tarPath])
   else CE.throwIO $ BuildError $ "The file '" `T.append` (T.pack tarPath) `T.append` "' could not be extracted."
 
   let baseName = FP.dropExtensions (FP.takeFileName tarPath)
 
-  let buildScriptPath = buildDir FP.</> baseName FP.</> "build.sh"
+  let buildScriptPath = targetDir FP.</> baseName FP.</> "build.sh"
   buildScriptExist <- D.doesFileExist buildScriptPath
   if buildScriptExist
   then do
@@ -54,15 +54,16 @@ buildBot_ tarPath targetDir = TF.withSystemTempDirectory "build" $ \buildDir -> 
   else return ()
 
 
-  (_, _, _, p3)<- SP.createProcess (SP.proc "cp" ["-r", buildDir FP.</> baseName, targetDir])
-  SP.waitForProcess p3
+  --(_, _, _, p3)<- SP.createProcess (SP.proc "cp" ["-r", buildDir FP.</> baseName, targetDir])
+  --SP.waitForProcess p3
 
   let runScriptPath = targetDir FP.</> baseName FP.</> "run.sh"
   runScriptExist <- D.doesFileExist runScriptPath
   if runScriptExist
   then return ()
-  else CE.throwIO $ BuildError $ "The run script is missing."
+  else CE.throwIO $ BuildError $ "The run script is missing." `T.append` ( T.pack runScriptPath)
 
+  putStrLn $ "Done building bot, run script at:" ++ runScriptPath
   return ( runScriptPath )
 
 -- Possible Exceptions:
