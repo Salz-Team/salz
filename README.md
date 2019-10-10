@@ -37,4 +37,4 @@ in the root directory.
 
 ## Website
 
-See `FrontEnd/README.md`.
+See `salz-web/README.md`.

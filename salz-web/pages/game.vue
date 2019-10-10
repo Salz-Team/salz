@@ -14,9 +14,10 @@ import hotkeys from 'hotkeys-js';
 // Game Rendering
 import { fullscreen } from '../lib/game/rendering/fullscreen';
 import Frame from '../lib/game/rendering/frame';
+import { Color } from '../lib/game/colors.js';
 
 // This is a dummy data set
-import { importedData } from '../lib/game/testData';
+// import { importedData } from '../lib/game/testData';
 
 export default {
   data() {
@@ -24,17 +25,17 @@ export default {
       index: []
     };
   },
-  // async asyncData(ctx) {
-  //   return {
-  //     // index: await ctx.app.$framesRepo.index()
-  //   };
-  // },
+  async asyncData(ctx) {
+    return {
+      index: await ctx.app.$framesRepo.index()
+    };
+  },
   async mounted() {
     const PIXI = await import('pixi.js');
     const Viewport = await import('pixi-viewport');
-    // this.index.frames.forEach((frame) => {
-    //   console.log(frame['1']);
-    // });
+    this.index.frames.forEach((frame) => {
+      console.log(frame['1']);
+    });
 
     const wrapper = document.querySelector('#salz-game-inner-view');
 
@@ -81,8 +82,13 @@ export default {
       });
 
     let curFrame = 0;
-    const maxFrame = importedData.length;
-    let frame = new Frame(viewport, importedData[0]);
+    const maxFrame = this.index.frames.length;
+    this.index.frames.forEach((frame) => {
+      frame.forEach((player) => {
+        player.color = Color.primary;
+      });
+    });
+    let frame = new Frame(viewport, this.index.frames[0]);
     frame.draw();
 
     // hotkeys
@@ -98,7 +104,7 @@ export default {
         fn: () => {
           if (curFrame > 0) {
             viewport.removeChildren(0, viewport.length);
-            frame = new Frame(viewport, importedData[--curFrame]);
+            frame = new Frame(viewport, this.index.frames[--curFrame]);
             frame.draw();
           }
         }
@@ -108,7 +114,7 @@ export default {
         fn: () => {
           if (curFrame < maxFrame - 1) {
             viewport.removeChildren(0, viewport.length);
-            frame = new Frame(viewport, importedData[++curFrame]);
+            frame = new Frame(viewport, this.index.frames[++curFrame]);
             frame.draw();
           }
         }
