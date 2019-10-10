@@ -46,6 +46,8 @@ timedCallandResponse time eph call = runExceptT $ do
   TM.lift $ hPutStr (pstdin eph) $ (T.unpack call) ++ "\n"
   TM.lift $ hFlush (pstdin eph)
 
+  TM.lift $ putStrLn $ "Call is:" ++ (T.unpack call)
+
   -- check stdout
   check "EndOfFile" $ hIsEOF (pstdout eph)
   TM.lift $ putStrLn "Done checks"

@@ -98,10 +98,10 @@ def userupload():
     os.makedirs(newbotLocation, exist_ok=True)
 
     # 2. Save the new file
-    f.save(os.path.join(newbotLocation, "bot.tar"))
+    f.save(os.path.join(newbotLocation, "bot.tar.gz"))
 
     # 3. Update the database
-    Players[playerid].newbotdir = newbotLocation
+    Players[playerid].newbotdir = os.path.join(newbotLocation, "bot.tar.gz")
     Players[playerid].updatedbot = True
 
     return ""

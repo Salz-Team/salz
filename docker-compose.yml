@@ -22,9 +22,10 @@ services:
       - POSTGRES_PASSWORD=mysecretpassword
       - POSTGRES_PORT=5432
       - POSTGRES_HOST=salz-db
+      - BOTLOCATION=/data
     volumes:
       - "botfiles:/data"
-  salz-core:
+  salz-engine:
     build: salz-engine
     depends_on:
       - salz-db
@@ -36,12 +37,12 @@ services:
       - POSTGRES_HOST=salz-db
     volumes:
       - "botfiles:/data"
-  # salz-web:
-  #   build: salz-web
-  #   ports:
-  #     - "3000:3000"
-  #   expose:
-  #     - "3000"
+  salz-web:
+    build: salz-web
+    ports:
+      - "3000:3000"
+    expose:
+      - "3000"
 
 volumes:
   botfiles:

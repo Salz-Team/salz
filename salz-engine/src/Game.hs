@@ -12,6 +12,7 @@ import qualified Database as DB
 import qualified Data.Text as T
 import qualified Control.Monad as CM
 import qualified Control.Concurrent as CC
+import qualified System.IO as SO
 
 import GHC.TypeLits hiding (Mod)
 import Data.Maybe
@@ -26,12 +27,15 @@ startGameEngine dbstring = do
 
 gameLoop :: (KnownNat w, KnownNat h) => Game w h -> IO ()
 gameLoop g = do
+  SO.hSetBuffering SO.stdout SO.LineBuffering
   putStrLn ""
   putStrLn $ "New turn" ++ (show (turn g))
   putStrLn ""
 
-  putStrLn $ "Reading Player info"
-  dbplayerinfo <- DB.readPlayers (dbconnstring g)
+
+  putStrLn "Reading Player info"
+
+  dbplayerinfo <- filterMaybies <$> DB.readPlayers (dbconnstring g)
   putStrLn $ "Build new bots"
   buildstatus <- buildNewBots (botDir g) dbplayerinfo
   putStrLn $ "Write build results"
@@ -42,10 +46,14 @@ gameLoop g = do
   g1 <- updatePlayerBotHandlers g buildstatus
   g2 <- createNewPlayerStarts g1
 
+  putStrLn $ "Number of active cell is " ++ (show (length (bCells (board g2))))
+
   putStrLn ""
   putStrLn $ "Players:"
-  print $ map fst (players g)
+  print $ map fst (players g2)
   botResults <- botTurns g2
+
+  print botResults
 
   DB.writeBotResults $ botResults
 
@@ -57,6 +65,12 @@ gameLoop g = do
 
   CC.threadDelay 1000000
   gameLoop g4
+
+filterMaybies :: [(Int, Maybe T.Text, Maybe FilePath, Maybe Bool, Maybe FilePath, Maybe T.Text)] -> [(Int, T.Text, FilePath, Bool, FilePath, T.Text)]
+filterMaybies s = map fromJust $ filter (isJust) $ map help s
+  where
+    help (a, _, _, Just d, Just e, _) = Just (a, "", "", d, e, "")
+    help _ = Nothing
 
 -- [(playerid, username, botdir, updatedbot, newbotdir, botstatus)]
 buildNewBots :: FilePath -> [(Int, T.Text, FilePath, Bool, FilePath, T.Text)] -> IO ([(Int, E.Either T.Text FilePath)])
