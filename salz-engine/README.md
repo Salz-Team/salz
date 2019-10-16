@@ -16,6 +16,7 @@ start with `stack ghci` by running the command the command in the `./app/Main.hs
 
 # Todo
 First:
+- remove old bots when new bots are loaded
 - get player bot error messages into database
 - when player uploads new bot, if nothing alive add initial point
 - fix botbuilding

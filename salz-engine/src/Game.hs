@@ -8,6 +8,7 @@ import Board
 import Step
 import Types
 import qualified BotBuilder as BB
+import qualified System.FilePath as FP
 import qualified Database as DB
 import qualified Data.Text as T
 import qualified Control.Monad as CM
@@ -80,7 +81,7 @@ buildNewBots botDir playerinfo  = mapM buildBot $ filter isNewBots playerinfo
     isNewBots (_, _, _, b, _, _) = b
 
     buildBot :: (Int, T.Text, FilePath, Bool, FilePath, T.Text) -> IO (Int, E.Either T.Text FilePath)
-    buildBot (pid, _, _, _, nbdir, _) = (pid, ) <$> BB.buildBot nbdir botDir
+    buildBot (pid, _, _, _, nbdir, _) = (pid, ) <$> BB.buildBot nbdir (botDir FP.</> (show pid))
 
 
 updatePlayerBotHandlers :: Game w h -> [(Int, E.Either T.Text FilePath)] -> IO (Game w h)

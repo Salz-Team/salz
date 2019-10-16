@@ -33,15 +33,13 @@ buildBot tarPath targetDir = translate <$> CE.try (buildBot_ tarPath targetDir)
 -- tarPath -> builddir -> finisheddir -> IO (either failmessage pathtorun.sh)
 buildBot_ :: FilePath -> FilePath -> IO ( FilePath )
 buildBot_ tarPath targetDir = TF.withSystemTempDirectory "build" $ \buildDir -> do
-  (_, _, _, p1) <- SP.createProcess (SP.proc "tar" ["xf", tarPath]){ SP.cwd = Just targetDir}
+  (_, _, _, p1) <- SP.createProcess (SP.proc "tar" ["xf", tarPath]){ SP.cwd = Just buildDir}
   ec <- SP.waitForProcess p1
   if (ec == SE.ExitSuccess)
-  then return () -- SP.createProcess (SP.proc "rm" [tarPath])
+  then SP.createProcess (SP.proc "rm" [tarPath])
   else CE.throwIO $ BuildError $ "The file '" `T.append` (T.pack tarPath) `T.append` "' could not be extracted."
 
-  let baseName = FP.dropExtensions (FP.takeFileName tarPath)
-
-  let buildScriptPath = targetDir FP.</> baseName FP.</> "build.sh"
+  let buildScriptPath = buildDir FP.</> "bot/build.sh"
   buildScriptExist <- D.doesFileExist buildScriptPath
   if buildScriptExist
   then do
@@ -50,14 +48,18 @@ buildBot_ tarPath targetDir = TF.withSystemTempDirectory "build" $ \buildDir -> 
     ec1 <- SP.waitForProcess p2
     if ec1 == SE.ExitSuccess
     then return ()
-    else CE.throwIO $ BuildError $ "The file '" `T.append` (T.pack tarPath) `T.append` "' could not be extracted."
+    else CE.throwIO $ BuildError $ "The build script from '" `T.append` (T.pack tarPath) `T.append` "' could not be built."
   else return ()
 
 
-  --(_, _, _, p3)<- SP.createProcess (SP.proc "cp" ["-r", buildDir FP.</> baseName, targetDir])
-  --SP.waitForProcess p3
+  D.createDirectoryIfMissing True targetDir
+  D.removeDirectoryRecursive targetDir
+  D.createDirectoryIfMissing True targetDir
 
-  let runScriptPath = targetDir FP.</> baseName FP.</> "run.sh"
+  (_, _, _, p3)<- SP.createProcess (SP.proc "cp" ["-r", buildDir FP.</> "bot", targetDir])
+  SP.waitForProcess p3
+
+  let  runScriptPath = targetDir FP.</> "bot" FP.</> "run.sh"
   runScriptExist <- D.doesFileExist runScriptPath
   if runScriptExist
   then return ()
