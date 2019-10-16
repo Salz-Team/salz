@@ -1,5 +1,18 @@
 @import '~assets/css/bulma-configs';
 
+html, body {
+  background: var(--body-bg-color);
+  color: var(--body-fg-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 20px;
+}
+
+p {
+  margin-bottom: 50px;
+}
+
 h1 {
   font-size: $size-1;
   font-weight: 700;

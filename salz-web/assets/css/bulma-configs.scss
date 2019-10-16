@@ -10,13 +10,57 @@ $size-5: 1.25rem;
 $size-6: 1rem;
 $size-7: 0.75rem;
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --body-bg-color: #2d2d2d;
+    --body-fg-color: #ededed;
+    --code-bg-color: #1c1c1c;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --body-bg-color: #f5f5f5;
+    --body-fg-color: #1c1c1c;
+    --code-bg-color: $ededed;
+  }
+}
+
 // Set your colors
-$primary: #8c67ef;
+$primary: #009fff;
 $primary-invert: findColorInvert($primary);
 $primary-darker-05: darkenHexColor($primary, 0.05);
 $primary-darker-10: darkenHexColor($primary, 0.10);
+
+$secondary: #0070ff;
+$secondary-invert: findColorInvert($secondary);
+$secondary-darker-05: darkenHexColor($secondary, 0.05);
+$secondary-darker-10: darkenHexColor($secondary, 0.10);
+
+$tertiary: #00deff;
+$tertiary-invert: findColorInvert($tertiary);
+$tertiary-darker-05: darkenHexColor($tertiary, 0.05);
+$tertiary-darker-10: darkenHexColor($tertiary, 0.10);
+
+$quarternary: #0033b8;
+$quarternary-invert: findColorInvert($quarternary);
+$quarternary-darker-05: darkenHexColor($quarternary, 0.05);
+$quarternary-darker-10: darkenHexColor($quarternary, 0.10);
+
+$quinary: #8ff2ff;
+$quinary-invert: findColorInvert($quinary);
+$quinary-darker-05: darkenHexColor($quinary, 0.05);
+$quinary-darker-10: darkenHexColor($quinary, 0.10);
 $twitter: #4099FF;
 $twitter-invert: findColorInvert($twitter);
+
+$title-color: var(--body-fg-color);
+$text-strong: var(--body-fg-color);
+$link-hover: $primary-darker-10;
+$code-background: var(--code-bg-color);
+$code: $primary;
+$pre-background: var(--code-bg-color);
+$pre: var(--body-fg-color);
 
 // Setup $colors to use as bulma classes (e.g. 'is-twitter')
 $colors: (

@@ -91,6 +91,9 @@ export default {
     let frame = new Frame(viewport, this.index.frames[0]);
     frame.draw();
 
+    const menuContainer = new PIXI.Container();
+    app.stage.add(menuContainer);
+
     // hotkeys
     const gameHotkeys = [
       {
