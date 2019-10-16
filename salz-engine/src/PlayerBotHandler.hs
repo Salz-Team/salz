@@ -32,7 +32,7 @@ updatePlayerBot g (playerid, newBotPath) = do
 
   newHandler <- initializePlayer newBotPath
   let newPlayer = M.fromMaybe (Player playerid (-1, -1)) (fst <$> L.find (\(x, _) -> pPlayerId x == playerid) (players g))
-  let newPlayers = (newPlayer,  newHandler):(filter (\(x, _) -> pPlayerId x == playerid) (players g))
+  let newPlayers = (newPlayer,  newHandler):(filter (\(x, _) -> pPlayerId x /= playerid) (players g))
   return $ g {players = newPlayers}
 
 playerTakeTurn :: Board h w CellInfo -> PlayerBotHandler -> IO (Either T.Text [Command])
