@@ -7,6 +7,9 @@ export const Color = {
   quinary: '0x8ff2ff',
 
   // typical color overrides
+  black: '0x1d1d1d',
+  white: '0xefefef',
+  gray: '0x7f7f7f',
   pink: '0xed38fe',
   red: '0xff0092',
   orange: '0xff9f00',
@@ -16,6 +19,7 @@ export const Color = {
   cyan: '0x009fff',
   blue: '0x0048ff',
   purple: '0x6838ff',
+  dark_gray: '0x2d2d2d',
   dark_pink: '0xb21bc2',
   dark_red: '0xc50070',
   dark_orange: '0xb16e00',
