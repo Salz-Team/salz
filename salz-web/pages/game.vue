@@ -155,74 +155,71 @@ export default {
       },
       {
         key: 'z',
-        fn: () => {
-          viewport.zoomPercent(0.1);
-        }
+        fn: viewport.zoomPercent(0.1)
       },
       {
         key: 'shift+z',
-        fn: () => {
-          viewport.zoomPercent(-0.1);
-        }
+        fn: viewport.zoomPercent(-0.1)
       },
       {
         key: 'left',
         fn: (event) => {
           event.preventDefault();
-          viewport.moveCenter(viewport.center.x - 10, viewport.center.y);
+          moveViewport(-10, 0);
         }
       },
       {
         key: 'shift+left',
         fn: (event) => {
           event.preventDefault();
-          viewport.moveCenter(viewport.center.x - 50, viewport.center.y);
+          moveViewport(-50, 0);
         }
       },
       {
         key: 'up',
         fn: (event) => {
           event.preventDefault();
-          viewport.moveCenter(viewport.center.x, viewport.center.y - 10);
+          moveViewport(0, -10);
         }
       },
       {
         key: 'shift+up',
         fn: (event) => {
           event.preventDefault();
-          viewport.moveCenter(viewport.center.x, viewport.center.y - 50);
+          moveViewport(0, -50);
         }
       },
       {
         key: 'right',
         fn: (event) => {
           event.preventDefault();
-          viewport.moveCenter(viewport.center.x + 10, viewport.center.y);
+          moveViewport(10, 0);
         }
       },
       {
         key: 'shift+right',
         fn: (event) => {
           event.preventDefault();
-          viewport.moveCenter(viewport.center.x + 50, viewport.center.y);
+          moveViewport(50, 0);
         }
       },
       {
         key: 'down',
         fn: (event) => {
           event.preventDefault();
-          viewport.moveCenter(viewport.center.x, viewport.center.y + 10);
+          moveViewport(0, 10);
         }
       },
       {
         key: 'shift+down',
         fn: (event) => {
           event.preventDefault();
-          viewport.moveCenter(viewport.center.x, viewport.center.y + 50);
+          moveViewport(0, 50);
         }
       }
     ];
 
+    // register each hotkey for Hotkey.js
     gameHotkeys.forEach((item) => {
       hotkeys(item.key, item.fn);
     });
