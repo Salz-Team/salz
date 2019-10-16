@@ -1,4 +1,5 @@
-import * as PIXI from 'pixi.js';
+import Cell from '../entities/cell';
+import CellInfoBox from '../ui/cellInfoBox';
 
 export default class Frame {
   constructor(viewport, frame) {
@@ -6,28 +7,59 @@ export default class Frame {
     this.frame = frame;
   }
 
+  /**
+   * Void function to draw the frame
+   */
   draw() {
     this.frame.forEach((player) => {
-      this.drawCells(player.pos, player.color);
-    });
-  }
+      player.pos.forEach((position) => {
+        const cell = new Cell(
+          player.playerid,
+          position.x,
+          position.y,
+          player.color
+        );
 
-  drawCells(coords, color) {
-    coords.forEach((coord) => {
-      // $this.drawCell(coord, color);
-      const sprite = this.viewport.addChild(
-        new PIXI.Sprite(PIXI.Texture.WHITE)
-      );
-      sprite.tint = color;
-      sprite.width = sprite.height = 10;
-      sprite.position.set(coord.x * 10, coord.y * 10);
-    });
-  }
+        cell.on('mouseover', (event) => {
+          let cellInfoBox;
+          const delay = setTimeout(() => {
+            const oriEvent = event.data.originalEvent;
+            const cellInfoObj = {
+              owner: cell.owner,
+              x: cell.cellx,
+              y: cell.celly
+            };
+            cellInfoBox = new CellInfoBox(
+              oriEvent.clientX,
+              oriEvent.clientY,
+              cellInfoObj
+            );
+            document
+              .querySelector('#salz-game-inner-view')
+              .appendChild(cellInfoBox);
+          }, 200);
 
-  drawCell(coord, color) {
-    const sprite = this.viewport.addChild(new PIXI.Sprite(PIXI.Texture.WHITE));
-    sprite.tint = color;
-    sprite.width = sprite.height = 10;
-    sprite.position.set(coord.x * 10, coord.y * 10);
+          // once we leave the cell, remove cellInfoBox
+          // only do this if cellInfoBox was created
+          cell.on('mouseout', () => {
+            clearTimeout(delay);
+            if (typeof cellInfoBox !== 'undefined') {
+              setTimeout(() => {
+                document
+                  .querySelector('#salz-game-inner-view')
+                  .removeChild(cellInfoBox);
+              }, 100);
+            }
+
+            // This is to ensure not we don't end up with
+            // multiple mouseout events that have no relationship
+            // with one another
+            cell.removeListener('mouseout');
+          });
+        });
+
+        this.viewport.addChild(cell);
+      });
+    });
   }
 }

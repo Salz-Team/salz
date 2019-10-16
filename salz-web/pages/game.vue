@@ -3,8 +3,21 @@
 </template>
 
 <style lang="scss">
+@import '~assets/css/colors';
 #salz-game-inner-view {
+  width: 100vw;
   height: 100vh;
+}
+
+.gameUIContainer {
+  background: var(--body-bg-color);
+  border-radius: 2px;
+  box-shadow: 2px 2px 5px 5px $black;
+}
+
+.cellInfoContainer {
+  padding: 20px;
+  position: fixed;
 }
 </style>
 
@@ -27,17 +40,14 @@ export default {
   },
   async asyncData(ctx) {
     return {
-      index: await ctx.app.$framesRepo.index()
+      index: await ctx.app.$framesRepo.index() // read frame info from api
     };
   },
   async mounted() {
     const PIXI = await import('pixi.js');
     const Viewport = await import('pixi-viewport');
-    this.index.frames.forEach((frame) => {
-      console.log(frame['1']);
-    });
-
     const wrapper = document.querySelector('#salz-game-inner-view');
+    const frames = this.index.frames;
 
     const appWidth = Math.max(
       document.documentElement.clientWidth,
@@ -51,8 +61,9 @@ export default {
     const app = new PIXI.Application({
       width: appWidth,
       height: appHeight,
-      backgroundColor: 0x000000,
-      resizeTo: document.querySelector('.main-content'),
+      // eslint-disable-next-line
+      backgroundColor: Color.black,
+      resizeTo: wrapper,
       resolution: window.devicePixelRatio || 1
     });
     wrapper.appendChild(app.view);
@@ -82,44 +93,64 @@ export default {
       });
 
     let curFrame = 0;
-    const maxFrame = this.index.frames.length;
-    this.index.frames.forEach((frame) => {
+    frames.forEach((frame) => {
       frame.forEach((player) => {
         player.color = Color.primary;
       });
     });
-    let frame = new Frame(viewport, this.index.frames[0]);
+    let frame = new Frame(viewport, frames[0]);
     frame.draw();
 
-    const menuContainer = new PIXI.Container();
-    app.stage.add(menuContainer);
+    function drawLastFrame() {
+      if (curFrame > 0) {
+        viewport.removeChildren(0, viewport.length);
+        document.querySelectorAll('.cellInfoContainer').forEach((c) => {
+          c.parentNode.removeChild(c);
+        });
+        frame = new Frame(viewport, frames[--curFrame]);
+        frame.draw();
+      }
+    }
+
+    function drawNextFrame() {
+      if (curFrame < frames.length - 1) {
+        viewport.removeChildren(0, viewport.length);
+        document.querySelectorAll('.cellInfoContainer').forEach((c) => {
+          c.parentNode.removeChild(c);
+        });
+        frame = new Frame(viewport, frames[++curFrame]);
+        frame.draw();
+      }
+    }
+
+    /**
+     * Move viewport camera by dx and dy
+     *
+     * @param   {number}  dx  Pixels to move x by
+     * @param   {number}  dy  Pixels to move y by
+     */
+    function moveViewport(dx, dy) {
+      viewport.moveCenter(viewport.center.x + dx, viewport.center.y + dy);
+    }
 
     // hotkeys
     const gameHotkeys = [
       {
         key: 'f',
         fn: () => {
-          fullscreen(app.view);
+          fullscreen(wrapper);
         }
       },
       {
         key: 'h',
         fn: () => {
-          if (curFrame > 0) {
-            viewport.removeChildren(0, viewport.length);
-            frame = new Frame(viewport, this.index.frames[--curFrame]);
-            frame.draw();
-          }
+          drawLastFrame();
         }
       },
       {
         key: 'l',
         fn: () => {
-          if (curFrame < maxFrame - 1) {
-            viewport.removeChildren(0, viewport.length);
-            frame = new Frame(viewport, this.index.frames[++curFrame]);
-            frame.draw();
-          }
+          drawNextFrame();
         }
       },
       {
@@ -196,40 +227,20 @@ export default {
       hotkeys(item.key, item.fn);
     });
 
-    // to be refactored so that it can be used with image assets
-    // const btn = createTextButton(
-    //   'Fullscreen',
-    //   { padding: 10, fill: '#FF0000' },
-    //   () => {
-    //     fullscreen(app.view);
-    //   }
-    // );
-    // btn.x = appWidth - btn.width - 20;
-    // btn.y = appHeight - btn.height - 20;
-    // function createTextButton(text, style, fn) {
-    //   const btn = new PIXI.Text(text, style);
-    //   btn.interactive = true;
-    //   btn.buttonMode = true;
-    //   btn.on('click', fn);
-    //   app.stage.addChild(btn);
+    // window.addEventListener('resize', (event) => {
+    //   app.resize();
 
-    //   return btn;
-    // }
-
-    window.addEventListener('resize', (event) => {
-      app.resize();
-
-      // const appWidth = Math.max(
-      //   document.documentElement.clientWidth,
-      //   window.innerWidth || 0
-      // );
-      // const appHeight = Math.max(
-      //   document.documentElement.clientHeight,
-      //   window.innerHeight || 0
-      // );
-      // btn.x = appWidth - btn.width - 20;
-      // btn.y = appHeight - btn.height - 20;
-    });
+    //   const appWidth = Math.max(
+    //     document.documentElement.clientWidth,
+    //     window.innerWidth || 0
+    //   );
+    //   const appHeight = Math.max(
+    //     document.documentElement.clientHeight,
+    //     window.innerHeight || 0
+    //   );
+    //   btn.x = appWidth - btn.width - 20;
+    //   btn.y = appHeight - btn.height - 20;
+    // });
   }
 };
 </script>
