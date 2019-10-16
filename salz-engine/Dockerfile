@@ -17,4 +17,4 @@ RUN cd /opt/salz-engine && stack install --only-dependencies
 COPY . /opt/salz-engine
 RUN cd /opt/salz-engine && stack build --system-ghc
 
-CMD ["stack exec salz-engine"]
+CMD ["stack", "exec", "salz-engine"]
