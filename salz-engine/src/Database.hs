@@ -74,7 +74,19 @@ writeBuildResults connectionString buildresults = do
     writeResult conn1 (i, Left errMsg) = execute conn1 errorQuery (errMsg, i) >> return ()
     writeResult conn1 (i, Right newPath) = execute conn1 successQuery (newPath, i) >> return ()
 
-writeBotResults _ = return ()
+writeBotResults :: T.Text -> [(Int, E.Either T.Text [MT.Command])] -> IO ()
+writeBotResults connectionString botResults = do
+  conn <- connectRepeat connectionString
+
+  mapM (writeResult conn) botResults
+  close conn
+  return ()
+  where
+    errorQuery = "UPDATE players SET botstatus = ? WHERE playerid = ?;"
+
+    writeResult :: Connection -> (Int, E.Either T.Text [MT.Command]) -> IO ()
+    writeResult conn1 (i, Left errMsg) = execute conn1 errorQuery(errMsg, i) >> return ()
+    writeResult conn1 (i, Right other) = return ()
 
 
 connectRepeat :: T.Text -> IO Connection

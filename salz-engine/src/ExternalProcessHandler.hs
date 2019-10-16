@@ -11,6 +11,7 @@ module ExternalProcessHandler
 
 import Control.Monad()
 import Control.Monad.Trans.Except
+import qualified Control.Exception as CE
 import qualified System.FilePath as FP
 import qualified Control.Monad.Trans.Class as TM
 import qualified Data.Text as T
@@ -40,11 +41,14 @@ cleanPlayer :: ExternalProcessHandler -> IO ()
 cleanPlayer eh = do
   cleanupProcess (Just $ pstdin eh, Just $ pstdout eh, Just $ pstderr eh, pproc eh)
 
+transform :: IOError -> T.Text
+transform _ = "Player bot crashed"
+
 timedCallandResponse :: Int -> ExternalProcessHandler -> T.Text -> IO (Either T.Text T.Text)
 timedCallandResponse time eph call = runExceptT $ do
   --give map
-  TM.lift $ hPutStr (pstdin eph) $ (T.unpack call) ++ "\n"
-  TM.lift $ hFlush (pstdin eph)
+  withExceptT transform $ ExceptT $ CE.try $ hPutStr (pstdin eph) $ (T.unpack call) ++ "\n"
+  withExceptT transform $ ExceptT $ CE.try $ hFlush (pstdin eph)
 
   TM.lift $ putStrLn $ "Call is:" ++ (T.unpack call)
 

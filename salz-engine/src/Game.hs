@@ -55,7 +55,7 @@ gameLoop g = do
 
   print botResults
 
-  DB.writeBotResults $ botResults
+  DB.writeBotResults (dbconnstring g) botResults
 
   let commands = getLegalCommands g2  botResults
   let g3 = applyCommands g2 commands
