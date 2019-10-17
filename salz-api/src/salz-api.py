@@ -10,6 +10,7 @@ import shutil
 import time
 from authlib.flask.client import OAuth
 import jwt
+from urllib.parse import quote
 from functools import wraps
 
 app = Flask(__name__)
@@ -25,6 +26,8 @@ PGUSER = os.getenv("POSTGRES_USER", "postgres")
 PGPASS = os.getenv("POSTGRES_PASSWORD", "mysecretpassword")
 PGPORT = os.getenv("POSTGRES_PORT", "5432")
 PGHOST = os.getenv("POSTGRES_HOST", "localhost")
+
+WEBHOST = os.getenv("WEB_HOST", "http://localhost:3000")
 
 BOTLOCATION = os.getenv("BOTLOCATION", ".")
 
@@ -106,11 +109,37 @@ def userupload():
 
     return ""
 
-
-
 @app.route('/login')
 def login():
-    return oauth.github.authorize_redirect(callback=url_for('authorized', _external=True))
+
+    requestclient = request.args.get('client')
+
+    if requestclient:
+        print("web client detected")
+        redirect_uri = url_for('authorized_webredirect', _external = True)
+    else:
+        redirect_uri = url_for('authorized', _external = True)
+
+    return oauth.github.authorize_redirect(redirect_uri=redirect_uri)
+
+@app.route('/login/auth/web')
+def authorized_webredirect():
+    token = oauth.github.authorize_access_token()
+    resp = oauth.github.get('user')
+    profile = resp.json()
+    payload = {
+            "login" : profile['login'],
+            "email" : profile['email'],
+            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
+            }
+    # create new Player object in database
+    with db_session:
+        if len(select(p for p in Players if p.username == profile['login'])) == 0:
+            db.insert("players", username = profile['login'], updatedbot = False)
+
+    jwtoken = jwt.encode(payload, app.secret_key)
+    return redirect(WEBHOST + "/login?jwt=" + quote(jwtoken)) 
+    #return "foobar"
 
 @app.route('/login/auth')
 def authorized():
