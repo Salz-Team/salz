@@ -1,5 +1,7 @@
 <template id="salz-game-view">
-  <div id="salz-game-inner-view"></div>
+  <div id="salz-game-inner-view">
+    <GameMenu :items="gameMenu" />
+  </div>
 </template>
 
 <style lang="scss">
@@ -7,12 +9,6 @@
 #salz-game-inner-view {
   width: 100vw;
   height: 100vh;
-}
-
-.gameUIContainer {
-  background: var(--body-bg-color);
-  border-radius: 2px;
-  box-shadow: 2px 2px 5px 5px $black;
 }
 
 .cellInfoContainer {
@@ -29,13 +25,28 @@ import { fullscreen } from '../lib/game/rendering/fullscreen';
 import Frame from '../lib/game/rendering/frame';
 import { Color } from '../lib/game/colors.js';
 
+import GameMenu from '~/components/Game/UI/GameMenu';
+
 // This is a dummy data set
+// Uncomment to use
 // import { importedData } from '../lib/game/testData';
 
 export default {
+  components: {
+    GameMenu
+  },
   data() {
     return {
-      index: []
+      index: [],
+      gameMenu: [
+        { title: 'Guide' },
+        { title: 'Fullscreen' },
+        { title: 'Hotkeys' },
+        { title: 'Ranking' },
+        { title: 'Help' },
+        { title: 'Hide UI' },
+        { title: 'Preferences' }
+      ]
     };
   },
   async asyncData(ctx) {
@@ -92,12 +103,32 @@ export default {
         maxHeight: vpWorldHeight * 5
       });
 
-    let curFrame = 0;
+    // HACK -- This is a temporary solution
+    // set a random color for each player
+    const cellcolors = [
+      Color.pink,
+      Color.red,
+      Color.orange,
+      Color.yellow,
+      Color.green,
+      Color.turquiose,
+      Color.cyan,
+      Color.blue,
+      Color.purple
+    ];
+    let playerColorDict = {};
     frames.forEach((frame) => {
       frame.forEach((player) => {
-        player.color = Color.primary;
+        const id = player.playerid;
+        if (typeof playerColorDict[id] === 'undefined') {
+          playerColorDict[id] =
+            cellcolors[Math.floor(Math.random() * cellcolors.length)];
+        }
+        player.color = playerColorDict[id];
       });
     });
+
+    let curFrame = 0;
     let frame = new Frame(viewport, frames[0]);
     frame.draw();
 
@@ -155,11 +186,15 @@ export default {
       },
       {
         key: 'z',
-        fn: viewport.zoomPercent(0.1)
+        fn: () => {
+          viewport.zoomPercent(0.5);
+        }
       },
       {
         key: 'shift+z',
-        fn: viewport.zoomPercent(-0.1)
+        fn: () => {
+          viewport.zoomPercent(-0.5);
+        }
       },
       {
         key: 'left',

@@ -9,7 +9,7 @@
     "dev:docker": "NUXT_HOST=0.0.0.0 NUXT_PORT=3000 nuxt",
     "dev": "nuxt",
     "build": "nuxt build",
-    "start": "nuxt start",
+    "start": "BASE_URL=https://salz.life nuxt start",
     "generate": "nuxt generate",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "test": "jest"
