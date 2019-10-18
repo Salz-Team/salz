@@ -116,7 +116,7 @@ export default {
       Color.blue,
       Color.purple
     ];
-    let playerColorDict = {};
+    const playerColorDict = {};
     frames.forEach((frame) => {
       frame.forEach((player) => {
         const id = player.playerid;
