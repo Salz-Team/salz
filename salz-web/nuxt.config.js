@@ -13,12 +13,15 @@ const api_baseurl = () => {
 export default {
   mode: 'spa',
   /*
-   ** Headers of the page
+   ** Application env variables
    */
   env: {
-    apiURL: api_baseurl,
-    baseURL: process.env.BASE_URL || 'http://localhost:3000'
+    apiurl: api_baseurl(),
+    baseurl: process.env.BASE_URL || 'http://localhost:3000'
   },
+  /*
+   ** Headers of the page
+   */
   head: {
     title: process.env.npm_package_name || '',
     meta: [
