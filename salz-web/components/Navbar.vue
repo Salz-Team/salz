@@ -27,8 +27,12 @@
           </nuxt-link>
         </li>
       </ul>
-      <ul class="navbar-end">
-        <li @click="login"><b-icon icon="account" />Login</li>
+      <ul v-if="isLoggedIn" class="navbar-end">
+        <li><b-icon icon="account" /> {{ username }}</li>
+        <li @click="logout"><b-icon icon="logout" /> Logout</li>
+      </ul>
+      <ul v-else class="navbar-end">
+        <li @click="login"><b-icon icon="login" /> Login</li>
       </ul>
     </div>
   </nav>
@@ -119,7 +123,8 @@ ul.navbar-end {
 export default {
   data() {
     return {
-      loginToken: null,
+      isLoggedIn: false,
+      loginToken: window.localStorage.getItem('auth_token'),
       items: [
         {
           title: 'Home',
@@ -142,16 +147,7 @@ export default {
           to: { name: 'game' }
         }
       ],
-      loginNav: [
-        {
-          title: 'Login'
-        }
-      ]
-    };
-  },
-  asyncData(ctx) {
-    return {
-      loginToken: window.localStorage.getItem('auth_token')
+      username: null
     };
   },
   mounted() {
@@ -171,21 +167,21 @@ export default {
     }
 
     if (this.loginToken !== null) {
+      this.isLoggedIn = true;
       const authdata = parseJWT(this.loginToken);
-      console.log(authdata);
+      sessionStorage.setItem('username', authdata.login);
+
+      this.username = sessionStorage.getItem('username');
     }
   },
   methods: {
-    async login(event) {
-      await this.$axios
-        .$get(process.env.apiURL + '/login?client=web')
-        .then((response) => {
-          console.log(response);
-          window.localStorage.setItem('auth_token', response.token);
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+    login(event) {
+      window.location.href = process.env.apiurl + '/login?client=web';
+    },
+    logout(event) {
+      this.isLoggedIn = false;
+      sessionStorage.removeItem('username');
+      localStorage.removeItem('auth_token');
     },
     toggleNavbar() {
       const navMenu = document.querySelector('.navbar-menu');
