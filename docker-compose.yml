@@ -23,6 +23,8 @@ services:
       - POSTGRES_PORT=5432
       - POSTGRES_HOST=salz-db
       - BOTLOCATION=/data
+      - GITHUB_CLIENT=***REMOVED***
+      - GITHUB_SECRET=***REMOVED***
     volumes:
       - "botfiles:/data"
   salz-engine:

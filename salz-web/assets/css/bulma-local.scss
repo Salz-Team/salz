@@ -46,3 +46,10 @@ h6 {
 .menu-list {
   list-style: none;
 }
+
+.gameUIContainer {
+  background: var(--body-bg-color);
+  border-radius: 2px;
+  box-shadow: 2px 2px 5px 5px $black;
+}
+

@@ -13,8 +13,7 @@
         />
       </a>
 
-      <div class="navbar-burger">
-        test
+      <div class="navbar-burger" @click="toggleNavbar">
         <span />
         <span />
         <span />
@@ -28,9 +27,12 @@
           </nuxt-link>
         </li>
       </ul>
-      <ul class="navbar-end">
-        <li><a>Sign up</a></li>
-        <li><a>Login</a></li>
+      <ul v-if="isLoggedIn" class="navbar-end">
+        <li><b-icon icon="account" /> {{ username }}</li>
+        <li @click="logout"><b-icon icon="logout" /> Logout</li>
+      </ul>
+      <ul v-else class="navbar-end">
+        <li @click="login"><b-icon icon="login" /> Login</li>
       </ul>
     </div>
   </nav>
@@ -42,6 +44,10 @@
 
 .navbar-menu {
   align-items: center;
+
+  &.active {
+    display: block;
+  }
 }
 
 ul {
@@ -64,14 +70,50 @@ ul {
 
     a:link,
     a:visited {
-      color: $light;
+      color: var(--body-bg-color);
     }
 
     a:hover,
     a:focus,
     a.is-active {
       background: $primary-darker-10;
-      color: $light;
+      color: var(--body-bg-color);
+    }
+  }
+}
+
+ul.navbar-end {
+  li {
+    background: none;
+    color: var(--body-bg-color);
+    cursor: pointer;
+    padding: 0 15px;
+    transition: all 0.2s ease-in-out;
+    height: 100%;
+
+    &:active,
+    &:focus,
+    &:hover {
+      background: $primary-darker-10;
+    }
+  }
+}
+
+@media screen and (max-width: 1023px) {
+  .navbar-menu {
+    background-color: $primary;
+
+    .navbar-start,
+    .navbar-end {
+      li {
+        text-align: center;
+        font-size: $size-4;
+
+        & > a {
+          width: 100%;
+          line-height: $size-2;
+        }
+      }
     }
   }
 }
@@ -81,6 +123,8 @@ ul {
 export default {
   data() {
     return {
+      isLoggedIn: false,
+      loginToken: window.localStorage.getItem('auth_token'),
       items: [
         {
           title: 'Home',
@@ -102,8 +146,51 @@ export default {
           icon: 'gamepad',
           to: { name: 'game' }
         }
-      ]
+      ],
+      username: null
     };
+  },
+  mounted() {
+    function parseJWT(token) {
+      const base64Payload = token.split('.')[1];
+      const base64 = base64Payload.replace(/-/g, '+').replace(/_/g, '-');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join('')
+      );
+
+      return JSON.parse(jsonPayload);
+    }
+
+    if (this.loginToken !== null) {
+      this.isLoggedIn = true;
+      const authdata = parseJWT(this.loginToken);
+      sessionStorage.setItem('username', authdata.login);
+
+      this.username = sessionStorage.getItem('username');
+    }
+  },
+  methods: {
+    login(event) {
+      window.location.href = process.env.apiurl + '/login?client=web';
+    },
+    logout(event) {
+      this.isLoggedIn = false;
+      sessionStorage.removeItem('username');
+      localStorage.removeItem('auth_token');
+    },
+    toggleNavbar() {
+      const navMenu = document.querySelector('.navbar-menu');
+      if (navMenu.classList.contains('active')) {
+        navMenu.classList.remove('active');
+      } else {
+        navMenu.classList.add('active');
+      }
+    }
   }
 };
 </script>
