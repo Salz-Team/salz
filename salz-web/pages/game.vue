@@ -24,6 +24,7 @@ import hotkeys from 'hotkeys-js';
 import { fullscreen } from '../lib/game/rendering/fullscreen';
 import Frame from '../lib/game/rendering/frame';
 import { Color } from '../lib/game/colors.js';
+import { sketchyMedoid } from '../lib/game/mathstuff';
 
 import GameMenu from '~/components/Game/UI/GameMenu';
 
@@ -89,7 +90,17 @@ export default {
       worldHeight: vpWorldHeight,
       interaction: app.renderer.plugins.interaction
     });
-    viewport.moveCenter(0, 0); // should act differently for auth-ed users
+
+    // Set the centre to be the mediod of player's cells.
+
+    const playerID = parseInt(sessionStorage.getItem('id'), 10);
+
+    if (playerID == null) {
+      viewport.moveCenter(0, 0); // should act differently for auth-ed users
+    } else {
+      viewport.moveCenter(...sketchyMedoid(playerID, frames[0])); // camera should point at middle of cluster.
+    }
+
     app.stage.addChild(viewport);
     viewport
       .drag()

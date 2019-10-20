@@ -120,6 +120,8 @@ ul.navbar-end {
 </style>
 
 <script charset="utf-8">
+import { parseJWT } from '../lib/game/jwt';
+
 export default {
   data() {
     return {
@@ -151,27 +153,14 @@ export default {
     };
   },
   mounted() {
-    function parseJWT(token) {
-      const base64Payload = token.split('.')[1];
-      const base64 = base64Payload.replace(/-/g, '+').replace(/_/g, '-');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          })
-          .join('')
-      );
-
-      return JSON.parse(jsonPayload);
-    }
-
     if (this.loginToken !== null) {
       this.isLoggedIn = true;
       const authdata = parseJWT(this.loginToken);
       sessionStorage.setItem('username', authdata.login);
+      sessionStorage.setItem('id', authdata.id);
 
       this.username = sessionStorage.getItem('username');
+      this.id = sessionStorage.getItem('id');
     }
   },
   methods: {
