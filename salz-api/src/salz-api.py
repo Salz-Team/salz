@@ -127,15 +127,20 @@ def authorized_webredirect():
     token = oauth.github.authorize_access_token()
     resp = oauth.github.get('user')
     profile = resp.json()
-    payload = {
-            "login" : profile['login'],
-            "email" : profile['email'],
-            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
-            }
+
     # create new Player object in database
     with db_session:
         if len(select(p for p in Players if p.username == profile['login'])) == 0:
             db.insert("players", username = profile['login'], updatedbot = False)
+
+        playerDB = select(p for p in Players if p.username == profile['login']).first()
+
+    payload = {
+            "login" : profile['login'],
+            "id" : playerDB.playerid,
+            "email" : profile['email'],
+            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
+            }
 
     jwtoken = jwt.encode(payload, app.secret_key)
     return redirect(WEBHOST + "/login?jwt=" + quote(jwtoken)) 
@@ -146,15 +151,20 @@ def authorized():
     token = oauth.github.authorize_access_token()
     resp = oauth.github.get('user')
     profile = resp.json()
-    payload = {
-            "login" : profile['login'],
-            "email" : profile['email'],
-            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
-            }
+
     # create new Player object in database
     with db_session:
         if len(select(p for p in Players if p.username == profile['login'])) == 0:
             db.insert("players", username = profile['login'], updatedbot = False)
+
+        playerDB = select(p for p in Players if p.username == profile['login']).first()
+
+    payload = {
+            "login" : profile['login'],
+            "id" : playerDB.playerid,
+            "email" : profile['email'],
+            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
+            }
 
     jwtoken = jwt.encode(payload, app.secret_key)
     return jsonify({'token' : jwtoken.decode('UTF-8')})
