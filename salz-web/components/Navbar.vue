@@ -120,7 +120,7 @@ ul.navbar-end {
 </style>
 
 <script charset="utf-8">
-import { parseJWT } from '../lib/game/jwt';
+import { parseJWT } from '../lib/jwt';
 
 export default {
   data() {
