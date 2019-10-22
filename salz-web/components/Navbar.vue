@@ -27,8 +27,8 @@
           </nuxt-link>
         </li>
       </ul>
-      <ul v-if="isLoggedIn" class="navbar-end">
-        <li><b-icon icon="account" /> {{ username }}</li>
+      <ul v-if="user.isLoggedIn" class="navbar-end">
+        <li><b-icon icon="account" /> {{ user.username }}</li>
         <li @click="logout"><b-icon icon="logout" /> Logout</li>
       </ul>
       <ul v-else class="navbar-end">
@@ -120,13 +120,17 @@ ul.navbar-end {
 </style>
 
 <script charset="utf-8">
-import { parseJWT } from '../lib/jwt';
+// import { parseJWT } from '../lib/jwt';
 
 export default {
   data() {
     return {
-      isLoggedIn: false,
-      loginToken: window.localStorage.getItem('auth_token'),
+      user: {
+        isLoggedIn: false,
+        token: localStorage.getItem('auth_token'),
+        username: null,
+        id: null
+      },
       items: [
         {
           title: 'Home',
@@ -148,19 +152,15 @@ export default {
           icon: 'gamepad',
           to: { name: 'game' }
         }
-      ],
-      username: null
+      ]
     };
   },
   mounted() {
-    if (this.loginToken !== null) {
-      this.isLoggedIn = true;
-      const authdata = parseJWT(this.loginToken);
-      sessionStorage.setItem('username', authdata.login);
-      sessionStorage.setItem('id', authdata.id);
-
-      this.username = sessionStorage.getItem('username');
-      this.id = sessionStorage.getItem('id');
+    if (this.user.token !== null) {
+      this.user.isLoggedIn = true;
+      const user = JSON.parse(sessionStorage.getItem('user'));
+      this.user.username = user.username;
+      this.userid = user.id;
     }
   },
   methods: {
@@ -168,9 +168,11 @@ export default {
       window.location.href = process.env.apiurl + '/login?client=web';
     },
     logout(event) {
-      this.isLoggedIn = false;
-      sessionStorage.removeItem('username');
-      localStorage.removeItem('auth_token');
+      this.user.isLoggedIn = false;
+      this.user.loginToken = null;
+      this.user.username = null;
+      this.user.id = null;
+      this.$store.dispatch('login/dropToken');
     },
     toggleNavbar() {
       const navMenu = document.querySelector('.navbar-menu');

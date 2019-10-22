@@ -86,9 +86,9 @@ export default {
       interaction: app.renderer.plugins.interaction
     });
 
-    // Set the centre to be the mediod of player's cells.
-
-    const playerID = parseInt(sessionStorage.getItem('id'), 10);
+    // Set the centre to be the mediod of player's cells
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    const playerID = parseInt(user.id, 10);
 
     if (playerID == null) {
       viewport.moveCenter(0, 0); // should act differently for auth-ed users

@@ -1,12 +1,22 @@
 <template>
   <div class="container column is-12">
     <section class="section">
-      Logging in with Github
+      Logging in with <b-icon icon="github-circle" /> Github
     </section>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+section {
+  text-align: center;
+}
+</style>
 
 <script charset="utf-8">
 export default {
@@ -27,14 +37,13 @@ export default {
       console.error(e);
     }
 
-    // this.$store.dispatch('updateToken', token);
-
     if (key === 'jwt') {
-      window.localStorage.setItem('auth_token', token);
-      this.$axios.setHeader('Authorization:Bearer', token);
+      this.$store.dispatch('login/updateToken', token);
     }
 
-    window.location.href = process.env.baseurl;
+    setTimeout(() => {
+      window.location.href = process.env.baseurl;
+    }, 200);
   }
 };
 </script>
