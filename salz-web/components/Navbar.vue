@@ -158,9 +158,13 @@ export default {
   mounted() {
     if (this.user.token !== null) {
       this.user.isLoggedIn = true;
-      const user = JSON.parse(sessionStorage.getItem('user'));
-      this.user.username = user.username;
-      this.userid = user.id;
+      this.$store.dispatch('login/grabToken');
+      const storedUser = sessionStorage.getItem('user');
+      if (storedUser !== null) {
+        const user = JSON.parse(storedUser);
+        this.user.username = user.username;
+        this.user.id = user.id;
+      }
     }
   },
   methods: {
