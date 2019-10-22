@@ -28,10 +28,6 @@ import { sketchyMedoid } from '../lib/game/mathstuff';
 
 import GameMenu from '~/components/Game/UI/GameMenu';
 
-// This is a dummy data set
-// Uncomment to use
-// import { importedData } from '../lib/game/testData';
-
 export default {
   components: {
     GameMenu
@@ -73,7 +69,6 @@ export default {
     const app = new PIXI.Application({
       width: appWidth,
       height: appHeight,
-      // eslint-disable-next-line
       backgroundColor: Color.black,
       resizeTo: wrapper,
       resolution: window.devicePixelRatio || 1
