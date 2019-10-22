@@ -22,6 +22,7 @@ import hotkeys from 'hotkeys-js';
 
 // Game Rendering
 import { fullscreen } from '../lib/game/rendering/fullscreen';
+import GameFrame from '../lib/game/rendering/gameFrame';
 import Frame from '../lib/game/rendering/frame';
 import { Color } from '../lib/game/colors.js';
 import { sketchyMedoid } from '../lib/game/mathstuff';
@@ -57,6 +58,7 @@ export default {
     const wrapper = document.querySelector('#salz-game-inner-view');
     const frames = this.index.frames;
 
+    // figure out the dimensions for the canvas
     const appWidth = Math.max(
       document.documentElement.clientWidth,
       window.innerWidth || 0
@@ -135,28 +137,22 @@ export default {
     });
 
     let curFrame = 0;
-    let frame = new Frame(viewport, frames[0]);
-    frame.draw();
+    let frame = new Frame(frames[0]);
+
+    const gameFrame = new GameFrame(frame, vpWorldWidth, vpWorldHeight);
+    viewport.addChild(gameFrame);
 
     function drawLastFrame() {
       if (curFrame > 0) {
-        viewport.removeChildren(0, viewport.length);
-        document.querySelectorAll('.cellInfoContainer').forEach((c) => {
-          c.parentNode.removeChild(c);
-        });
-        frame = new Frame(viewport, frames[--curFrame]);
-        frame.draw();
+        frame = new Frame(frames[--curFrame]);
+        gameFrame.mountFrame(frame);
       }
     }
 
     function drawNextFrame() {
       if (curFrame < frames.length - 1) {
-        viewport.removeChildren(0, viewport.length);
-        document.querySelectorAll('.cellInfoContainer').forEach((c) => {
-          c.parentNode.removeChild(c);
-        });
-        frame = new Frame(viewport, frames[++curFrame]);
-        frame.draw();
+        frame = new Frame(frames[++curFrame]);
+        gameFrame.mountFrame(frame);
       }
     }
 
