@@ -7,7 +7,7 @@ WORKDIR /app
 ENV NUXT_HOST=0.0.0.0
 ENV NUXT_PORT=3000
 
-RUN npm run install
+RUN npm install
 
 EXPOSE 3000
 
