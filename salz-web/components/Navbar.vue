@@ -28,11 +28,23 @@
         </li>
       </ul>
       <ul v-if="user.isLoggedIn" class="navbar-end">
-        <li><b-icon icon="account" /> {{ user.username }}</li>
-        <li @click="logout"><b-icon icon="logout" /> Logout</li>
+        <li>
+          <nuxt-link to="account">
+            <b-icon icon="account" /> {{ user.username }}
+          </nuxt-link>
+        </li>
+        <li>
+          <a href="#" @click.prevent.stop="logout">
+            <b-icon icon="logout" /> Logout
+          </a>
+        </li>
       </ul>
       <ul v-else class="navbar-end">
-        <li @click="login"><b-icon icon="login" /> Login</li>
+        <li>
+          <a href="#" @click.prevent.stop="login">
+            <b-icon icon="login" /> Login
+          </a>
+        </li>
       </ul>
     </div>
   </nav>
@@ -72,7 +84,11 @@ ul {
     a:visited {
       color: var(--body-bg-color);
     }
+  }
+}
 
+ul.navbar-start {
+  li {
     a:hover,
     a:focus,
     a.is-active {

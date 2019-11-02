@@ -1,5 +1,4 @@
 import { parseJWT } from '../lib/jwt';
-import axios from '@/plugins/repo';
 
 export const state = () => ({
   status: 'logged out',
@@ -13,12 +12,14 @@ export const mutations = {
   loginRequest: (state) => {
     state.status = 'logging in';
   },
-  loginSuccess: (state, value, username, id) => {
+  loginSuccess: (state, value) => {
     state.status = 'logged in';
     state.isLoggedIn = true;
     state.token = value;
-    state.username = username;
-    state.id = id;
+
+    const p = parseJWT(value);
+    state.username = p.login;
+    state.id = p.id;
   },
   loginFailure: (state) => {
     state.status = 'login failed';
@@ -51,7 +52,7 @@ export const actions = {
         id: parsedJwt.id
       };
       sessionStorage.setItem('user', JSON.stringify(user));
-      commit('loginSuccess', jwt, parsedJwt.login, parsedJwt.id);
+      commit('loginSuccess', jwt);
     } else {
       commit('loginFailure');
     }
@@ -60,9 +61,9 @@ export const actions = {
     const jwt = localStorage.getItem('auth_token');
     if (jwt !== null) {
       this.$axios.setToken(jwt, 'Bearer');
-      const parsedJwt = parseJWT(jwt);
 
       // check if user info has been stored in session
+      const parsedJwt = parseJWT(jwt);
       const storedUser = JSON.parse(sessionStorage.getItem('user'));
       if (storedUser === null) {
         const user = {
@@ -72,7 +73,7 @@ export const actions = {
         sessionStorage.setItem('user', JSON.stringify(user));
       }
 
-      commit('loginSuccess', jwt, parsedJwt.login, parsedJwt.id);
+      commit('loginSuccess', jwt);
     } else {
       commit('loginFailure');
     }
@@ -81,7 +82,7 @@ export const actions = {
     commit('logoutRequest');
     localStorage.removeItem('auth_token');
     sessionStorage.removeItem('user');
-    axios.setHeader('Authorization:Bearer', null);
+    this.$axios.setHeader('Authorization:Bearer', null);
     commit('logoutSuccess');
   }
 };
