@@ -5,10 +5,10 @@
   "author": "Lugarun, Mosiman, Japorized",
   "private": true,
   "scripts": {
-    "dev:docker": "NUXT_HOST=0.0.0.0 NUXT_PORT=3000 nuxt",
+    "dev:docker": "nuxt",
     "dev": "nuxt",
     "build": "nuxt build",
-    "start": "BASE_URL=https://salz.life nuxt start",
+    "start": "nuxt start",
     "generate": "nuxt generate",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "test": "jest"

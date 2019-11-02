@@ -7,6 +7,10 @@ html, body {
 
 h1, h2, h3, h4, h5, h6 {
   margin-top: 20px;
+
+  small {
+    font-size: 0.875rem;
+  }
 }
 
 p {
@@ -51,5 +55,10 @@ h6 {
   background: var(--body-bg-color);
   border-radius: 2px;
   box-shadow: 2px 2px 5px 5px $black;
+
+  &.hide {
+    opacity: 0 !important;
+    display: none !important;
+  }
 }
 
