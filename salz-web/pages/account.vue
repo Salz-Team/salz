@@ -180,7 +180,7 @@ export default {
       if (ev.dataTransfer.items) {
         for (let i = 0; i < ev.dataTransfer.items.length; i++) {
           if (ev.dataTransfer.items[i].kind === 'file') {
-            const file = this.$refs.file.files[0];
+            const file = ev.dataTransfer.items[i].getAsFile();
             this.botfile = {
               name: this.getBotname(file),
               file
