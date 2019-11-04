@@ -1,4 +1,5 @@
 @import '~assets/css/bulma-configs';
+@import '~assets/css/colors';
 
 html, body {
   background: var(--body-bg-color);
@@ -52,7 +53,8 @@ h6 {
 }
 
 .gameUIContainer {
-  background: var(--body-bg-color);
+  background: $dark_gray;
+  color: $white;
   border-radius: 2px;
   box-shadow: 2px 2px 5px 5px $black;
 
