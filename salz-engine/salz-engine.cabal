@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3a778da9a2447b6e03f6531670ab0595549acb6bc98fa5f277ba9d44e8d6a3d2
+-- hash: 8718d27b623820bb24835bae50d3a36e66b7e1f357f32e0634b8e32b8a1baf10
 
 name:           salz-engine
 version:        0.1.0.0
@@ -48,6 +48,7 @@ library
     , mtl
     , postgresql-simple
     , process
+    , sqlite-simple
     , temporary
     , text
     , time
@@ -71,6 +72,7 @@ executable salz-engine
     , postgresql-simple
     , process
     , salz-engine
+    , sqlite-simple
     , temporary
     , text
     , time
@@ -95,6 +97,7 @@ test-suite salz-engine-test
     , postgresql-simple
     , process
     , salz-engine
+    , sqlite-simple
     , temporary
     , text
     , time
