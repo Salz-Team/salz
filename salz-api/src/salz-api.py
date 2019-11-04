@@ -222,9 +222,20 @@ db.generate_mapping()
 @db_session
 def get_frames():
     args = request.args
-    
-    print(args)
 
+    latest_turnid = db.select('* FROM get_latest_turnid()')[0]
+
+    # validate some shit
+
+    # Make sure there's gamedata, if not, return empty frames
+    if latest_turnid == None:
+        response = app.response_class(
+                response = json.dumps({"frames" : []}),
+                status = 200,
+                mimetype='application/json')
+        return response
+
+    # Check for query string args
     if ('startframe' in args) and ('endframe' in args):
 
         try:
@@ -242,11 +253,11 @@ def get_frames():
         except ValueError as e:
             return abort(400)
 
-        endFrame = db.select('* FROM get_latest_turnid()')[0]
+        endFrame = latest_turnid
         startFrame = endFrame - nf
 
     else:
-        endFrame = db.select('* FROM get_latest_turnid()')[0]
+        endFrame = latest_turnid
         startFrame = endFrame - DEFAULT_TURNHISTORY
 
     frames = db.select('* from get_frames($startFrame, $endFrame)')
