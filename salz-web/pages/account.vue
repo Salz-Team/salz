@@ -19,15 +19,17 @@
             accept-charset="utf-8"
             @submit.prevent="submitBot"
           >
-            <label id="botname-label" for="botname">Bot name</label>
-            <input
-              v-if="botfile !== null"
-              id="bot"
-              type="text"
-              :value="botfile.name"
-              name="bot"
-            />
-            <input v-else id="bot" type="text" value="" name="bot" />
+            <label id="botname-label" for="botname">
+              Bot name
+              <input
+                v-if="botfile !== null"
+                id="bot"
+                type="text"
+                :value="botfile.name"
+                name="bot"
+              />
+              <input v-else id="bot" type="text" value="" name="bot" />
+            </label>
             <div
               id="drop_zone"
               :class="{ dragover: isDraggedOver }"
@@ -44,14 +46,15 @@
               >
                 Click or drop your <code>&lt;botname&gt;.tar.gz</code> file
                 here.
+                <input
+                  id="input-bot"
+                  ref="file"
+                  name="bot"
+                  accept=".tar.gz"
+                  type="file"
+                  @change="fileInputHandler"
+                />
               </label>
-              <input
-                id="input-bot"
-                name="input-bot"
-                accept=".tar.gz"
-                type="file"
-                @change="fileInputHandler"
-              />
               <div v-if="botfile !== null" class="botfile-container">
                 <span><b-icon icon="zip-box" /> {{ botfile.file.name }}</span>
                 <button class="bot-remove-button" @click="botfile = null">
@@ -60,6 +63,7 @@
               </div>
             </div>
             <button type="Submit" :disabled="botfile == null">Submit</button>
+            {{ uploadMsg }}
           </form>
         </div>
       </div>
@@ -159,7 +163,8 @@ export default {
         id: null
       },
       botfile: null,
-      isDraggedOver: false
+      isDraggedOver: false,
+      uploadMsg: ''
     };
   },
   mounted() {
@@ -175,43 +180,39 @@ export default {
       if (ev.dataTransfer.items) {
         for (let i = 0; i < ev.dataTransfer.items.length; i++) {
           if (ev.dataTransfer.items[i].kind === 'file') {
-            const file = ev.dataTransfer.items[i].getAsFile();
-            if (this.validateBotfile(file)) {
-              this.botfile = {
-                name: this.getBotname(file),
-                file
-              };
-            }
+            const file = this.$refs.file.files[0];
+            this.botfile = {
+              name: this.getBotname(file),
+              file
+            };
           }
         }
       }
     },
     fileInputHandler(ev) {
-      const fileInput = document.querySelector('#input-bot');
-
-      if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        if (this.validateBotfile(file)) {
-          this.botfile = {
-            name: this.getBotname(file),
-            file
-          };
-        }
-      }
+      const file = this.$refs.file.files[0];
+      this.botfile = {
+        name: this.getBotname(file),
+        file
+      };
     },
     submitBot(ev) {
-      let uploadUrl = process.env.apiurl + '/user/upload';
-      this.$axios.$post(uploadUrl, this.botfile);
-    },
-    /**
-     * Validate if file has the format we want
-     * @param   {object}    file    File object
-     * @return  {boolean}
-     */
-    validateBotfile(file) {
-      if (file.name.includes('.tar.gz')) {
-        return true;
-      }
+      const uploadUrl = process.env.apiurl + '/user/upload';
+      const formdata = new FormData();
+      formdata.append('bot', this.botfile.file);
+      this.$axios
+        .$post(uploadUrl, formdata, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(() => {
+          this.uploadMsg = 'Bot successfully uploaded!';
+          this.botfile = null;
+        })
+        .catch(() => {
+          this.uploadMsg = 'Bot successfully uploaded!';
+        });
     },
     /**
      * Returns bot name of file
