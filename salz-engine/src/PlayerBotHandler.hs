@@ -37,16 +37,13 @@ updatePlayerBot g (playerid, newBotPath) = do
   return $ g {players = newPlayers}
 
 playerTakeTurn :: Board h w CellInfo -> PlayerBotHandler -> IO (Either T.Text [Command])
-playerTakeTurn b pbh = do
-  if E.isLeft $ eph pbh
-  then return $ Left "Bot handler doesn't exist"
-  else do
-    let (Right e) = eph pbh
-    res <- timedCallandResponse 500 e parsedBoard
-    return $ res >>= parsePlayer
+playerTakeTurn b pbh = E.either errorMsg takeTurn (eph pbh)
   where
+    errorMsg _ = return $ Left "Bot handler doesn't exist"
+    takeTurn e = do
+      res <- timedCallandResponse 500 e parsedBoard
+      return $ res >>= parsePlayer
     parsedBoard = parseBoard b
-
 
 parseBoard :: Board h w CellInfo -> T.Text
 parseBoard b = T.concat $ map showCell cells
