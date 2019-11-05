@@ -5,14 +5,11 @@ module Database ( saveGame
                 , writeBuildResults
                 , writeBotResults ) where
     
-import Database.PostgreSQL.Simple as PSQL
-import Database.PostgreSQL.Simple.Types as PSQL.Types
-import Database.PostgreSQL.Simple.Time as PSQL
+import qualified Database.PostgreSQL.Simple as PSQL
+import qualified Database.PostgreSQL.Simple.Types as PSQL.Types
 
-import Database.SQLite.Simple as SQLT
-import Database.SQLite.Simple.Time as SQLT
+import qualified Database.SQLite.Simple as SQLT
 
-import Prelude hiding (catch)
 import Data.Time.Clock
 import Data.Modular
 
@@ -21,7 +18,7 @@ import qualified Data.Either as E
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Types as MT
-import Control.Exception
+import qualified Control.Exception as CE
 
 type AConnection = Either PSQL.Connection SQLT.Connection
 
@@ -30,7 +27,7 @@ aConnect "" = Right <$> SQLT.open (T.unpack "salz.db")
 aConnect cs = Left <$> PSQL.connectPostgreSQL (TE.encodeUtf8 cs)
 
 aConnectRepeat :: T.Text -> IO AConnection
-aConnectRepeat t = catch (aConnect t) handle
+aConnectRepeat t = CE.catch (aConnect t) handle
   where
     handle :: IOError -> IO AConnection
     handle _ = do
@@ -58,7 +55,6 @@ aQuery_  (Left con) query = PSQL.query_ con (PSQL.Types.Query (TE.encodeUtf8 que
 -- For example:
 --   "host='localhost' port=5432 dbname='postgres' user='postgres' password='mysecretpasswrd'"
 
-data SaveStatus = Success | Failure
 
 -- saveGame can throw exceptions from the Database.PostgreSQL.Simple class
 -- these exceptions are not handled
@@ -98,7 +94,7 @@ writeBuildResults :: T.Text -> [(Int, E.Either T.Text FilePath)] -> IO ()
 writeBuildResults connectionString buildresults = do
   conn <- aConnectRepeat connectionString
 
-  mapM (writeResult conn) buildresults
+  _ <- mapM (writeResult conn) buildresults
   aClose conn
   return ()
   where
@@ -113,7 +109,7 @@ writeBotResults :: T.Text -> [(Int, E.Either T.Text [MT.Command])] -> IO ()
 writeBotResults connectionString botResults = do
   conn <- aConnectRepeat connectionString
 
-  mapM (writeResult conn) botResults
+  _ <-  mapM (writeResult conn) botResults
   aClose conn
   return ()
   where
@@ -121,6 +117,6 @@ writeBotResults connectionString botResults = do
 
     writeResult :: AConnection -> (Int, E.Either T.Text [MT.Command]) -> IO ()
     writeResult conn1 (i, Left errMsg) = aExecute conn1 errorQuery(errMsg, i) >> return ()
-    writeResult conn1 (i, Right other) = return ()
+    writeResult _ _ = return ()
 
 

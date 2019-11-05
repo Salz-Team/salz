@@ -23,6 +23,10 @@ data Cell (w :: Nat) (h :: Nat) i = Cell
   , cItem :: i
   } deriving (Show)
 
+
+instance Eq (Cell w h i) where
+  a == b = (cX a == cX b) && (cY a == cY b)
+
 data Board w h i = Board
   { bCells :: [Cell w h i]
   } deriving (Show)
@@ -38,6 +42,9 @@ data CellInfo = CellInfo
   { cPlayerId :: PlayerId
   }
 
+instance Show CellInfo where
+    show (CellInfo pid) = show pid
+
 data Command = Flip Int Int
   deriving Show
 
@@ -45,4 +52,5 @@ type PlayerMap = [(Int, Int, PlayerId)]
 data PlayerBotHandler = PlayerBotHandler
   { eph :: E.Either T.Text ExternalProcessHandler
   } 
+
 

@@ -9,8 +9,6 @@ import Data.Maybe
 import Data.List
 import GHC.TypeLits hiding (Mod)
 
-instance Eq (Cell w h i) where
-  a == b = (cX a == cX b) && (cY a == cY b)
 
 numNeighbours :: (KnownNat w, KnownNat h) 
   => Board w h i -> Cell w h j -> Int

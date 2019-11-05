@@ -1,7 +1,6 @@
 module Step where
 
 import Board
-import Player
 import Types
 
 import Data.Maybe

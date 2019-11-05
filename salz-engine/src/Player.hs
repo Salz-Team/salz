@@ -7,8 +7,6 @@ import GHC.TypeLits hiding (Mod)
 import Data.Modular
 
 
-instance Show CellInfo where
-    show (CellInfo pid) = show pid
 
 isVisible :: (KnownNat w, KnownNat h) =>
   Board h w CellInfo -> PlayerId -> Cell h w CellInfo -> Bool

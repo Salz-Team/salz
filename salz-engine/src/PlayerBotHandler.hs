@@ -8,8 +8,6 @@ module PlayerBotHandler
     where
 
 import ExternalProcessHandler
-import Board
-import Player
 
 import qualified Data.Text as T
 import qualified Data.Either as E
@@ -17,6 +15,9 @@ import qualified Data.Maybe as M
 import qualified Data.List as L
 import Text.Read
 import Types
+
+import qualified Control.Exception as CE
+import Data.Typeable (Typeable)
 
 
 initializePlayer :: FilePath -> IO ( PlayerBotHandler )
@@ -75,6 +76,12 @@ translateLeft :: (a -> c) -> Either a b -> Either c b
 translateLeft f (Left a) = Left $ f a
 translateLeft _ (Right a) = Right a
 
+data TmpException = TmpException
+ deriving (Show, Typeable)
+
+instance CE.Exception TmpException
+
 uneph :: PlayerBotHandler -> ExternalProcessHandler
 uneph (PlayerBotHandler (Right e)) = e
+uneph _ = CE.throw TmpException
 

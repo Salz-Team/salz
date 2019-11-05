@@ -75,13 +75,13 @@ filterMaybies s = map fromJust $ filter (isJust) $ map help s
 
 -- [(playerid, username, botdir, updatedbot, newbotdir, botstatus)]
 buildNewBots :: FilePath -> [(Int, T.Text, FilePath, Bool, FilePath, T.Text)] -> IO ([(Int, E.Either T.Text FilePath)])
-buildNewBots botDir playerinfo  = mapM buildBot $ filter isNewBots playerinfo
+buildNewBots botDir_ playerinfo  = mapM buildBot $ filter isNewBots playerinfo
   where
     isNewBots :: (Int, T.Text, FilePath, Bool, FilePath, T.Text) -> Bool
     isNewBots (_, _, _, b, _, _) = b
 
     buildBot :: (Int, T.Text, FilePath, Bool, FilePath, T.Text) -> IO (Int, E.Either T.Text FilePath)
-    buildBot (pid, _, _, _, nbdir, _) = (pid, ) <$> BB.buildBot nbdir (botDir FP.</> (show pid))
+    buildBot (pid, _, _, _, nbdir, _) = (pid, ) <$> BB.buildBot nbdir (botDir_ FP.</> (show pid))
 
 
 updatePlayerBotHandlers :: Game w h -> [(Int, E.Either T.Text FilePath)] -> IO (Game w h)
