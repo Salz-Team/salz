@@ -1,6 +1,7 @@
 <template id="salz-game-view">
   <div id="salz-game-inner-view">
-    <GameMenu :items="gameMenu" />
+    <GameMenu />
+    <FrameControl />
   </div>
 </template>
 
@@ -26,37 +27,80 @@ import GameFrame from '../lib/game/rendering/gameFrame';
 import Frame from '../lib/game/rendering/frame';
 import { Color } from '../lib/game/colors.js';
 import { sketchyMedoid } from '../lib/game/mathstuff';
+import { EventBus } from '../lib/eventBus';
 
 import GameMenu from '~/components/Game/UI/GameMenu';
+import FrameControl from '~/components/Game/UI/FrameControl';
 
 export default {
   components: {
-    GameMenu
+    GameMenu,
+    FrameControl
   },
   data() {
     return {
-      index: [],
-      gameMenu: [
-        { title: 'Guide' },
-        { title: 'Fullscreen' },
-        { title: 'Hotkeys' },
-        { title: 'Ranking' },
-        { title: 'Help' },
-        { title: 'Hide UI' },
-        { title: 'Preferences' }
-      ]
+      index: []
     };
+  },
+  computed: {
+    user() {
+      return this.$store.state.login.username;
+    },
+    userid() {
+      return this.$store.state.login.id;
+    },
+    currentFrameNumber() {
+      return this.$store.getters['game/getActiveFrame'];
+    },
+    totalFrames() {
+      return this.$store.getters['game/getFramesLength'];
+    }
   },
   async asyncData(ctx) {
     return {
       index: await ctx.app.$framesRepo.index() // read frame info from api
     };
   },
+  beforeMount() {
+    this.$store.dispatch('login/grabToken');
+  },
   async mounted() {
     const PIXI = await import('pixi.js');
     const Viewport = await import('pixi-viewport');
     const wrapper = document.querySelector('#salz-game-inner-view');
-    const frames = this.index.frames;
+
+    // HACK -- This is a temporary solution
+    // set a random color for each player
+    const cellcolors = [
+      Color.pink,
+      Color.red,
+      Color.orange,
+      Color.yellow,
+      Color.green,
+      Color.turquiose,
+      Color.cyan,
+      Color.blue,
+      Color.purple
+    ];
+    const playerColorDict = {};
+    this.index.frames.forEach((frame) => {
+      frame.forEach((player) => {
+        const id = player.playerid;
+        if (typeof playerColorDict[id] === 'undefined') {
+          playerColorDict[id] =
+            cellcolors[Math.floor(Math.random() * cellcolors.length)];
+        }
+        player.color = playerColorDict[id];
+      });
+    });
+
+    this.$store.dispatch('game/setActiveFrame', 0);
+    this.$store.dispatch('game/setFramesLength', this.index.frames);
+
+    const frames = {};
+    for (let i = 0; i < this.index.frames.length; i++) {
+      frames[i] = new Frame(this.index.frames[i]);
+    }
 
     // figure out the dimensions for the canvas
     const appWidth = Math.max(
@@ -89,13 +133,14 @@ export default {
     });
 
     // Set the centre to be the mediod of player's cells
-    const user = JSON.parse(sessionStorage.getItem('user'));
-    const playerID = parseInt(user.id, 10);
+    // const user = JSON.parse(sessionStorage.getItem('user'));
+    const playerID = parseInt(this.userid, 10);
 
-    if (playerID == null) {
-      viewport.moveCenter(0, 0); // should act differently for auth-ed users
+    if (playerID == null && frames.length > 0) {
+      viewport.moveCenter(0, 0);
     } else {
-      viewport.moveCenter(...sketchyMedoid(playerID, frames[0])); // camera should point at middle of cluster.
+      // camera should point at middle of cluster.
+      viewport.moveCenter(...sketchyMedoid(playerID, this.index.frames[0]));
     }
 
     app.stage.addChild(viewport);
@@ -111,50 +156,12 @@ export default {
         maxHeight: vpWorldHeight * 5
       });
 
-    // HACK -- This is a temporary solution
-    // set a random color for each player
-    const cellcolors = [
-      Color.pink,
-      Color.red,
-      Color.orange,
-      Color.yellow,
-      Color.green,
-      Color.turquiose,
-      Color.cyan,
-      Color.blue,
-      Color.purple
-    ];
-    const playerColorDict = {};
-    frames.forEach((frame) => {
-      frame.forEach((player) => {
-        const id = player.playerid;
-        if (typeof playerColorDict[id] === 'undefined') {
-          playerColorDict[id] =
-            cellcolors[Math.floor(Math.random() * cellcolors.length)];
-        }
-        player.color = playerColorDict[id];
-      });
-    });
-
-    let curFrame = 0;
-    let frame = new Frame(frames[0]);
-
-    const gameFrame = new GameFrame(frame, vpWorldWidth, vpWorldHeight);
+    const gameFrame = await new GameFrame(
+      frames[0],
+      vpWorldWidth,
+      vpWorldHeight
+    );
     viewport.addChild(gameFrame);
-
-    function drawLastFrame() {
-      if (curFrame > 0) {
-        frame = new Frame(frames[--curFrame]);
-        gameFrame.mountFrame(frame);
-      }
-    }
-
-    function drawNextFrame() {
-      if (curFrame < frames.length - 1) {
-        frame = new Frame(frames[++curFrame]);
-        gameFrame.mountFrame(frame);
-      }
-    }
 
     /**
      * Move viewport camera by dx and dy
@@ -177,13 +184,25 @@ export default {
       {
         key: 'h',
         fn: () => {
-          drawLastFrame();
+          if (this.currentFrameNumber > 0) {
+            this.$store.dispatch(
+              'game/setActiveFrame',
+              this.currentFrameNumber - 1
+            );
+            gameFrame.mountFrame(frames[this.currentFrameNumber]);
+          }
         }
       },
       {
         key: 'l',
         fn: () => {
-          drawNextFrame();
+          if (this.currentFrameNumber < this.totalFrames - 1) {
+            this.$store.dispatch(
+              'game/setActiveFrame',
+              this.currentFrameNumber + 1
+            );
+            gameFrame.mountFrame(frames[this.currentFrameNumber]);
+          }
         }
       },
       {
@@ -260,6 +279,15 @@ export default {
     gameHotkeys.forEach((item) => {
       hotkeys(item.key, item.fn);
     });
+
+    EventBus.$on('updateFrameIndex', () => {
+      gameFrame.mountFrame(frames[this.currentFrameNumber]);
+    });
+
+    // wrapper.addEventListener('updateFrameIndex', (ev) => {
+    //   frame = new Frame(frames[this.currentFrameNumber]);
+    //   gameFrame.mountFrame(frame);
+    // });
 
     // window.addEventListener('resize', (event) => {
     //   app.resize();

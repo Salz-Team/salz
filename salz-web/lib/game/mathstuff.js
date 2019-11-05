@@ -1,3 +1,11 @@
+/**
+ * Return an optimal center coordinate for the player
+ *
+ * @param {number}    playerid    ID of the player
+ * @param {object}    frame       Frame object to refer
+ *
+ * @return {array}  [xmedian, ymedian]
+ */
 export function sketchyMedoid(playerid, frame) {
   // it's not actually the medoid, probably. idk. Will be close enough.
   const playerframe = frame.filter((f) => f.playerid === playerid);

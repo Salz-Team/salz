@@ -16,9 +16,7 @@ export default class GameFrame extends Container {
       width,
       height
     });
-    this.frame = frame;
-
-    this.addCells();
+    this.addCells(frame);
   }
 
   /**
@@ -31,8 +29,12 @@ export default class GameFrame extends Container {
     });
   }
 
-  addCells() {
-    this.frame.players.forEach((player) => {
+  /**
+   * Add cells to game frame
+   * @param   {Frame}   frame   Frame with cells to add
+   */
+  addCells(frame) {
+    frame.forEach((player) => {
       player.cells.forEach((cell) => {
         this.addChild(cell);
       });
@@ -46,7 +48,6 @@ export default class GameFrame extends Container {
    */
   mountFrame(frame) {
     this.clear();
-    this.frame = frame;
-    this.addCells();
+    this.addCells(frame);
   }
 }
