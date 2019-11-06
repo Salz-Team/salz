@@ -5,7 +5,6 @@
   "author": "Lugarun, Mosiman, Japorized",
   "private": true,
   "scripts": {
-    "dev:docker": "nuxt",
     "dev": "nuxt",
     "build": "nuxt build",
     "start": "nuxt start",

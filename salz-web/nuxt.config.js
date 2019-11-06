@@ -1,10 +1,8 @@
-const api_baseurl = () => {
-  switch (process.env.FRONTEND_ENV) {
-    case 'prod':
-      return 'https://salz.life/api';
-    case 'docker-dev':
-      return 'http://salz-api:8080';
-    case 'dev':
+const apiBaseurl = () => {
+  switch (process.env.NODE_ENV) {
+    case 'production':
+      return process.env.BASE_URL + '/api';
+    case 'development':
     default:
       return 'http://localhost:8080';
   }
@@ -16,7 +14,7 @@ export default {
    ** Application env variables
    */
   env: {
-    apiurl: api_baseurl(),
+    apiurl: apiBaseurl(),
     baseurl: process.env.BASE_URL || 'http://localhost:3000'
   },
   /*
@@ -77,7 +75,7 @@ export default {
   ],
   axios: {
     // proxyHeaders: false
-    baseURL: api_baseurl()
+    baseURL: apiBaseurl()
   },
   markdownit: {
     preset: 'default',
