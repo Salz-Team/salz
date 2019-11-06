@@ -127,15 +127,20 @@ def authorized_webredirect():
     token = oauth.github.authorize_access_token()
     resp = oauth.github.get('user')
     profile = resp.json()
-    payload = {
-            "login" : profile['login'],
-            "email" : profile['email'],
-            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
-            }
+
     # create new Player object in database
     with db_session:
         if len(select(p for p in Players if p.username == profile['login'])) == 0:
             db.insert("players", username = profile['login'], updatedbot = False)
+
+        playerDB = select(p for p in Players if p.username == profile['login']).first()
+
+    payload = {
+            "login" : profile['login'],
+            "id" : playerDB.playerid,
+            "email" : profile['email'],
+            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
+            }
 
     jwtoken = jwt.encode(payload, app.secret_key)
     return redirect(WEBHOST + "/login?jwt=" + quote(jwtoken)) 
@@ -146,15 +151,20 @@ def authorized():
     token = oauth.github.authorize_access_token()
     resp = oauth.github.get('user')
     profile = resp.json()
-    payload = {
-            "login" : profile['login'],
-            "email" : profile['email'],
-            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
-            }
+
     # create new Player object in database
     with db_session:
         if len(select(p for p in Players if p.username == profile['login'])) == 0:
             db.insert("players", username = profile['login'], updatedbot = False)
+
+        playerDB = select(p for p in Players if p.username == profile['login']).first()
+
+    payload = {
+            "login" : profile['login'],
+            "id" : playerDB.playerid,
+            "email" : profile['email'],
+            "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=12)
+            }
 
     jwtoken = jwt.encode(payload, app.secret_key)
     return jsonify({'token' : jwtoken.decode('UTF-8')})
@@ -212,9 +222,20 @@ db.generate_mapping()
 @db_session
 def get_frames():
     args = request.args
-    
-    print(args)
 
+    latest_turnid = db.select('* FROM get_latest_turnid()')[0]
+
+    # validate some shit
+
+    # Make sure there's gamedata, if not, return empty frames
+    if latest_turnid == None:
+        response = app.response_class(
+                response = json.dumps({"frames" : []}),
+                status = 200,
+                mimetype='application/json')
+        return response
+
+    # Check for query string args
     if ('startframe' in args) and ('endframe' in args):
 
         try:
@@ -232,11 +253,11 @@ def get_frames():
         except ValueError as e:
             return abort(400)
 
-        endFrame = db.select('* FROM get_latest_turnid()')[0]
+        endFrame = latest_turnid
         startFrame = endFrame - nf
 
     else:
-        endFrame = db.select('* FROM get_latest_turnid()')[0]
+        endFrame = latest_turnid
         startFrame = endFrame - DEFAULT_TURNHISTORY
 
     frames = db.select('* from get_frames($startFrame, $endFrame)')

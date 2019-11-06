@@ -27,12 +27,24 @@
           </nuxt-link>
         </li>
       </ul>
-      <ul v-if="isLoggedIn" class="navbar-end">
-        <li><b-icon icon="account" /> {{ username }}</li>
-        <li @click="logout"><b-icon icon="logout" /> Logout</li>
+      <ul v-if="user.isLoggedIn" class="navbar-end">
+        <li>
+          <nuxt-link to="account">
+            <b-icon icon="account" /> {{ user.username }}
+          </nuxt-link>
+        </li>
+        <li>
+          <a href="#" @click.prevent.stop="logout">
+            <b-icon icon="logout" /> Logout
+          </a>
+        </li>
       </ul>
       <ul v-else class="navbar-end">
-        <li @click="login"><b-icon icon="login" /> Login</li>
+        <li>
+          <a href="#" @click.prevent.stop="login">
+            <b-icon icon="login" /> Login
+          </a>
+        </li>
       </ul>
     </div>
   </nav>
@@ -72,7 +84,11 @@ ul {
     a:visited {
       color: var(--body-bg-color);
     }
+  }
+}
 
+ul.navbar-start {
+  li {
     a:hover,
     a:focus,
     a.is-active {
@@ -120,11 +136,17 @@ ul.navbar-end {
 </style>
 
 <script charset="utf-8">
+// import { parseJWT } from '../lib/jwt';
+
 export default {
   data() {
     return {
-      isLoggedIn: false,
-      loginToken: window.localStorage.getItem('auth_token'),
+      user: {
+        isLoggedIn: false,
+        token: localStorage.getItem('auth_token'),
+        username: null,
+        id: null
+      },
       items: [
         {
           title: 'Home',
@@ -146,32 +168,19 @@ export default {
           icon: 'gamepad',
           to: { name: 'game' }
         }
-      ],
-      username: null
+      ]
     };
   },
   mounted() {
-    function parseJWT(token) {
-      const base64Payload = token.split('.')[1];
-      const base64 = base64Payload.replace(/-/g, '+').replace(/_/g, '-');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          })
-          .join('')
-      );
-
-      return JSON.parse(jsonPayload);
-    }
-
-    if (this.loginToken !== null) {
-      this.isLoggedIn = true;
-      const authdata = parseJWT(this.loginToken);
-      sessionStorage.setItem('username', authdata.login);
-
-      this.username = sessionStorage.getItem('username');
+    if (this.user.token !== null) {
+      this.user.isLoggedIn = true;
+      this.$store.dispatch('login/grabToken');
+      const storedUser = sessionStorage.getItem('user');
+      if (storedUser !== null) {
+        const user = JSON.parse(storedUser);
+        this.user.username = user.username;
+        this.user.id = user.id;
+      }
     }
   },
   methods: {
@@ -179,9 +188,11 @@ export default {
       window.location.href = process.env.apiurl + '/login?client=web';
     },
     logout(event) {
-      this.isLoggedIn = false;
-      sessionStorage.removeItem('username');
-      localStorage.removeItem('auth_token');
+      this.user.isLoggedIn = false;
+      this.user.loginToken = null;
+      this.user.username = null;
+      this.user.id = null;
+      this.$store.dispatch('login/dropToken');
     },
     toggleNavbar() {
       const navMenu = document.querySelector('.navbar-menu');
