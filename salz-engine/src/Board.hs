@@ -95,4 +95,3 @@ toggleCell :: Board w h i -> Cell w h i -> Board w h i
 toggleCell b c = case getCellAt b c of
                    Nothing -> b {bCells = c:(bCells b)}
                    Just t -> b {bCells = filter (not . mEq t) (bCells b)}
-

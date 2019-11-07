@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings, StandaloneDeriving, FlexibleInstances #-}
 
-module Database ( saveGame
-                , readPlayers
-                , writeBuildResults
-                , writeBotResults ) where
+module Database ( saveBoard
+                , getBuildCmds
+                , savePlayers ) where
     
 import qualified Database.PostgreSQL.Simple as PSQL
 import qualified Database.PostgreSQL.Simple.Types as PSQL.Types
@@ -15,12 +14,47 @@ import Data.Modular
 
 import qualified Control.Concurrent as CC
 import qualified Data.Either as E
+import qualified Data.Maybe as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Types as MT
 import qualified Control.Exception as CE
 
 type AConnection = Either PSQL.Connection SQLT.Connection
+
+
+getBuildCmds :: T.Text -> IO [(MT.PlayerId, FilePath)]
+getBuildCmds cs = do
+  players <- readPlayers cs
+  let trimmed = map (\(p, _, _, updateBot, botDir, _) -> (p, updateBot, botDir)) players
+  let valid = M.catMaybes $ map toMaybe trimmed
+  return $ map (\(a, _, c) -> (a, c)) valid
+  where
+    toMaybe :: (a, Maybe b, Maybe c) -> Maybe (a, b, c)
+    toMaybe (_, Nothing, _) = Nothing
+    toMaybe (_, _, Nothing) = Nothing
+    toMaybe (a, Just b, Just c) = Just (a, b, c)
+
+
+savePlayers :: T.Text -> [MT.Player] -> IO ()
+savePlayers cs players = undefined
+
+saveBoard :: T.Text -> Int -> MT.Board h w MT.CellInfo -> IO ()
+saveBoard connectionString turn board = do
+  conn <- aConnectRepeat connectionString
+
+  let mquery = "INSERT INTO game (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?)"
+  time <- getCurrentTime
+  let cells = (MT.bCells board)
+  let rows = map (formatTurn turn time) cells
+  aExecuteMany conn mquery rows
+  aClose conn
+  return ()
+
+
+--
+-- Dual Database Library
+--
 
 aConnect :: T.Text -> IO AConnection
 aConnect "" = Right <$> SQLT.open (T.unpack "salz.db")
@@ -58,19 +92,6 @@ aQuery_  (Left con) query = PSQL.query_ con (PSQL.Types.Query (TE.encodeUtf8 que
 
 -- saveGame can throw exceptions from the Database.PostgreSQL.Simple class
 -- these exceptions are not handled
-saveGame :: T.Text -> MT.Game h w  -> IO ()
-saveGame connectionString g = do
-  conn <- aConnectRepeat connectionString
-
-  let mquery = "INSERT INTO game (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?)"
-  time <- getCurrentTime
-  --time <- Finite <$> zonedTimeToLocalTime <$> getZonedTime :: IO (LocalTimestamp)
-  let cells = (MT.bCells $ MT.board g)
-  let turn = MT.turn g
-  let rows = map (formatTurn turn time) cells
-  aExecuteMany conn mquery rows
-  aClose conn
-  return ()
 
 formatTurn :: Int
            -> UTCTime

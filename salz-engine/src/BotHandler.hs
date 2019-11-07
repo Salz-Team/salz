@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-module PlayerBotHandler
-  ( PlayerBotHandler
-  , initializePlayer
-  , playerTakeTurn
-  , updatePlayerBot
+module BotHandler
+  ( BotHandler
+  , startBot
+  , botTurn
   )
     where
 
@@ -20,30 +19,22 @@ import qualified Control.Exception as CE
 import Data.Typeable (Typeable)
 
 
-initializePlayer :: FilePath -> IO ( PlayerBotHandler )
-initializePlayer t = PlayerBotHandler . Right <$> createExternalProcess t
+startBot :: FilePath -> IO BotHandler
+startBot fp = do
+    eph <- createExternalProcess fp
+    return $ BotHandler eph
 
--- start new bot process, create new player if needed
--- if there is an error store it in the bothandler
-updatePlayerBot :: Game w h -> (PlayerId, FilePath) -> IO (Game w h)
-updatePlayerBot g (playerid, newBotPath) = do
-  if M.isJust $ L.find (\(x, _) -> pPlayerId  x == playerid) (players g)
-  then cleanPlayer $ uneph $ snd $ M.fromJust $ L.find (\(x, _) -> pPlayerId x == playerid) (players g)
-  else return ()
-
-  newHandler <- initializePlayer newBotPath
-  let newPlayer = M.fromMaybe (Player playerid (-1, -1)) (fst <$> L.find (\(x, _) -> pPlayerId x == playerid) (players g))
-  let newPlayers = (newPlayer,  newHandler):(filter (\(x, _) -> pPlayerId x /= playerid) (players g))
-  return $ g {players = newPlayers}
-
-playerTakeTurn :: Board h w CellInfo -> PlayerBotHandler -> IO (Either T.Text [Command])
-playerTakeTurn b pbh = E.either errorMsg takeTurn (eph pbh)
+botTurn :: Board w h CellInfo -> Player -> IO (Player, [Command])
+botTurn board player = E.either skip takeTurn (eph $ pBotHandler player)
   where
-    errorMsg _ = return $ Left "Bot handler doesn't exist"
+    skip _ = return (player, [])
+    takeTurn :: ExternalProcessHandler -> IO (Player, [Command])
     takeTurn e = do
       res <- timedCallandResponse 500 e parsedBoard
-      return $ res >>= parsePlayer
-    parsedBoard = parseBoard b
+      let commands = rightToList $ res >>= parsePlayer
+      let player1 = player {pBotHandler = BotHandler (res >> Right e)}
+      return $ (player1, commands)
+    parsedBoard = parseBoard board
 
 parseBoard :: Board h w CellInfo -> T.Text
 parseBoard b = T.concat $ map showCell cells
@@ -78,7 +69,10 @@ data TmpException = TmpException
 
 instance CE.Exception TmpException
 
-uneph :: PlayerBotHandler -> ExternalProcessHandler
-uneph (PlayerBotHandler (Right e)) = e
+uneph :: BotHandler -> ExternalProcessHandler
+uneph (BotHandler (Right e)) = e
 uneph _ = CE.throw TmpException
 
+rightToList :: Either a [b] -> [b]
+rightToList (Left _) = []
+rightToList (Right lst) = lst

@@ -24,15 +24,14 @@ data BuildError = BuildError T.Text
 
 instance CE.Exception BuildError
 
-buildBot :: FilePath -> FilePath -> IO ( E.Either T.Text FilePath )
-buildBot tarPath targetDir = translate <$> CE.try (buildBot_ tarPath targetDir)
+buildBot :: FilePath -> IO ( E.Either T.Text FilePath )
+buildBot tarPath = translate <$> CE.try (buildBot_ tarPath)
   where
     translate (Left (BuildError t)) = Left t
     translate (Right fp) = Right fp
 
--- tarPath -> builddir -> finisheddir -> IO (either failmessage pathtorun.sh)
-buildBot_ :: FilePath -> FilePath -> IO ( FilePath )
-buildBot_ tarPath targetDir = TF.withSystemTempDirectory "build" $ \buildDir -> do
+buildBot_ :: FilePath -> IO ( FilePath )
+buildBot_ tarPath = TF.withSystemTempDirectory "build" $ \buildDir -> do
   (_, _, _, p1) <- SP.createProcess (SP.proc "tar" ["xf", tarPath]){ SP.cwd = Just buildDir}
   ec <- SP.waitForProcess p1
   _ <- if (ec == SE.ExitSuccess)
@@ -51,6 +50,7 @@ buildBot_ tarPath targetDir = TF.withSystemTempDirectory "build" $ \buildDir -> 
     else CE.throwIO $ BuildError $ "The build script from '" `T.append` (T.pack tarPath) `T.append` "' could not be built."
   else return ()
 
+  targetDir <- TF.createTempDirectory "/tmp/" ""
 
   D.createDirectoryIfMissing True targetDir
   D.removeDirectoryRecursive targetDir
