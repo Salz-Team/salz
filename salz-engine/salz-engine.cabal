@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8718d27b623820bb24835bae50d3a36e66b7e1f357f32e0634b8e32b8a1baf10
+-- hash: 6cc9b0681aa9d5a324fbb8c903c9f8327f65713589fcbbb03fd87423c608c282
 
 name:           salz-engine
 version:        0.1.0.0
@@ -28,11 +28,11 @@ library
   exposed-modules:
       Board
       BotBuilder
+      BotHandler
       Database
       ExternalProcessHandler
       Game
       Player
-      PlayerBotHandler
       Step
       Types
   other-modules:
