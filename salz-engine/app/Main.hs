@@ -7,7 +7,14 @@ import Data.Text
 import Game
 
 main :: IO ()
-main = connectionString >>= startServerGameEngine
+main = getArgs >>= handleArgs
+
+handleArgs :: [String] -> IO ()
+handleArgs args =
+  if args!!0 == "server"
+  then connectionString >>= startServerGameEngine
+  else startLocalGameEngine args
+
 
 connectionString :: IO Text
 connectionString = do

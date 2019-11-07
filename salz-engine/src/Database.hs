@@ -23,7 +23,7 @@ import qualified Control.Exception as CE
 type AConnection = Either PSQL.Connection SQLT.Connection
 
 
-getBuildCmds :: T.Text -> IO [(MT.PlayerId, FilePath)]
+getBuildCmds :: Either T.Text FilePath -> IO [(MT.PlayerId, FilePath)]
 getBuildCmds cs = do
   players <- readPlayers cs
   let trimmed = map (\(p, _, _, updateBot, botDir, _) -> (p, updateBot, botDir)) players
@@ -45,7 +45,7 @@ getBuildCmds cs = do
     writeBuild con1 = aExecute con1 query() >> return ()
 
 -- save status if there is one and save the bot location if there is one
-savePlayers :: T.Text -> [MT.Player] -> IO ()
+savePlayers :: Either T.Text FilePath -> [MT.Player] -> IO ()
 savePlayers cs players = do
   con <- aConnectRepeat cs
 
@@ -61,11 +61,13 @@ savePlayers cs players = do
     writeStatus _ _ = return ()
 
 
-saveBoard :: T.Text -> Int -> MT.Board h w MT.CellInfo -> IO ()
+saveBoard :: Either T.Text FilePath -> Int -> MT.Board h w MT.CellInfo -> IO ()
 saveBoard connectionString turn board = do
   conn <- aConnectRepeat connectionString
 
-  let mquery = "INSERT INTO game (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?)"
+  aExecute conn "CREATE TABLE IF NOT EXISTS game (id SERIAL PRIMARY KEY, turnid INTEGER, x INTEGER, y INTEGER, playerid INTEGER, generated_at TIMESTAMP);"()
+
+  let mquery = "INSERT INTO game (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?);"
   time <- getCurrentTime
   let cells = (MT.bCells board)
   let rows = map (formatTurn turn time) cells
@@ -78,11 +80,11 @@ saveBoard connectionString turn board = do
 -- Dual Database Library
 --
 
-aConnect :: T.Text -> IO AConnection
-aConnect "" = Right <$> SQLT.open (T.unpack "salz.db")
-aConnect cs = Left <$> PSQL.connectPostgreSQL (TE.encodeUtf8 cs)
+aConnect :: Either T.Text FilePath -> IO AConnection
+aConnect (Right fp) = Right <$> SQLT.open fp
+aConnect (Left cs) = Left <$> PSQL.connectPostgreSQL (TE.encodeUtf8 cs)
 
-aConnectRepeat :: T.Text -> IO AConnection
+aConnectRepeat :: Either T.Text FilePath -> IO AConnection
 aConnectRepeat t = CE.catch (aConnect t) handle
   where
     handle :: IOError -> IO AConnection
@@ -124,7 +126,8 @@ formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i
 -- saveGame can throw exceptions from the Database.PostgreSQL.Simple class
 -- these exceptions are not handled
 -- (playerid, username, botdir, updatedbot, newbotdir, botstatus)
-readPlayers :: T.Text -> IO ([(Int, Maybe T.Text, Maybe FilePath, Maybe Bool, Maybe FilePath, Maybe T.Text)])
+readPlayers :: Either T.Text FilePath ->
+               IO ([(Int, Maybe T.Text, Maybe FilePath, Maybe Bool, Maybe FilePath, Maybe T.Text)])
 readPlayers connectionString = do
   conn <- aConnectRepeat connectionString
   let mquery = "SELECT * FROM players"
