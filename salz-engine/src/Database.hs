@@ -28,6 +28,11 @@ getBuildCmds cs = do
   players <- readPlayers cs
   let trimmed = map (\(p, _, _, updateBot, botDir, _) -> (p, updateBot, botDir)) players
   let valid = M.catMaybes $ map toMaybe trimmed
+
+  con <- aConnectRepeat cs
+  _ <- writeBuild con
+  aClose con
+
   return $ map (\(a, _, c) -> (a, c)) valid
   where
     toMaybe :: (a, Maybe b, Maybe c) -> Maybe (a, b, c)
@@ -35,9 +40,26 @@ getBuildCmds cs = do
     toMaybe (_, _, Nothing) = Nothing
     toMaybe (a, Just b, Just c) = Just (a, b, c)
 
+    query = "UPDATE players SET updatedbot = False;"
+    writeBuild :: AConnection -> IO ()
+    writeBuild con1 = aExecute con1 query() >> return ()
 
+-- save status if there is one and save the bot location if there is one
 savePlayers :: T.Text -> [MT.Player] -> IO ()
-savePlayers cs players = undefined
+savePlayers cs players = do
+  con <- aConnectRepeat cs
+
+  let botHandlers = map (\p -> (MT.pPlayerId p, MT.eph $ MT.pBotHandler p)) players
+
+  _ <- mapM (writeStatus con) botHandlers
+  aClose con
+  return ()
+  where
+    errorQuery = "UPDATE players SET botstatus = ? WHERE playerid = ?;"
+    writeStatus :: AConnection -> (Int, E.Either T.Text a) -> IO ()
+    writeStatus conn1 (i, Left errMsg) = aExecute conn1 errorQuery(errMsg, i) >> return ()
+    writeStatus _ _ = return ()
+
 
 saveBoard :: T.Text -> Int -> MT.Board h w MT.CellInfo -> IO ()
 saveBoard connectionString turn board = do
@@ -109,35 +131,3 @@ readPlayers connectionString = do
   result <- aQuery_ conn mquery
   aClose conn
   return result
-
-
-writeBuildResults :: T.Text -> [(Int, E.Either T.Text FilePath)] -> IO ()
-writeBuildResults connectionString buildresults = do
-  conn <- aConnectRepeat connectionString
-
-  _ <- mapM (writeResult conn) buildresults
-  aClose conn
-  return ()
-  where
-    errorQuery = "UPDATE players SET updatedbot = False, botstatus = ? WHERE playerid = ?;"
-    successQuery = "UPDATE players SET updatedbot = False, botstatus = 'Successful Build', newbotdir = ? WHERE playerid = ?;"
-
-    writeResult :: AConnection -> (Int, E.Either T.Text FilePath) -> IO ()
-    writeResult conn1 (i, Left errMsg) = aExecute conn1 errorQuery (errMsg, i) >> return ()
-    writeResult conn1 (i, Right newPath) = aExecute conn1 successQuery (newPath, i) >> return ()
-
-writeBotResults :: T.Text -> [(Int, E.Either T.Text [MT.Command])] -> IO ()
-writeBotResults connectionString botResults = do
-  conn <- aConnectRepeat connectionString
-
-  _ <-  mapM (writeResult conn) botResults
-  aClose conn
-  return ()
-  where
-    errorQuery = "UPDATE players SET botstatus = ? WHERE playerid = ?;"
-
-    writeResult :: AConnection -> (Int, E.Either T.Text [MT.Command]) -> IO ()
-    writeResult conn1 (i, Left errMsg) = aExecute conn1 errorQuery(errMsg, i) >> return ()
-    writeResult _ _ = return ()
-
-

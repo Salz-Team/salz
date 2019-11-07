@@ -7,7 +7,7 @@ import Data.Text
 import Game
 
 main :: IO ()
-main = connectionString >>= startGameEngine
+main = connectionString >>= startServerGameEngine
 
 connectionString :: IO Text
 connectionString = do
