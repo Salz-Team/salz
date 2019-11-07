@@ -12,21 +12,3 @@ scripts in that folder to build, run, and connect to the database).
 You then build this project using `stack build` in this folder.
 Finally you can start the game engine and connect it to the database in the ghci which you
 start with `stack ghci` by running the command the command in the `./app/Main.hs` file.
-
-
-# Todo
-First:
-- remove old bots when new bots are loaded
-- get player bot error messages into database
-- when player uploads new bot, if nothing alive add initial point
-- fix botbuilding
-- player :: flipable only if other player can't flip there
-- step :: cell only created if clear owner
-
-Second: basic functionallity works with database
-- make a local runable engine
-- run and build bots safely: checkout cgexec, cgroup, etc..
-
-Last:
-- database :: handle exceptions
-- playerbothandler :: handle exceptions

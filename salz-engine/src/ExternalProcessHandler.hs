@@ -4,7 +4,6 @@ module ExternalProcessHandler
   , Error
   , createExternalProcess
   , timedCallandResponse
-  , replaceExecutable
   , cleanPlayer
   )
     where
@@ -32,10 +31,12 @@ data ExternalProcessHandler = ExternalProcessHandler
 data Error = OutOfTime | EndOfFile | StdoutClosed
   deriving (Show)
 
-createExternalProcess :: FilePath -> IO ExternalProcessHandler
-createExternalProcess path = do
-  (psin, psout, pserr, p) <- runInteractiveProcess "bash" [path] (Just $ FP.dropFileName path) Nothing
+createExternalProcess :: FilePath -> IO (Either T.Text ExternalProcessHandler)
+createExternalProcess path = runExceptT $ do
+  (psin, psout, pserr, p) <- withExceptT transform $ ExceptT $ CE.try $ startProcess path
   return $ ExternalProcessHandler psin psout pserr p
+  where
+    startProcess path1 = runInteractiveProcess "bash" [path1] (Just $ FP.dropFileName path1) Nothing
 
 cleanPlayer :: ExternalProcessHandler -> IO ()
 cleanPlayer eh = do
@@ -59,9 +60,6 @@ timedCallandResponse time eph call = runExceptT $ do
   response <- ExceptT $ eitherTimeout time "OutOfTime" $ hGetLine (pstdout eph)
 
   return $ T.pack response
-
-replaceExecutable :: FilePath -> ExternalProcessHandler -> IO ExternalProcessHandler
-replaceExecutable path _ = createExternalProcess path
 
 check :: T.Text -> IO Bool -> ExceptT T.Text IO ()
 check er f = do
