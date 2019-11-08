@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, StandaloneDeriving, FlexibleInstances #-}
 
 module Database ( saveBoard
+                , getBoard
                 , getBuildCmds
                 , savePlayers ) where
     
@@ -11,6 +12,7 @@ import qualified Database.SQLite.Simple as SQLT
 
 import Data.Time.Clock
 import Data.Modular
+import GHC.TypeLits hiding (Mod)
 
 import qualified Control.Concurrent as CC
 import qualified Data.Either as E
@@ -21,6 +23,27 @@ import qualified Types as MT
 import qualified Control.Exception as CE
 
 type AConnection = Either PSQL.Connection SQLT.Connection
+
+getBoard :: (KnownNat w, KnownNat h) => Either T.Text FilePath -> Int -> IO (MT.Board w h MT.CellInfo)
+getBoard cs turn = do
+  con <- aConnectRepeat cs
+  let mquery = "SELECT x, y, playerid FROM game WHERE turnid = ?;"
+  result <- aQuery con mquery [turn]
+  aClose con
+  let cells = readCells result
+  return $ MT.Board cells
+  where
+    readCells ::(KnownNat w, KnownNat h) => [(Maybe Int, Maybe Int, Maybe Int)] -> [MT.Cell w h MT.CellInfo]
+    readCells cl = map readCell $ M.catMaybes $ map liftList cl
+
+    readCell :: (KnownNat w, KnownNat h) => (Int, Int, Int) -> MT.Cell w h MT.CellInfo
+    readCell (x, y, pid) = MT.Cell (toMod x) (toMod y) (MT.CellInfo pid)
+
+    liftList :: (Maybe Int, Maybe Int, Maybe Int) -> Maybe (Int, Int, Int)
+    liftList (Nothing, _, _) = Nothing
+    liftList (_, Nothing, _) = Nothing
+    liftList (_, _, Nothing) = Nothing
+    liftList (Just a, Just b, Just c) = Just (a, b, c)
 
 
 getBuildCmds :: Either T.Text FilePath -> IO [(MT.PlayerId, FilePath)]
@@ -105,6 +128,10 @@ aExecuteMany :: (SQLT.ToRow q, PSQL.ToRow q) => AConnection -> T.Text -> [q] -> 
 aExecuteMany (Right con) query lst = SQLT.executeMany con (SQLT.Query query) lst >> return ()
 aExecuteMany (Left con) query lst = PSQL.executeMany con (PSQL.Types.Query (TE.encodeUtf8 query)) lst >> return ()
  
+aQuery :: (SQLT.FromRow r, PSQL.FromRow r, SQLT.ToRow q, PSQL.ToRow q) => AConnection -> T.Text -> q -> IO [r]
+aQuery  (Right con) query lst = SQLT.query con (SQLT.Query query) lst
+aQuery  (Left con) query lst = PSQL.query con (PSQL.Types.Query (TE.encodeUtf8 query)) lst
+
 aQuery_ :: (SQLT.FromRow r, PSQL.FromRow r) => AConnection -> T.Text -> IO [r]
 aQuery_  (Right con) query = SQLT.query_ con (SQLT.Query query)
 aQuery_  (Left con) query = PSQL.query_ con (PSQL.Types.Query (TE.encodeUtf8 query))

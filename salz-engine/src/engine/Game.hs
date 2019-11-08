@@ -74,13 +74,18 @@ localGameLoop board pturn turnMax players dbFilePath = do
   let turn = pturn+1
   putStrLn $ "Turn " ++ (show turn)
 
+  print board
+
   putStrLn "Run Bots"
   botCmds <- mapM (BH.botTurn board) players
   let players1 = map fst botCmds
   let board1 = applyCommands board botCmds
+  print $ map snd botCmds
+  print board1
 
   putStrLn "Step Game"
   let board2 = step board1
+  print  board2
 
   putStrLn "Save Status"
   DB.saveBoard (Right dbFilePath) turn board2

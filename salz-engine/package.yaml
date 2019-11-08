@@ -1,4 +1,4 @@
-name:                salz-engine
+name:                salz-core
 version:             0.1.0.0
 github:              "lugarun"
 license:             BSD3
@@ -21,7 +21,6 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
-- salz-haskell-library
 - modular-arithmetic
 - text
 - process
@@ -34,14 +33,18 @@ dependencies:
 - time
 - mtl
 - directory
+- brick
+- vty
 
 library:
-  source-dirs: src
+  source-dirs: src/lib
 
 executables:
   salz-engine:
     main:                Main.hs
-    source-dirs:         app
+    source-dirs:
+    - app/engine
+    - src/engine
     ghc-options:
     - -Wall
     - -Wcompat
@@ -52,7 +55,21 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - salz-engine
+    - salz-core
+  salz-viewer:
+    main:                Main.hs
+    source-dirs:         app/viewer
+    ghc-options:
+    - -Wall
+    - -Wcompat
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wredundant-constraints
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - salz-core
 
 tests:
   salz-engine-test:
