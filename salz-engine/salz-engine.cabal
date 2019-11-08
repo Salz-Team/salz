@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6cc9b0681aa9d5a324fbb8c903c9f8327f65713589fcbbb03fd87423c608c282
+-- hash: 59d5d36d6daa40587eb782677e335505693f987429920cfff3fd32177e90fc21
 
 name:           salz-engine
 version:        0.1.0.0
@@ -26,15 +26,9 @@ source-repository head
 
 library
   exposed-modules:
-      Board
       BotBuilder
       BotHandler
-      Database
-      ExternalProcessHandler
       Game
-      Player
-      Step
-      Types
   other-modules:
       Paths_salz_engine
   hs-source-dirs:
@@ -48,6 +42,7 @@ library
     , mtl
     , postgresql-simple
     , process
+    , salz-haskell-library
     , sqlite-simple
     , temporary
     , text
@@ -72,6 +67,7 @@ executable salz-engine
     , postgresql-simple
     , process
     , salz-engine
+    , salz-haskell-library
     , sqlite-simple
     , temporary
     , text
@@ -97,6 +93,7 @@ test-suite salz-engine-test
     , postgresql-simple
     , process
     , salz-engine
+    , salz-haskell-library
     , sqlite-simple
     , temporary
     , text

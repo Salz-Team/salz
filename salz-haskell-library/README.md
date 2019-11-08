@@ -1,0 +1,1 @@
+# salz-haskell-library
