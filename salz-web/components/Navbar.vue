@@ -13,8 +13,7 @@
         />
       </a>
 
-      <div class="navbar-burger">
-        test
+      <div class="navbar-burger" @click="toggleNavbar">
         <span />
         <span />
         <span />
@@ -28,9 +27,24 @@
           </nuxt-link>
         </li>
       </ul>
-      <ul class="navbar-end">
-        <li><a>Sign up</a></li>
-        <li><a>Login</a></li>
+      <ul v-if="user.isLoggedIn" class="navbar-end">
+        <li>
+          <nuxt-link to="account">
+            <b-icon icon="account" /> {{ user.username }}
+          </nuxt-link>
+        </li>
+        <li>
+          <a href="#" @click.prevent.stop="logout">
+            <b-icon icon="logout" /> Logout
+          </a>
+        </li>
+      </ul>
+      <ul v-else class="navbar-end">
+        <li>
+          <a href="#" @click.prevent.stop="login">
+            <b-icon icon="login" /> Login
+          </a>
+        </li>
       </ul>
     </div>
   </nav>
@@ -42,6 +56,10 @@
 
 .navbar-menu {
   align-items: center;
+
+  &.active {
+    display: block;
+  }
 }
 
 ul {
@@ -64,23 +82,71 @@ ul {
 
     a:link,
     a:visited {
-      color: $light;
+      color: var(--body-bg-color);
     }
+  }
+}
 
+ul.navbar-start {
+  li {
     a:hover,
     a:focus,
     a.is-active {
       background: $primary-darker-10;
-      color: $light;
+      color: var(--body-bg-color);
+    }
+  }
+}
+
+ul.navbar-end {
+  li {
+    background: none;
+    color: var(--body-bg-color);
+    cursor: pointer;
+    padding: 0 15px;
+    transition: all 0.2s ease-in-out;
+    height: 100%;
+
+    &:active,
+    &:focus,
+    &:hover {
+      background: $primary-darker-10;
+    }
+  }
+}
+
+@media screen and (max-width: 1023px) {
+  .navbar-menu {
+    background-color: $primary;
+
+    .navbar-start,
+    .navbar-end {
+      li {
+        text-align: center;
+        font-size: $size-4;
+
+        & > a {
+          width: 100%;
+          line-height: $size-2;
+        }
+      }
     }
   }
 }
 </style>
 
 <script charset="utf-8">
+// import { parseJWT } from '../lib/jwt';
+
 export default {
   data() {
     return {
+      user: {
+        isLoggedIn: false,
+        token: localStorage.getItem('auth_token'),
+        username: null,
+        id: null
+      },
       items: [
         {
           title: 'Home',
@@ -104,6 +170,38 @@ export default {
         }
       ]
     };
+  },
+  mounted() {
+    if (this.user.token !== null) {
+      this.user.isLoggedIn = true;
+      this.$store.dispatch('login/grabToken');
+      const storedUser = sessionStorage.getItem('user');
+      if (storedUser !== null) {
+        const user = JSON.parse(storedUser);
+        this.user.username = user.username;
+        this.user.id = user.id;
+      }
+    }
+  },
+  methods: {
+    login(event) {
+      window.location.href = process.env.apiurl + '/login?client=web';
+    },
+    logout(event) {
+      this.user.isLoggedIn = false;
+      this.user.loginToken = null;
+      this.user.username = null;
+      this.user.id = null;
+      this.$store.dispatch('login/dropToken');
+    },
+    toggleNavbar() {
+      const navMenu = document.querySelector('.navbar-menu');
+      if (navMenu.classList.contains('active')) {
+        navMenu.classList.remove('active');
+      } else {
+        navMenu.classList.add('active');
+      }
+    }
   }
 };
 </script>

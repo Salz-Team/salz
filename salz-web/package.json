@@ -5,8 +5,6 @@
   "author": "Lugarun, Mosiman, Japorized",
   "private": true,
   "scripts": {
-    "install": "npm install",
-    "dev:docker": "NUXT_HOST=0.0.0.0 NUXT_PORT=3000 nuxt",
     "dev": "nuxt",
     "build": "nuxt build",
     "start": "nuxt start",
@@ -26,7 +24,7 @@
     "@nuxtjs/axios": "^5.6.0",
     "@nuxtjs/markdownit": "^1.2.6",
     "hotkeys-js": "^3.7.2",
-    "nuxt": "^2.0.0",
+    "nuxt": "^2.10.1",
     "nuxt-buefy": "^0.3.2",
     "pixi-viewport": "^4.2.2",
     "pixi.js": "^5.1.3"

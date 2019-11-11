@@ -1,16 +1,22 @@
-const api_baseurl = () => {
-  switch (process.env.FRONTEND_ENV) {
-    case "prod":
-    case "docker-dev":
-      return "http://salz-api:8080";
-    case "dev":
-    default: 
-      return "http://localhost:8080";
+const apiBaseurl = () => {
+  switch (process.env.NODE_ENV) {
+    case 'production':
+      return process.env.BASE_URL + '/api';
+    case 'development':
+    default:
+      return 'http://localhost:8080';
   }
-}
+};
 
 export default {
   mode: 'spa',
+  /*
+   ** Application env variables
+   */
+  env: {
+    apiurl: apiBaseurl(),
+    baseurl: process.env.BASE_URL || 'http://localhost:3000'
+  },
   /*
    ** Headers of the page
    */
@@ -25,7 +31,13 @@ export default {
         content: process.env.npm_package_description || ''
       }
     ],
-    link: [{ rel: 'icon', type: 'image/x-icon', href: '/assets/images/square-logo/primaryfg/transparentbg/@16.png' }]
+    link: [
+      {
+        rel: 'icon',
+        type: 'image/x-icon',
+        href: '/assets/images/square-logo/primaryfg/transparentbg/@16.png'
+      }
+    ]
   },
   /*
    ** Customize the progress-bar color
@@ -63,12 +75,12 @@ export default {
   ],
   axios: {
     // proxyHeaders: false
-    baseURL: api_baseurl()
+    baseURL: apiBaseurl()
   },
   markdownit: {
     preset: 'default',
     html: true,
-    typographer: true,
+    typographer: true
   },
   /*
    ** Build configuration

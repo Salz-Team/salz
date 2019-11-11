@@ -11,10 +11,16 @@ $size-5: 1.25rem;
 $size-6: 1rem;
 $size-7: 0.75rem;
 
+:root {
+  --mask-bg-03: rgba(0, 0, 0, 0.03);
+  --mask-bg-1: rgba(0, 0, 0, 0.1);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --body-bg-color: #2d2d2d;
     --body-fg-color: #f5f5f5;
+    --body-gray-color: #ededed;
     --code-bg-color: #1c1c1c;
   }
 }
@@ -23,6 +29,7 @@ $size-7: 0.75rem;
   :root {
     --body-bg-color: #f5f5f5;
     --body-fg-color: #1c1c1c;
+    --body-gray-color: #2d2d2d;
     --code-bg-color: #ededed;
   }
 }
