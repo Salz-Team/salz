@@ -52,10 +52,6 @@
 
 .navbar-menu {
   align-items: center;
-
-  &.active {
-    display: block;
-  }
 }
 
 ul {
@@ -94,6 +90,10 @@ ul {
 @media screen and (max-width: 1023px) {
   .navbar-menu {
     background-color: $primary;
+
+    &.active {
+      display: block;
+    }
 
     .navbar-start,
     .navbar-end {
@@ -147,11 +147,13 @@ export default {
   },
   methods: {
     toggleNavbar() {
-      const navMenu = document.querySelector('.navbar-menu');
-      if (navMenu.classList.contains('active')) {
-        navMenu.classList.remove('active');
-      } else {
-        navMenu.classList.add('active');
+      if (window.outerWidth <= 1023) {
+        const navMenu = document.querySelector('.navbar-menu');
+        if (navMenu.classList.contains('active')) {
+          navMenu.classList.remove('active');
+        } else {
+          navMenu.classList.add('active');
+        }
       }
     }
   }
