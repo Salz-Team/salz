@@ -12,6 +12,13 @@
           Bots should be submitted as a .tar file containing a
           <code>run.sh</code> and a <code>build.sh</code> in the root directory.
         </p>
+
+        <p>
+          Check out the
+          <a href="https://github.com/Lugarun/salz" target="_blank">
+            <b-icon icon="github-circle" /> Github repo
+          </a>
+        </p>
       </div>
     </section>
   </div>

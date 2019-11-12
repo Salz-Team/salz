@@ -21,24 +21,24 @@
     </div>
     <div class="navbar-menu">
       <ul class="navbar-start">
-        <li v-for="(item, key) of items" :key="key">
+        <li v-for="(item, key) of items" :key="key" @click="toggleNavbar">
           <nuxt-link :to="item.to" exact-active-class="is-active">
             <b-icon :icon="item.icon" /> {{ item.title }}
           </nuxt-link>
         </li>
       </ul>
       <ul v-if="isLoggedIn" class="navbar-end">
-        <li>
+        <li @click="toggleNavbar">
           <nuxt-link to="account">
             <b-icon icon="account" /> {{ username }}
           </nuxt-link>
         </li>
-        <li>
+        <li @click="toggleNavbar">
           <nuxt-link to="logout"><b-icon icon="logout" /> Logout</nuxt-link>
         </li>
       </ul>
       <ul v-else class="navbar-end">
-        <li>
+        <li @click="toggleNavbar">
           <a :href="loginurl"><b-icon icon="login" /> Login</a>
         </li>
       </ul>
@@ -68,16 +68,9 @@ ul {
     display: flex;
     align-items: center;
 
-    a,
-    button {
-      background: transparent;
+    a {
       height: 100%;
       padding: 0 15px;
-      font-size: 1em;
-      font-weight: 400;
-      line-height: 1.5;
-      width: 100%;
-      border: none;
       display: flex;
       align-items: center;
       transition: all 0.2s ease-in-out;
@@ -88,32 +81,12 @@ ul {
     a:visited {
       color: var(--body-bg-color);
     }
-  }
-}
 
-ul.navbar-start {
-  li {
     a:hover,
     a:focus,
     a.is-active {
       background: $primary-darker-10;
       color: var(--body-bg-color);
-    }
-  }
-}
-
-ul.navbar-end {
-  li {
-    background: none;
-    color: var(--body-bg-color);
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    height: 100%;
-
-    &:active,
-    &:focus,
-    &:hover {
-      background: $primary-darker-10;
     }
   }
 }
@@ -154,11 +127,6 @@ export default {
           title: 'About',
           icon: 'book',
           to: { name: 'about' }
-        },
-        {
-          title: 'Inspire',
-          icon: 'lightbulb',
-          to: { name: 'inspire' }
         },
         {
           title: 'Game',
