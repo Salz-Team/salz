@@ -34,16 +34,16 @@
           </nuxt-link>
         </li>
         <li>
-          <a href="#" @click.prevent.stop="logout">
+          <button @click.prevent.stop="logout">
             <b-icon icon="logout" /> Logout
-          </a>
+          </button>
         </li>
       </ul>
       <ul v-else class="navbar-end">
         <li>
-          <a href="#" @click.prevent.stop="login">
+          <button @click.prevent.stop="login">
             <b-icon icon="login" /> Login
-          </a>
+          </button>
         </li>
       </ul>
     </div>
@@ -72,12 +72,20 @@ ul {
     display: flex;
     align-items: center;
 
-    a {
+    a,
+    button {
+      background: transparent;
       height: 100%;
       padding: 0 15px;
+      font-size: 1em;
+      font-weight: 400;
+      line-height: 1.5;
+      width: 100%;
+      border: none;
       display: flex;
       align-items: center;
       transition: all 0.2s ease-in-out;
+      cursor: pointer;
     }
 
     a:link,
@@ -103,7 +111,6 @@ ul.navbar-end {
     background: none;
     color: var(--body-bg-color);
     cursor: pointer;
-    padding: 0 15px;
     transition: all 0.2s ease-in-out;
     height: 100%;
 
