@@ -29,6 +29,7 @@ dependencies:
 - transformers
 - either
 - postgresql-simple
+- sqlite-simple
 - time
 - mtl
 - directory

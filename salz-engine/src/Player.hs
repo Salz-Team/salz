@@ -1,4 +1,6 @@
-module Player where
+module Player ( applyCommands
+              , getPlayerCells
+              ) where
 
 import Board
 import Types
@@ -7,41 +9,32 @@ import GHC.TypeLits hiding (Mod)
 import Data.Modular
 
 
-instance Show CellInfo where
-    show (CellInfo pid) = show pid
-
-isVisible :: (KnownNat w, KnownNat h) =>
-  Board h w CellInfo -> PlayerId -> Cell h w CellInfo -> Bool
-isVisible b p c = any (\x -> dist x c < 3) $ getPlayerCells b p
-
-isFlipable :: (KnownNat w, KnownNat h) =>
-  Board h w CellInfo -> Cell h w a -> PlayerId -> Bool
-isFlipable b c p = any (\x -> dist x c < 3) $ getPlayerCells b p
-
 getPlayerCells :: Board h w CellInfo -> PlayerId -> [Cell h w CellInfo]
 getPlayerCells b pi1 = getCellsBy b (\x -> pi1 == (cPlayerId x))
 
-packPlayerMap :: (KnownNat w, KnownNat h) =>
-  Board h w CellInfo -> Player -> PlayerMap
-packPlayerMap b p = map toRelativeCoord $ filter (isVisible b pi1) (bCells b)
+getOtherPlayersCells :: Board h w CellInfo -> PlayerId -> [Cell h w CellInfo]
+getOtherPlayersCells b pi1 = getCellsBy b (\x -> pi1 == (cPlayerId x))
+
+isMyNeighbour :: (KnownNat w, KnownNat h) => Board w h CellInfo -> Cell w h CellInfo -> Bool
+isMyNeighbour board cell = any (\x -> dist x cell <2) $ getPlayerCells board (cPlayerId  $ cItem cell)
+
+isNearEnemy :: (KnownNat w, KnownNat h) => Board w h CellInfo -> Cell w h CellInfo -> Bool
+isNearEnemy board cell = any (\x -> dist x cell <30) $ getOtherPlayersCells board (cPlayerId  $ cItem cell)
+
+isCommandLegal :: (KnownNat w, KnownNat h) => Board w h CellInfo -> PlayerId -> Command -> Bool
+isCommandLegal board pid (Flip x y) = isMyNeighbour board cell && isNearEnemy board cell
   where
-    toRelativeCoord c = (unMod $ cX $ relativeCell c, unMod $ cY $ relativeCell c, cPlayerId $ cItem c)
+    cell = Cell (toMod x) (toMod y) (CellInfo pid)
 
-    relativeCell = relativeCoordinates (Cell x y ())
-    x = toMod $ fst $ pPlayerSource p
-    y = toMod $ snd $ pPlayerSource p
-    pi1 = pPlayerId p
-
-isCommandValid :: (KnownNat w, KnownNat h) =>
-  Board h w CellInfo -> PlayerId -> Command -> Bool
-isCommandValid b pi1 (Flip x y) = isFlipable b (Cell (toMod x) (toMod y) ()) pi1
-
-fillStartingLocation :: (KnownNat w, KnownNat h) =>
-  Board w h CellInfo -> Player -> Board w h CellInfo
-fillStartingLocation b p = Board { bCells = nCell:(bCells b) }
+getLegalCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(Player, [Command])] -> [(PlayerId, [Command])]
+getLegalCommands board cmds = map getLegalCommand cmds
   where
-    nCell = Cell x y (CellInfo pid)
-    y = toMod $ snd $ pPlayerSource p
-    x = toMod $ fst $ pPlayerSource p
-    pid = pPlayerId p
+    getLegalCommand (p, clst) = (pPlayerId p, filter (isCommandLegal board (pPlayerId p)) $ take 3 clst)
 
+applyFlips :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(PlayerId, [Command])] -> Board w h CellInfo
+applyFlips board cmds = foldl togglePlayerCells board cmds
+  where
+    togglePlayerCells board1 (pid, clst) = foldl toggleCell board1 $ map (\(Flip x y) -> Cell (toMod x) (toMod y) (CellInfo pid)) clst
+
+applyCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(Player, [Command])] -> Board w h CellInfo
+applyCommands board cmds = applyFlips board $ getLegalCommands board cmds
