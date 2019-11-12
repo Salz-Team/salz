@@ -34,16 +34,12 @@
           </nuxt-link>
         </li>
         <li>
-          <button @click.prevent.stop="logout">
-            <b-icon icon="logout" /> Logout
-          </button>
+          <nuxt-link to="logout"><b-icon icon="logout" /> Logout</nuxt-link>
         </li>
       </ul>
       <ul v-else class="navbar-end">
         <li>
-          <button @click.prevent.stop="login">
-            <b-icon icon="login" /> Login
-          </button>
+          <a :href="loginurl"><b-icon icon="login" /> Login</a>
         </li>
       </ul>
     </div>
@@ -169,7 +165,8 @@ export default {
           icon: 'gamepad',
           to: { name: 'game' }
         }
-      ]
+      ],
+      loginurl: process.env.apiurl + '/login?client=web'
     };
   },
   computed: {
@@ -181,17 +178,6 @@ export default {
     })
   },
   methods: {
-    login(event) {
-      // HACK
-      // Right now, what happens is that we redirect users to
-      // the special endpoint /login?client=web on the API.
-      // This is a workaround for the API complains about CORS
-      // when Axios sends a get request to the default /login
-      window.location.href = process.env.apiurl + '/login?client=web';
-    },
-    logout(event) {
-      this.$store.dispatch('login/dropToken');
-    },
     toggleNavbar() {
       const navMenu = document.querySelector('.navbar-menu');
       if (navMenu.classList.contains('active')) {
