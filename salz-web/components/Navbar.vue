@@ -27,23 +27,23 @@
           </nuxt-link>
         </li>
       </ul>
-      <ul v-if="user.isLoggedIn" class="navbar-end">
+      <ul v-if="isLoggedIn" class="navbar-end">
         <li>
           <nuxt-link to="account">
-            <b-icon icon="account" /> {{ user.username }}
+            <b-icon icon="account" /> {{ username }}
           </nuxt-link>
         </li>
         <li>
-          <a href="#" @click.prevent.stop="logout">
+          <button @click.prevent.stop="logout">
             <b-icon icon="logout" /> Logout
-          </a>
+          </button>
         </li>
       </ul>
       <ul v-else class="navbar-end">
         <li>
-          <a href="#" @click.prevent.stop="login">
+          <button @click.prevent.stop="login">
             <b-icon icon="login" /> Login
-          </a>
+          </button>
         </li>
       </ul>
     </div>
@@ -72,12 +72,20 @@ ul {
     display: flex;
     align-items: center;
 
-    a {
+    a,
+    button {
+      background: transparent;
       height: 100%;
       padding: 0 15px;
+      font-size: 1em;
+      font-weight: 400;
+      line-height: 1.5;
+      width: 100%;
+      border: none;
       display: flex;
       align-items: center;
       transition: all 0.2s ease-in-out;
+      cursor: pointer;
     }
 
     a:link,
@@ -103,7 +111,6 @@ ul.navbar-end {
     background: none;
     color: var(--body-bg-color);
     cursor: pointer;
-    padding: 0 15px;
     transition: all 0.2s ease-in-out;
     height: 100%;
 
@@ -136,17 +143,11 @@ ul.navbar-end {
 </style>
 
 <script charset="utf-8">
-// import { parseJWT } from '../lib/jwt';
+import { mapState } from 'vuex';
 
 export default {
   data() {
     return {
-      user: {
-        isLoggedIn: false,
-        token: localStorage.getItem('auth_token'),
-        username: null,
-        id: null
-      },
       items: [
         {
           title: 'Home',
@@ -171,27 +172,24 @@ export default {
       ]
     };
   },
-  mounted() {
-    if (this.user.token !== null) {
-      this.user.isLoggedIn = true;
-      this.$store.dispatch('login/grabToken');
-      const storedUser = sessionStorage.getItem('user');
-      if (storedUser !== null) {
-        const user = JSON.parse(storedUser);
-        this.user.username = user.username;
-        this.user.id = user.id;
-      }
-    }
+  computed: {
+    ...mapState({
+      isLoggedIn: (state) => state.login.isLoggedIn,
+      token: (state) => state.login.token,
+      username: (state) => state.login.username,
+      id: (state) => state.login.id
+    })
   },
   methods: {
     login(event) {
+      // HACK
+      // Right now, what happens is that we redirect users to
+      // the special endpoint /login?client=web on the API.
+      // This is a workaround for the API complains about CORS
+      // when Axios sends a get request to the default /login
       window.location.href = process.env.apiurl + '/login?client=web';
     },
     logout(event) {
-      this.user.isLoggedIn = false;
-      this.user.loginToken = null;
-      this.user.username = null;
-      this.user.id = null;
       this.$store.dispatch('login/dropToken');
     },
     toggleNavbar() {
