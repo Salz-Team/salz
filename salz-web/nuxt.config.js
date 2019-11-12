@@ -1,7 +1,7 @@
 const apiBaseurl = () => {
   switch (process.env.NODE_ENV) {
     case 'production':
-      return process.env.BASE_URL + '/api';
+      return '/api';
     case 'development':
     default:
       return 'http://localhost:8080';
@@ -14,8 +14,7 @@ export default {
    ** Application env variables
    */
   env: {
-    apiurl: apiBaseurl(),
-    baseurl: process.env.BASE_URL || 'http://localhost:3000'
+    apiurl: apiBaseurl()
   },
   /*
    ** Headers of the page

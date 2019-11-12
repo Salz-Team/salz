@@ -173,6 +173,9 @@ export default {
       username: this.$store.state.login.username,
       id: this.$store.state.login.id
     };
+    if (this.user.username === null) {
+      this.$router.push({ name: 'index' });
+    }
   },
   methods: {
     dropHandler(ev) {

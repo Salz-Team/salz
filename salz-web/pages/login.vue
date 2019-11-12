@@ -42,7 +42,7 @@ export default {
     }
 
     setTimeout(() => {
-      window.location.href = process.env.baseurl;
+      this.$router.push({ name: 'index' });
     }, 200);
   }
 };

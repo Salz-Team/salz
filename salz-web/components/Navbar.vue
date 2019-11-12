@@ -27,10 +27,10 @@
           </nuxt-link>
         </li>
       </ul>
-      <ul v-if="user.isLoggedIn" class="navbar-end">
+      <ul v-if="isLoggedIn" class="navbar-end">
         <li>
           <nuxt-link to="account">
-            <b-icon icon="account" /> {{ user.username }}
+            <b-icon icon="account" /> {{ username }}
           </nuxt-link>
         </li>
         <li>
@@ -136,17 +136,11 @@ ul.navbar-end {
 </style>
 
 <script charset="utf-8">
-// import { parseJWT } from '../lib/jwt';
+import { mapState } from 'vuex';
 
 export default {
   data() {
     return {
-      user: {
-        isLoggedIn: false,
-        token: localStorage.getItem('auth_token'),
-        username: null,
-        id: null
-      },
       items: [
         {
           title: 'Home',
@@ -171,27 +165,24 @@ export default {
       ]
     };
   },
-  mounted() {
-    if (this.user.token !== null) {
-      this.user.isLoggedIn = true;
-      this.$store.dispatch('login/grabToken');
-      const storedUser = sessionStorage.getItem('user');
-      if (storedUser !== null) {
-        const user = JSON.parse(storedUser);
-        this.user.username = user.username;
-        this.user.id = user.id;
-      }
-    }
+  computed: {
+    ...mapState({
+      isLoggedIn: (state) => state.login.isLoggedIn,
+      token: (state) => state.login.token,
+      username: (state) => state.login.username,
+      id: (state) => state.login.id
+    })
   },
   methods: {
     login(event) {
+      // HACK
+      // Right now, what happens is that we redirect users to
+      // the special endpoint /login?client=web on the API.
+      // This is a workaround for the API complains about CORS
+      // when Axios sends a get request to the default /login
       window.location.href = process.env.apiurl + '/login?client=web';
     },
     logout(event) {
-      this.user.isLoggedIn = false;
-      this.user.loginToken = null;
-      this.user.username = null;
-      this.user.id = null;
       this.$store.dispatch('login/dropToken');
     },
     toggleNavbar() {
