@@ -56,10 +56,17 @@ export default {
       return this.$store.getters['game/getFramesLength'];
     }
   },
-  async asyncData(ctx) {
-    return {
-      index: await ctx.app.$framesRepo.index() // read frame info from api
-    };
+  asyncData({ $axios }) {
+    return $axios
+      .$get('/frames')
+      .then((res) => {
+        console.log(res);
+        return { index: res };
+      })
+      .catch((e) => {
+        console.warn(e);
+        return { index: { frames: [] } };
+      });
   },
   beforeMount() {
     this.$store.dispatch('login/grabToken');
@@ -97,9 +104,15 @@ export default {
     this.$store.dispatch('game/setActiveFrame', 0);
     this.$store.dispatch('game/setFramesLength', this.index.frames);
 
-    const frames = {};
-    for (let i = 0; i < this.index.frames.length; i++) {
-      frames[i] = new Frame(this.index.frames[i]);
+    const frames = [];
+    // make first n frames first
+    // adjust for lower n for better performance,
+    // but possibly at the cost of exposing incomplete preparation
+    const criticalFrames = 10;
+    if (this.index.frames.length > 0) {
+      for (let i = 0; i < criticalFrames; i++) {
+        frames.push(new Frame(this.index.frames[i]));
+      }
     }
 
     // figure out the dimensions for the canvas
@@ -136,7 +149,7 @@ export default {
     // const user = JSON.parse(sessionStorage.getItem('user'));
     const playerID = parseInt(this.userid, 10);
 
-    if (playerID == null && frames.length > 0) {
+    if (playerID == null || this.index.frames.length === 0) {
       viewport.moveCenter(0, 0);
     } else {
       // camera should point at middle of cluster.
@@ -157,11 +170,18 @@ export default {
       });
 
     const gameFrame = await new GameFrame(
-      frames[0],
+      this.index.frames.length > 0 ? frames[0] : new Frame([]),
       vpWorldWidth,
       vpWorldHeight
     );
     viewport.addChild(gameFrame);
+
+    // continue making the rest of the frames here
+    if (this.index.frames.length > 0) {
+      for (let i = criticalFrames; i < this.index.frames.length; i++) {
+        frames.push(new Frame(this.index.frames[i]));
+      }
+    }
 
     /**
      * Move viewport camera by dx and dy
@@ -189,7 +209,7 @@ export default {
               'game/setActiveFrame',
               this.currentFrameNumber - 1
             );
-            gameFrame.mountFrame(frames[this.currentFrameNumber]);
+            EventBus.$emit('updateFrameIndex');
           }
         }
       },
@@ -201,7 +221,7 @@ export default {
               'game/setActiveFrame',
               this.currentFrameNumber + 1
             );
-            gameFrame.mountFrame(frames[this.currentFrameNumber]);
+            EventBus.$emit('updateFrameIndex');
           }
         }
       },
