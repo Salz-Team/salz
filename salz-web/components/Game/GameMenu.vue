@@ -2,10 +2,20 @@
   <div class="gameMenu-container">
     <div class="gameUIContainer gameMenu" :class="{ active: menuIsActive }">
       <div v-for="(item, key) of menuItems" :key="key">
-        <button v-if="item.type === 'action'" @click="item.action">
+        <button
+          v-if="item.type === 'action'"
+          class="menuItem"
+          @click="item.action"
+        >
+          <b-icon :icon="item.icon" size="is-large" />
           {{ item.title }}
         </button>
-        <nuxt-link v-if="item.type === 'link'" :to="item.to">
+        <nuxt-link
+          v-else-if="item.type === 'link'"
+          class="menuItem"
+          :to="item.to"
+        >
+          <b-icon :icon="item.icon" size="is-large" />
           {{ item.title }}
         </nuxt-link>
       </div>
@@ -21,6 +31,7 @@
 </template>
 
 <style lang="scss" scoped>
+@import '~assets/css/bulma-configs';
 .gameMenu-container {
   position: fixed;
   top: 75px;
@@ -31,6 +42,8 @@
 .gameMenu {
   display: grid;
   grid-template-columns: 33.33% 33.33% 33.33%;
+  row-gap: 20px;
+  justify-items: center;
   width: 30vw;
   min-width: 300px;
   max-width: 600px;
@@ -44,6 +57,26 @@
   &.active {
     margin-left: 0;
     opacity: 1;
+  }
+
+  .menuItem {
+    width: 100px;
+    height: 100px;
+    font-size: $size-6;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-image: url('/assets/images/icon-frame.svg');
+    background-repeat: no-repeat;
+    background-size: 100px 100px;
+
+    &:link,
+    &:visited,
+    &:focus,
+    &:hover {
+      color: var(--body-bg-color);
+    }
   }
 }
 
@@ -93,9 +126,15 @@ export default {
     return {
       wrapper: null,
       menuItems: [
-        { title: 'Guide', type: 'link', to: { name: 'guide' } },
+        {
+          title: 'Guide',
+          icon: 'book',
+          type: 'link',
+          to: { name: 'guide' }
+        },
         {
           title: 'Fullscreen',
+          icon: 'fullscreen',
           type: 'action',
           action: () => {
             fullscreen(this.wrapper);
@@ -103,6 +142,7 @@ export default {
         },
         {
           title: 'Hotkeys',
+          icon: 'keyboard-variant',
           type: 'action',
           action: () => {
             this.$store.dispatch('game/setShowHotkeys', !this.showHotkeys);
@@ -110,6 +150,7 @@ export default {
         },
         {
           title: 'Ranking',
+          icon: 'crown',
           type: 'action',
           action: () => {
             this.$store.dispatch('game/setShowRanking', !this.showRanking);
@@ -117,6 +158,7 @@ export default {
         },
         {
           title: 'Help',
+          icon: 'help',
           type: 'action',
           action: () => {
             this.$store.dispatch('game/setShowHelp', !this.showHelp);
@@ -124,6 +166,7 @@ export default {
         },
         {
           title: 'Hide UI',
+          icon: 'view-quilt',
           type: 'action',
           action: () => {
             this.$store.dispatch('game/hideUI');
