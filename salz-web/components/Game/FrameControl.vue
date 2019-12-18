@@ -34,13 +34,6 @@
 
 $bar-height: 20px;
 
-button {
-  border: none;
-  background: none;
-  color: $white;
-  cursor: pointer;
-}
-
 .frame-control {
   position: fixed;
   bottom: 20px;
@@ -102,13 +95,12 @@ button {
 
 <script charset="utf-8">
 import { mapState } from 'vuex';
-import { EventBus } from '../../../lib/eventBus';
+import { EventBus } from '../../lib/eventBus';
 
 export default {
   name: 'FrameControl',
   data() {
     return {
-      isPlaying: false,
       speed: 1,
       nowPlayingClock: null,
       progress: 0
@@ -117,7 +109,8 @@ export default {
   computed: {
     ...mapState({
       currentFrameNumber: (state) => state.game.activeFrame,
-      maxFrameNumber: (state) => state.game.framesLength
+      maxFrameNumber: (state) => state.game.framesLength,
+      isPlaying: (state) => state.game.nowPlaying
     })
   },
   mounted() {
@@ -129,13 +122,15 @@ export default {
   },
   methods: {
     togglePlayPause() {
-      this.isPlaying = !this.isPlaying;
+      this.$store.dispatch('game/setNowPlaying', !this.isPlaying);
+      // this.isPlaying = !this.isPlaying;
       if (this.isPlaying) {
         this.setPlay(1000 / this.speed);
       } else {
         clearInterval(this.nowPlayingClock);
         this.nowPlayingClock = null;
       }
+      EventBus.$emit('toggledNowPlaying');
     },
     setPlay(dt) {
       this.nowPlayingClock = setInterval(() => {
@@ -146,7 +141,8 @@ export default {
           );
           EventBus.$emit('updateFrameIndex');
         } else {
-          this.isPlaying = false;
+          this.$store.dispatch('game/setNowPlaying', false);
+          // this.isPlaying = false;
           clearInterval(this.nowPlayingClock);
           this.nowPlayingClock = null;
         }

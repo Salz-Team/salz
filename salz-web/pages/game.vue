@@ -1,7 +1,10 @@
 <template id="salz-game-view">
   <div id="salz-game-inner-view">
-    <GameMenu />
-    <FrameControl />
+    <GameMenu v-if="!hideUI" />
+    <FrameControl v-if="!hideUI" />
+    <Hotkeys v-if="showHotkeys" />
+    <Ranking v-if="showRanking" />
+    <Help v-if="showHelp" />
   </div>
 </template>
 
@@ -19,6 +22,7 @@
 </style>
 
 <script charset="utf-8">
+import { mapState } from 'vuex';
 import hotkeys from 'hotkeys-js';
 
 // Game Rendering
@@ -29,13 +33,19 @@ import { Color } from '../lib/game/colors.js';
 import { sketchyMedoid } from '../lib/game/mathstuff';
 import { EventBus } from '../lib/eventBus';
 
-import GameMenu from '~/components/Game/UI/GameMenu';
-import FrameControl from '~/components/Game/UI/FrameControl';
+import GameMenu from '~/components/Game/GameMenu';
+import FrameControl from '~/components/Game/FrameControl';
+import Hotkeys from '~/components/Game/Hotkeys';
+import Ranking from '~/components/Game/Ranking';
+import Help from '~/components/Game/Help';
 
 export default {
   components: {
     GameMenu,
-    FrameControl
+    FrameControl,
+    Hotkeys,
+    Ranking,
+    Help
   },
   data() {
     return {
@@ -43,18 +53,16 @@ export default {
     };
   },
   computed: {
-    user() {
-      return this.$store.state.login.username;
-    },
-    userid() {
-      return this.$store.state.login.id;
-    },
-    currentFrameNumber() {
-      return this.$store.getters['game/getActiveFrame'];
-    },
-    totalFrames() {
-      return this.$store.getters['game/getFramesLength'];
-    }
+    ...mapState({
+      user: (state) => state.login.username,
+      userid: (state) => state.login.id,
+      currentFrameNumber: (state) => state.game.activeFrame,
+      totalFrames: (state) => state.game.framesLength,
+      hideUI: (state) => state.game.hideUI,
+      showHotkeys: (state) => state.game.showHotkeys,
+      showRanking: (state) => state.game.showRanking,
+      showHelp: (state) => state.game.showHelp
+    })
   },
   asyncData({ $axios }) {
     return $axios
@@ -226,6 +234,16 @@ export default {
         }
       },
       {
+        key: 'shift+s',
+        fn: () => {
+          if (this.hideUI) {
+            this.$store.dispatch('game/showUI');
+          } else {
+            this.$store.dispatch('game/hideUI');
+          }
+        }
+      },
+      {
         key: 'z',
         fn: () => {
           viewport.zoomPercent(0.5);
@@ -303,11 +321,6 @@ export default {
     EventBus.$on('updateFrameIndex', () => {
       gameFrame.mountFrame(frames[this.currentFrameNumber]);
     });
-
-    // wrapper.addEventListener('updateFrameIndex', (ev) => {
-    //   frame = new Frame(frames[this.currentFrameNumber]);
-    //   gameFrame.mountFrame(frame);
-    // });
 
     // window.addEventListener('resize', (event) => {
     //   app.resize();
