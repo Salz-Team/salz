@@ -2,7 +2,7 @@
   <div id="salz-game-inner-view">
     <GameMenu v-if="!hideUI" />
     <FrameControl v-if="!hideUI" />
-    <Hotkeys v-if="showHotkeys" />
+    <Hotkeys :viewport="viewport" />
     <Ranking v-if="showRanking" />
     <Help v-if="showHelp" />
   </div>
@@ -23,16 +23,17 @@
 
 <script charset="utf-8">
 import { mapState } from 'vuex';
-import hotkeys from 'hotkeys-js';
+import { Application } from 'pixi.js';
+import { Viewport } from 'pixi-viewport';
 
 // Game Rendering
-import { fullscreen } from '../lib/game/rendering/fullscreen';
-import GameFrame from '../lib/game/rendering/gameFrame';
-import Frame from '../lib/game/rendering/frame';
-import { Color } from '../lib/game/colors.js';
-import { sketchyMedoid } from '../lib/game/mathstuff';
-import { EventBus } from '../lib/eventBus';
+import GameFrame from '~/lib/game/rendering/gameFrame';
+import Frame from '~/lib/game/rendering/frame';
+import { Color } from '~/lib/game/colors.js';
+import { sketchyMedoid } from '~/lib/game/mathstuff';
+import { EventBus } from '~/lib/eventBus';
 
+// import GameHotkeys from '~/components/Game/GameHotkeys';
 import GameMenu from '~/components/Game/GameMenu';
 import FrameControl from '~/components/Game/FrameControl';
 import Hotkeys from '~/components/Game/Hotkeys';
@@ -49,7 +50,8 @@ export default {
   },
   data() {
     return {
-      index: []
+      index: [],
+      viewport: null
     };
   },
   computed: {
@@ -59,7 +61,6 @@ export default {
       currentFrameNumber: (state) => state.game.activeFrame,
       totalFrames: (state) => state.game.framesLength,
       hideUI: (state) => state.game.hideUI,
-      showHotkeys: (state) => state.game.showHotkeys,
       showRanking: (state) => state.game.showRanking,
       showHelp: (state) => state.game.showHelp
     })
@@ -68,10 +69,10 @@ export default {
     return $axios
       .$get('/frames')
       .then((res) => {
-        console.log(res);
         return { index: res };
       })
       .catch((e) => {
+        // eslint-disable-next-line
         console.warn(e);
         return { index: { frames: [] } };
       });
@@ -80,8 +81,6 @@ export default {
     this.$store.dispatch('login/grabToken');
   },
   async mounted() {
-    const PIXI = await import('pixi.js');
-    const Viewport = await import('pixi-viewport');
     const wrapper = document.querySelector('#salz-game-inner-view');
 
     // HACK -- This is a temporary solution
@@ -109,14 +108,17 @@ export default {
       });
     });
 
+    this.$store.dispatch('game/setFramesLength', this.index.frames.length);
+    this.$store.dispatch('game/setFirstFrame', 0);
+    this.$store.dispatch('game/setLastFrame', this.index.frames.length - 1);
     this.$store.dispatch('game/setActiveFrame', 0);
-    this.$store.dispatch('game/setFramesLength', this.index.frames);
+    this.$store.dispatch('game/setTurnId', this.index.frames[0][0].turnid);
 
     const frames = [];
     // make first n frames first
     // adjust for lower n for better performance,
     // but possibly at the cost of exposing incomplete preparation
-    const criticalFrames = 10;
+    const criticalFrames = Math.min(10, this.index.frames.length);
     if (this.index.frames.length > 0) {
       for (let i = 0; i < criticalFrames; i++) {
         frames.push(new Frame(this.index.frames[i]));
@@ -133,7 +135,7 @@ export default {
       window.innerHeight || 0
     );
 
-    const app = new PIXI.Application({
+    const app = new Application({
       width: appWidth,
       height: appHeight,
       backgroundColor: Color.black,
@@ -145,7 +147,7 @@ export default {
     const vpWorldWidth = 1000;
     const vpWorldHeight = 1000;
 
-    const viewport = new Viewport.Viewport({
+    this.viewport = new Viewport({
       screenWidth: window.innerWidth,
       screenHeight: window.innerHeight,
       worldWidth: vpWorldWidth,
@@ -158,14 +160,16 @@ export default {
     const playerID = parseInt(this.userid, 10);
 
     if (playerID == null || this.index.frames.length === 0) {
-      viewport.moveCenter(0, 0);
+      this.viewport.moveCenter(0, 0);
     } else {
       // camera should point at middle of cluster.
-      viewport.moveCenter(...sketchyMedoid(playerID, this.index.frames[0]));
+      this.viewport.moveCenter(
+        ...sketchyMedoid(playerID, this.index.frames[0])
+      );
     }
 
-    app.stage.addChild(viewport);
-    viewport
+    app.stage.addChild(this.viewport);
+    this.viewport
       .drag()
       .pinch()
       .wheel()
@@ -182,7 +186,7 @@ export default {
       vpWorldWidth,
       vpWorldHeight
     );
-    viewport.addChild(gameFrame);
+    this.viewport.addChild(gameFrame);
 
     // continue making the rest of the frames here
     if (this.index.frames.length > 0) {
@@ -191,151 +195,23 @@ export default {
       }
     }
 
+    // Adding a helper function for viewport
     /**
      * Move viewport camera by dx and dy
      *
      * @param   {number}  dx  Pixels to move x by
      * @param   {number}  dy  Pixels to move y by
      */
-    function moveViewport(dx, dy) {
-      viewport.moveCenter(viewport.center.x + dx, viewport.center.y + dy);
-    }
-
-    // hotkeys
-    const gameHotkeys = [
-      {
-        key: 'f',
-        fn: () => {
-          fullscreen(wrapper);
-        }
-      },
-      {
-        key: 'h',
-        fn: () => {
-          if (this.currentFrameNumber > 0) {
-            this.$store.dispatch(
-              'game/setActiveFrame',
-              this.currentFrameNumber - 1
-            );
-            EventBus.$emit('updateFrameIndex');
-          }
-        }
-      },
-      {
-        key: 'l',
-        fn: () => {
-          if (this.currentFrameNumber < this.totalFrames - 1) {
-            this.$store.dispatch(
-              'game/setActiveFrame',
-              this.currentFrameNumber + 1
-            );
-            EventBus.$emit('updateFrameIndex');
-          }
-        }
-      },
-      {
-        key: 'shift+s',
-        fn: () => {
-          if (this.hideUI) {
-            this.$store.dispatch('game/showUI');
-          } else {
-            this.$store.dispatch('game/hideUI');
-          }
-        }
-      },
-      {
-        key: 'z',
-        fn: () => {
-          viewport.zoomPercent(0.5);
-        }
-      },
-      {
-        key: 'shift+z',
-        fn: () => {
-          viewport.zoomPercent(-0.5);
-        }
-      },
-      {
-        key: 'left',
-        fn: (event) => {
-          event.preventDefault();
-          moveViewport(-10, 0);
-        }
-      },
-      {
-        key: 'shift+left',
-        fn: (event) => {
-          event.preventDefault();
-          moveViewport(-50, 0);
-        }
-      },
-      {
-        key: 'up',
-        fn: (event) => {
-          event.preventDefault();
-          moveViewport(0, -10);
-        }
-      },
-      {
-        key: 'shift+up',
-        fn: (event) => {
-          event.preventDefault();
-          moveViewport(0, -50);
-        }
-      },
-      {
-        key: 'right',
-        fn: (event) => {
-          event.preventDefault();
-          moveViewport(10, 0);
-        }
-      },
-      {
-        key: 'shift+right',
-        fn: (event) => {
-          event.preventDefault();
-          moveViewport(50, 0);
-        }
-      },
-      {
-        key: 'down',
-        fn: (event) => {
-          event.preventDefault();
-          moveViewport(0, 10);
-        }
-      },
-      {
-        key: 'shift+down',
-        fn: (event) => {
-          event.preventDefault();
-          moveViewport(0, 50);
-        }
-      }
-    ];
-
-    // register each hotkey for Hotkey.js
-    gameHotkeys.forEach((item) => {
-      hotkeys(item.key, item.fn);
-    });
+    this.viewport.moveViewport = function(dx, dy) {
+      this.viewport.moveCenter(
+        this.viewport.center.x + dx,
+        this.viewport.center.y + dy
+      );
+    };
 
     EventBus.$on('updateFrameIndex', () => {
       gameFrame.mountFrame(frames[this.currentFrameNumber]);
     });
-
-    // window.addEventListener('resize', (event) => {
-    //   app.resize();
-
-    //   const appWidth = Math.max(
-    //     document.documentElement.clientWidth,
-    //     window.innerWidth || 0
-    //   );
-    //   const appHeight = Math.max(
-    //     document.documentElement.clientHeight,
-    //     window.innerHeight || 0
-    //   );
-    //   btn.x = appWidth - btn.width - 20;
-    //   btn.y = appHeight - btn.height - 20;
-    // });
   }
 };
 </script>

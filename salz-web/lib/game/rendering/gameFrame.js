@@ -6,8 +6,8 @@ export default class GameFrame extends Container {
    * (extends PIXI.Container)
    * @constructor
    * @param   {Frame}     frame           Starting frame to render
-   * @param   {number}    [width=1000]    Width for PIXI.Container
-   * @param   {number}    [height=1000]   Width for PIXI.Container
+   * @param   {Number}    [width=1000]    Width for PIXI.Container
+   * @param   {Number}    [height=1000]   Width for PIXI.Container
    *
    * @return  {GameFrame}
    */
@@ -16,6 +16,7 @@ export default class GameFrame extends Container {
       width,
       height
     });
+    this.turnid = frame[0].turnid;
     this.addCells(frame);
   }
 
@@ -33,11 +34,18 @@ export default class GameFrame extends Container {
    * Add cells to game frame
    * @param   {Frame}   frame   Frame with cells to add
    */
-  addCells(frame) {
-    frame.forEach((player) => {
-      player.cells.forEach((cell) => {
-        this.addChild(cell);
-      });
+  async addCells(frame) {
+    await new Promise((resolve, reject) => {
+      try {
+        frame.forEach((player) => {
+          player.cells.forEach((cell) => {
+            this.addChild(cell);
+          });
+        });
+        resolve();
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 

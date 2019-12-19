@@ -110,7 +110,7 @@
 @media screen and (max-width: 600px) {
   .gameMenu {
     grid-template-columns: 100%;
-    max-height: 100px;
+    max-height: 300px;
     overflow-y: scroll;
   }
 }

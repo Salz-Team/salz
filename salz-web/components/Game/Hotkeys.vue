@@ -1,5 +1,5 @@
 <template>
-  <div class="gameUIContainer hotkeys-ui">
+  <div v-if="showHotkeys" class="gameUIContainer hotkeys-ui">
     <div class="hotkey-ui__header">
       <h2>Hotkeys</h2>
       <button class="closeUI" @click="closeUI">
@@ -7,16 +7,11 @@
       </button>
     </div>
     <div class="hotkey-ui__body">
-      Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy
-      nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut
-      wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit
-      lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum
-      iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel
-      illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto
-      odio dignissim qui blandit praesent luptatum zzril delenit augue duis
-      dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis
-      eleifend option congue nihil imperdiet doming id quod mazim placerat facer
-      possim assum.
+      <div v-for="(hotkey, key) of hotkeys" :key="key">
+        <b>{{ hotkey.key }}</b
+        >:
+        {{ hotkey.description }}
+      </div>
     </div>
   </div>
 </template>
@@ -70,14 +65,165 @@
 
 <script charset="utf-8">
 import { mapState } from 'vuex';
+import hotkeys from 'hotkeys-js';
+import { fullscreen } from '~/lib/game/rendering/fullscreen';
+
 export default {
+  props: {
+    viewport: {
+      type: Object,
+      default: null
+    }
+  },
   data() {
-    return {};
+    return {
+      hotkeys: [
+        {
+          key: 'f',
+          description: 'Toggle fullscreen',
+          fn: () => {
+            fullscreen();
+          }
+        },
+        {
+          key: 'h',
+          description: 'Backward by 1 frame',
+          fn: () => {
+            this.$store.dispatch('game/goToPrevFrame');
+          }
+        },
+        {
+          key: 'shift+h',
+          description: 'Toggle help page',
+          fn: () => {
+            this.$store.dispatch('game/setShowHelp', !this.showHelp);
+          }
+        },
+        {
+          key: 'shift+k',
+          description: 'Toggle hotkey cheatsheet',
+          fn: () => {
+            this.$store.dispatch('game/setShowHotkeys', !this.showHotkeys);
+          }
+        },
+        {
+          key: 'l',
+          description: 'Forward by 1 frame',
+          fn: () => {
+            this.$store.dispatch('game/goToNextFrame');
+          }
+        },
+        {
+          key: 'shift+r',
+          description: 'Toggle Ranking page',
+          fn: () => {
+            this.$store.dispatch('game/setShowRanking', !this.showRanking);
+          }
+        },
+        {
+          key: 'shift+s',
+          description: 'Toggle UI',
+          fn: () => {
+            if (this.hideUI) {
+              this.$store.dispatch('game/showUI');
+            } else {
+              this.$store.dispatch('game/hideUI');
+            }
+          }
+        },
+        {
+          key: 'z',
+          description: 'Zoom in',
+          fn: () => {
+            this.viewport.zoomPercent(0.5);
+          }
+        },
+        {
+          key: 'shift+z',
+          description: 'Zoom out',
+          fn: () => {
+            this.viewport.zoomPercent(-0.5);
+          }
+        },
+        {
+          key: 'left',
+          description: 'Move viewport leftwards',
+          fn: (event) => {
+            event.preventDefault();
+            this.viewport.moveViewport(-10, 0);
+          }
+        },
+        {
+          key: 'shift+left',
+          description: 'Move viewport leftwards (more increment)',
+          fn: (event) => {
+            event.preventDefault();
+            this.viewport.moveViewport(-50, 0);
+          }
+        },
+        {
+          key: 'up',
+          description: 'Move viewport upwards',
+          fn: (event) => {
+            event.preventDefault();
+            this.viewport.moveViewport(0, -10);
+          }
+        },
+        {
+          key: 'shift+up',
+          description: 'Move viewport upwards (more increment)',
+          fn: (event) => {
+            event.preventDefault();
+            this.viewport.moveViewport(0, -50);
+          }
+        },
+        {
+          key: 'right',
+          description: 'Move viewport rightwards',
+          fn: (event) => {
+            event.preventDefault();
+            this.viewport.moveViewport(10, 0);
+          }
+        },
+        {
+          key: 'shift+right',
+          description: 'Move viewport rightwards (more increment)',
+          fn: (event) => {
+            event.preventDefault();
+            this.viewport.moveViewport(50, 0);
+          }
+        },
+        {
+          key: 'down',
+          description: 'Move viewport downwards',
+          fn: (event) => {
+            event.preventDefault();
+            this.viewport.moveViewport(0, 10);
+          }
+        },
+        {
+          key: 'shift+down',
+          description: 'Move viewport downwards (more increment)',
+          fn: (event) => {
+            event.preventDefault();
+            this.viewport.moveViewport(0, 50);
+          }
+        }
+      ]
+    };
   },
   computed: {
     ...mapState({
-      showHotkeys: (state) => state.game.showHotkeys
+      hideUI: (state) => state.game.hideUI,
+      showHotkeys: (state) => state.game.showHotkeys,
+      showRanking: (state) => state.game.showRanking,
+      showHelp: (state) => state.game.showHelp
     })
+  },
+  created() {
+    this.hotkeys.forEach((item) => {
+      hotkeys(item.key, item.fn);
+    });
   },
   methods: {
     closeUI() {
