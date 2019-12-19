@@ -8,7 +8,8 @@ function onFullscreenChange() {
   isFullscreen = !isFullscreen;
 }
 
-export function fullscreen(el) {
+export function fullscreen() {
+  const el = document.querySelector('#salz-game-inner-view');
   el.addEventListener('webkitfullscreenchange', onFullscreenChange);
   el.addEventListener('mozfullscreenchange', onFullscreenChange);
   el.addEventListener('fullscreenchange', onFullscreenChange);

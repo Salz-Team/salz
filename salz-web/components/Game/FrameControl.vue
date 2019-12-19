@@ -21,7 +21,7 @@
         :title="currentFrameNumber"
         type="range"
         min="0"
-        :max="maxFrameNumber - 1"
+        :max="lastFrame"
         :value="currentFrameNumber"
         @input="setFrame"
       />
@@ -33,13 +33,6 @@
 @import '~assets/css/colors';
 
 $bar-height: 20px;
-
-button {
-  border: none;
-  background: none;
-  color: $white;
-  cursor: pointer;
-}
 
 .frame-control {
   position: fixed;
@@ -102,13 +95,12 @@ button {
 
 <script charset="utf-8">
 import { mapState } from 'vuex';
-import { EventBus } from '../../../lib/eventBus';
+import { EventBus } from '../../lib/eventBus';
 
 export default {
   name: 'FrameControl',
   data() {
     return {
-      isPlaying: false,
       speed: 1,
       nowPlayingClock: null,
       progress: 0
@@ -117,36 +109,27 @@ export default {
   computed: {
     ...mapState({
       currentFrameNumber: (state) => state.game.activeFrame,
-      maxFrameNumber: (state) => state.game.framesLength
+      lastFrame: (state) => state.game.lastFrame,
+      isPlaying: (state) => state.game.nowPlaying
     })
-  },
-  mounted() {
-    // Updates
-    // EventBus.$on('updateFrameIndex', () => {
-    //   const perc = (this.currentFrameNumber / (this.maxFrameNumber - 1)) * 100;
-    //   this.progress = perc;
-    // });
   },
   methods: {
     togglePlayPause() {
-      this.isPlaying = !this.isPlaying;
+      this.$store.dispatch('game/setNowPlaying', !this.isPlaying);
       if (this.isPlaying) {
         this.setPlay(1000 / this.speed);
       } else {
         clearInterval(this.nowPlayingClock);
         this.nowPlayingClock = null;
       }
+      EventBus.$emit('toggledNowPlaying');
     },
     setPlay(dt) {
       this.nowPlayingClock = setInterval(() => {
-        if (this.currentFrameNumber < this.maxFrameNumber - 1) {
-          this.$store.dispatch(
-            'game/setActiveFrame',
-            this.currentFrameNumber + 1
-          );
-          EventBus.$emit('updateFrameIndex');
+        if (this.currentFrameNumber < this.lastFrame) {
+          this.$store.dispatch('game/goToNextFrame');
         } else {
-          this.isPlaying = false;
+          this.$store.dispatch('game/setNowPlaying', false);
           clearInterval(this.nowPlayingClock);
           this.nowPlayingClock = null;
         }
@@ -178,31 +161,17 @@ export default {
       }
     },
     forwardFrame() {
-      if (this.currentFrameNumber < this.maxFrameNumber - 1) {
-        this.$store.dispatch(
-          'game/setActiveFrame',
-          this.currentFrameNumber + 1
-        );
-        EventBus.$emit('updateFrameIndex');
-      }
+      this.$store.dispatch('game/goToNextFrame');
     },
     backwardFrame() {
-      if (this.currentFrameNumber > 0) {
-        this.$store.dispatch(
-          'game/setActiveFrame',
-          this.currentFrameNumber - 1
-        );
-        EventBus.$emit('updateFrameIndex');
-      }
+      this.$store.dispatch('game/goToPrevFrame');
     },
     backToInitialFrame() {
       this.$store.dispatch('game/setActiveFrame', 0);
-      EventBus.$emit('updateFrameIndex');
     },
     setFrame() {
       const index = document.querySelector('#frame-progress').value;
       this.$store.dispatch('game/setActiveFrame', index);
-      EventBus.$emit('updateFrameIndex');
     }
   }
 };

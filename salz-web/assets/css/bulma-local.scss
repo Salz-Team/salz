@@ -62,5 +62,12 @@ h6 {
     opacity: 0 !important;
     display: none !important;
   }
+
+  button {
+    border: none;
+    background: none;
+    color: $white;
+    cursor: pointer;
+  }
 }
 
