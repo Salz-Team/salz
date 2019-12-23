@@ -50,6 +50,13 @@
 @import '~bulma/sass/utilities/_all';
 @import '~assets/css/bulma-configs';
 
+.navbar {
+  position: absolute;
+  width: 100vw;
+  top: 0;
+  z-index: 1001;
+}
+
 .navbar-menu {
   align-items: center;
 }

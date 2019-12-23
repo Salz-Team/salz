@@ -20,8 +20,8 @@
 .hotkeys-ui {
   padding: 10px;
   position: fixed;
-  width: 80%;
-  height: 80%;
+  width: 80vw;
+  height: 80vh;
   top: 10%;
   left: 10%;
   z-index: 1001;
@@ -38,10 +38,11 @@
 
 @media screen and (max-width: 686px) {
   .hotkeys-ui {
-    width: 90%;
-    height: 90%;
+    width: 90vw;
+    height: 90vh;
     top: 5%;
     left: 5%;
+    overflow-y: scroll;
 
     .hotkey-ui__body {
       columns: 2;
@@ -51,8 +52,8 @@
 
 @media screen and (max-width: 400px) {
   .hotkeys-ui {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     top: 0;
     left: 0;
 

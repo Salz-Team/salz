@@ -1,5 +1,15 @@
 <template>
   <div class="gameMenu-container">
+    <div
+      class="gameUIContainer gameMenu-toggle"
+      :class="{ active: menuIsActive }"
+      @click="toggleMenuActivity"
+    >
+      <transition name="fade" mode="out-in">
+        <b-icon v-if="!menuIsActive" key="menuOpen" icon="menu" />
+        <b-icon v-else key="menuClose" icon="close" />
+      </transition>
+    </div>
     <div class="gameUIContainer gameMenu" :class="{ active: menuIsActive }">
       <div v-for="(item, key) of menuItems" :key="key">
         <button
@@ -20,13 +30,6 @@
         </nuxt-link>
       </div>
     </div>
-    <div
-      class="gameUIContainer gameMenu-toggle"
-      :class="{ active: menuIsActive }"
-      @click="toggleMenuActivity"
-    >
-      <b-icon icon="menu" />
-    </div>
   </div>
 </template>
 
@@ -35,27 +38,31 @@
 .gameMenu-container {
   position: fixed;
   top: 75px;
+  width: 100vw;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   z-index: 1002;
 }
 
 .gameMenu {
   display: grid;
   grid-template-columns: 33.33% 33.33% 33.33%;
-  row-gap: 20px;
+  row-gap: 15px;
   justify-items: center;
   width: 30vw;
   min-width: 300px;
   max-width: 600px;
-  padding: 30px;
-  position: relative;
-  margin-left: -30vw;
+  padding: 30px 10px;
+  position: absolute;
+  top: -100vh;
   text-transform: uppercase;
   opacity: 0;
   transition: all 0.5s ease-in-out;
 
   &.active {
-    margin-left: 0;
+    top: 75px;
     opacity: 1;
   }
 
@@ -75,24 +82,23 @@
     &:visited,
     &:focus,
     &:hover {
-      color: var(--body-bg-color);
+      color: $white;
     }
   }
 }
 
 .gameMenu-toggle {
+  background: $primary;
   cursor: pointer;
-  margin-left: 10px;
   padding: 10px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
   position: relative;
   display: flex;
   align-items: center;
-  left: 0;
+  justify-content: center;
   transition: all 0.5s ease-in-out;
-
-  &.active {
-    margin-left: 0;
-  }
 }
 
 @media screen and (max-width: 1300px) {
@@ -101,17 +107,27 @@
   }
 }
 
+/*
 @media screen and (max-width: 1000px) {
   .gameMenu {
-    margin-left: -300px;
   }
 }
+*/
 
 @media screen and (max-width: 600px) {
   .gameMenu {
-    grid-template-columns: 100%;
     max-height: 300px;
     overflow-y: scroll;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .gameMenu-container {
+    z-index: 999;
   }
 }
 </style>
