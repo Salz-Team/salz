@@ -56,12 +56,13 @@ getBuildCmds cs = do
   _ <- writeBuild con
   aClose con
 
-  return $ map (\(a, _, c) -> (a, c)) valid
+  return valid
   where
-    toMaybe :: (a, Maybe b, Maybe c) -> Maybe (a, b, c)
+    toMaybe :: (a, Maybe Bool, Maybe c) -> Maybe (a, c)
     toMaybe (_, Nothing, _) = Nothing
     toMaybe (_, _, Nothing) = Nothing
-    toMaybe (a, Just b, Just c) = Just (a, b, c)
+    toMaybe (_, Just False, _) = Nothing
+    toMaybe (a, Just True, Just c) = Just (a, c)
 
     query = "UPDATE players SET updatedbot = False;"
     writeBuild :: AConnection -> IO ()
