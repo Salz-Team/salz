@@ -45,6 +45,7 @@ $bar-height: 20px;
   display: grid;
   grid-template-columns: 20% 20% 20% 20% 20%;
   grid-row-gap: 10px;
+  z-index: 1000;
   transition: all 0.2s ease-in-out;
 
   & > div {

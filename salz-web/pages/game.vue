@@ -13,6 +13,7 @@
 #salz-game-inner-view {
   width: 100vw;
   height: 100vh;
+  top: 0;
 }
 
 .cellInfoContainer {
@@ -33,7 +34,6 @@ import { Color } from '~/lib/game/colors.js';
 import { sketchyMedoid } from '~/lib/game/mathstuff';
 import { EventBus } from '~/lib/eventBus';
 
-// import GameHotkeys from '~/components/Game/GameHotkeys';
 import GameMenu from '~/components/Game/GameMenu';
 import FrameControl from '~/components/Game/FrameControl';
 import Hotkeys from '~/components/Game/Hotkeys';
@@ -110,9 +110,14 @@ export default {
 
     this.$store.dispatch('game/setFramesLength', this.index.frames.length);
     this.$store.dispatch('game/setFirstFrame', 0);
-    this.$store.dispatch('game/setLastFrame', this.index.frames.length - 1);
     this.$store.dispatch('game/setActiveFrame', 0);
-    this.$store.dispatch('game/setTurnId', this.index.frames[0][0].turnid);
+    if (this.index.frames.length > 0) {
+      this.$store.dispatch('game/setLastFrame', this.index.frames.length - 1);
+      this.$store.dispatch('game/setTurnId', this.index.frames[0][0].turnid);
+    } else {
+      this.$store.dispatch('game/setLastFrame', 0);
+      this.$store.dispatch('game/setTurnId', 0);
+    }
 
     const frames = [];
     // make first n frames first
@@ -182,7 +187,15 @@ export default {
       });
 
     const gameFrame = await new GameFrame(
-      this.index.frames.length > 0 ? frames[0] : new Frame([]),
+      this.index.frames.length > 0
+        ? frames[0]
+        : new Frame([
+            {
+              turnid: 0,
+              playerid: 0,
+              pos: []
+            }
+          ]),
       vpWorldWidth,
       vpWorldHeight
     );
@@ -195,7 +208,7 @@ export default {
       }
     }
 
-    // Adding a helper function for viewport
+    // Add a helper function for viewport
     /**
      * Move viewport camera by dx and dy
      *

@@ -1,8 +1,8 @@
 <template>
   <div>
-    <navbar />
+    <Navbar />
 
-    <section class="main-content columns">
+    <section class="main-content">
       <nuxt />
     </section>
   </div>

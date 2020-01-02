@@ -200,11 +200,10 @@ export default {
       };
     },
     submitBot(ev) {
-      const uploadUrl = process.env.apiurl + '/user/upload';
       const formdata = new FormData();
       formdata.append('bot', this.botfile.file);
       this.$axios
-        .$post(uploadUrl, formdata, {
+        .$post('/user/upload', formdata, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -214,7 +213,7 @@ export default {
           this.botfile = null;
         })
         .catch(() => {
-          this.uploadMsg = 'Bot successfully uploaded!';
+          this.uploadMsg = 'Bot failed to upload.';
         });
     },
     /**
