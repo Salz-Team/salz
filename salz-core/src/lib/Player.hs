@@ -13,16 +13,16 @@ getPlayerCells :: Board h w CellInfo -> PlayerId -> [Cell h w CellInfo]
 getPlayerCells b pi1 = getCellsBy b (\x -> pi1 == (cPlayerId x))
 
 getOtherPlayersCells :: Board h w CellInfo -> PlayerId -> [Cell h w CellInfo]
-getOtherPlayersCells b pi1 = getCellsBy b (\x -> pi1 == (cPlayerId x))
+getOtherPlayersCells b pi1 = getCellsBy b (\x -> pi1 /= (cPlayerId x))
 
-isMyNeighbour :: (KnownNat w, KnownNat h) => Board w h CellInfo -> Cell w h CellInfo -> Bool
-isMyNeighbour board cell = any (\x -> dist x cell <2) $ getPlayerCells board (cPlayerId  $ cItem cell)
+isMyNeighbour :: (KnownNat w, KnownNat h) => Board w h CellInfo -> PlayerId -> Cell w h CellInfo -> Bool
+isMyNeighbour board pid cell = any (\x -> dist x cell < 3) $ getPlayerCells board pid
 
 isNearEnemy :: (KnownNat w, KnownNat h) => Board w h CellInfo -> Cell w h CellInfo -> Bool
 isNearEnemy board cell = any (\x -> dist x cell <30) $ getOtherPlayersCells board (cPlayerId  $ cItem cell)
 
 isCommandLegal :: (KnownNat w, KnownNat h) => Board w h CellInfo -> PlayerId -> Command -> Bool
-isCommandLegal board pid (Flip x y) = isMyNeighbour board cell && isNearEnemy board cell
+isCommandLegal board pid (Flip x y) = isMyNeighbour board pid cell && (not $ isNearEnemy board cell)
   where
     cell = Cell (toMod x) (toMod y) (CellInfo pid)
 

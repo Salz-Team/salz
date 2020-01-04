@@ -35,7 +35,8 @@ serverGameLoop board turnm players dbConnectionString = do
   putStrLn "Updating Players"
   buildCmds <- DB.getBuildCmds (Left dbConnectionString)
   botDirs <- mapMSecond BB.buildBot buildCmds
-  newHandlers <- mapMSecond (E.either (return . BotHandler . Left) BH.startBot) botDirs
+  newHandlers <- mapMSecond_ (\pid -> E.either (return . BotHandler . Left) (BH.startBot pid)) botDirs :: IO [(PlayerId, BotHandler)]
+
   let players1 = updatePlayers newHandlers players
   let board1 = createSpawns board players1
 
@@ -62,25 +63,29 @@ startLocalGameEngine args = do
   let buildCmds = zip [1..] (drop 2 args)
 
   botDirs <- mapMSecond BB.buildBot buildCmds
-  newHandlers <- mapMSecond (E.either (return . BotHandler . Left) BH.startBot) botDirs
+  newHandlers <- mapMSecond_ (\pid -> E.either (return . BotHandler . Left) (BH.startBot pid)) botDirs :: IO [(PlayerId, BotHandler)]
   let players = updatePlayers newHandlers []
   let board = createSpawns (Board [] :: Board 100 100 CellInfo) players
 
   localGameLoop board 0 turnMax players dbFilePath
-
 
 localGameLoop :: (KnownNat w, KnownNat h) => Board w h CellInfo -> Int -> Int -> [Player] -> FilePath -> IO ()
 localGameLoop board pturn turnMax players dbFilePath = do
   let turn = pturn+1
   putStrLn $ "Turn " ++ (show turn)
 
+  print board
+
   putStrLn "Run Bots"
   botCmds <- mapM (BH.botTurn board) players
   let players1 = map fst botCmds
   let board1 = applyCommands board botCmds
+  print $ map snd botCmds
+  print board1
 
   putStrLn "Step Game"
   let board2 = step board1
+  print  board2
 
   putStrLn "Save Status"
   DB.saveBoard (Right dbFilePath) turn board2
@@ -117,3 +122,6 @@ updatePlayers newBotHandlers oldPlayers = foldl updatePlayer oldPlayers newBotHa
 
 mapMSecond :: Monad m => (a -> m b) -> [(c, a)] -> m [(c, b)]
 mapMSecond f = mapM (\(c, a) -> (\x -> (c, x)) <$> f a)
+
+mapMSecond_ :: Monad m => (c -> a -> m b) -> [(c, a)] -> m [(c, b)]
+mapMSecond_ f = mapM (\(c, a) -> (\x -> (c, x)) <$> f c a)

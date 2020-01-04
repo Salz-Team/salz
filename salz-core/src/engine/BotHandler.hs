@@ -19,10 +19,13 @@ import qualified Control.Exception as CE
 import Data.Typeable (Typeable)
 
 
-startBot :: FilePath -> IO BotHandler
-startBot fp = do
-    eph <- createExternalProcess fp
-    return $ BotHandler eph
+startBot :: Int -> FilePath -> IO BotHandler
+startBot pid fp = (createExternalProcess fp) >>= (E.either skip initialize)
+  where
+    skip _ = return (BotHandler $ Left "Bot couldn't start.")
+    initialize e = do
+      res <- timedCallandResponse 5000 e (T.pack (show pid))
+      return $ BotHandler (Right e)
 
 botTurn :: Board w h CellInfo -> Player -> IO (Player, [Command])
 botTurn board player = E.either skip takeTurn (eph $ pBotHandler player)
@@ -30,7 +33,7 @@ botTurn board player = E.either skip takeTurn (eph $ pBotHandler player)
     skip _ = return (player, [])
     takeTurn :: ExternalProcessHandler -> IO (Player, [Command])
     takeTurn e = do
-      res <- timedCallandResponse 500 e parsedBoard
+      res <- timedCallandResponse 50000 e parsedBoard
       let commands = rightToList $ res >>= parsePlayer
       let player1 = player {pBotHandler = BotHandler (res >> Right e)}
       return $ (player1, commands)

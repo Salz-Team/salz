@@ -34,13 +34,18 @@ resolver: lts-13.30
 #  - wai
 packages:
 - .
+
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - modular-arithmetic-1.2.1.5@sha256:af7daf1856fcab5674dee30485bbee046f31081fba5d9c99395fc4fb9e4ee557
-- beam-migrate-0.4.0.1@sha256:c53948a84972f67e97ba9c56f3dda9abfed556ba2f1672dc3070eb2512791efb,4920
-- beam-sqlite-0.4.0.0@sha256:00504aa701bd000eb2a9df2214c46bc81a8244b41fb2bee16433adf16b89a94f,2750
+- brick-0.50@sha256:c06764c6471f982283d68757dbbf6ab6c75a7e86dd9ca93d3abad7e9c89b766a,14378
+- config-ini-0.2.4.0@sha256:38a6d484d471c6fac81445de2eac8c4e8c82760962fca5491ae1c3bfca9c4047,3232
+- data-clist-0.1.2.3@sha256:0a4ad5f045c285eb533c2baa228581d2ff3ee123a4da7ca84e95a74aea9fb058,936
+- text-zipper-0.10.1@sha256:8b73a97a3717a17df9b0a722b178950c476ff2268ca5c583e99d010c94af849e,1471
+- word-wrap-0.4.1@sha256:f72233b383ef569c557bfd9812cbb8e306c415ce509082c0bd15ee51c0239ccc,1606
+
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

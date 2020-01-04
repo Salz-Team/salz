@@ -35,7 +35,7 @@ buildBot_ tarPath = TF.withSystemTempDirectory "build" $ \buildDir -> do
   (_, _, _, p1) <- SP.createProcess (SP.proc "tar" ["xf", tarPath]){ SP.cwd = Just buildDir}
   ec <- SP.waitForProcess p1
   _ <- if (ec == SE.ExitSuccess)
-       then SP.createProcess (SP.proc "rm" [tarPath])
+       then return () -- SP.createProcess (SP.proc "rm" [tarPath])
        else CE.throwIO $ BuildError $ "The file '" `T.append` (T.pack tarPath) `T.append` "' could not be extracted."
 
   let buildScriptPath = buildDir FP.</> "bot/build.sh"
