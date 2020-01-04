@@ -1,2 +1,5 @@
 .stack-work/
 *~
+
+ghcidViewer.sh
+ghcidEngine.sh
