@@ -10,8 +10,6 @@ import ExternalProcessHandler
 
 import qualified Data.Text as T
 import qualified Data.Either as E
-import qualified Data.Maybe as M
-import qualified Data.List as L
 import Text.Read
 import Types
 
@@ -24,7 +22,7 @@ startBot pid fp = (createExternalProcess fp) >>= (E.either skip initialize)
   where
     skip _ = return (BotHandler $ Left "Bot couldn't start.")
     initialize e = do
-      res <- timedCallandResponse 5000 e (T.pack (show pid))
+      _ <- timedCallandResponse 5000 e (T.pack (show pid))
       return $ BotHandler (Right e)
 
 botTurn :: Board w h CellInfo -> Player -> IO (Player, [Command])
@@ -71,10 +69,6 @@ data TmpException = TmpException
  deriving (Show, Typeable)
 
 instance CE.Exception TmpException
-
-uneph :: BotHandler -> ExternalProcessHandler
-uneph (BotHandler (Right e)) = e
-uneph _ = CE.throw TmpException
 
 rightToList :: Either a [b] -> [b]
 rightToList (Left _) = []

@@ -91,7 +91,7 @@ localGameLoop board pturn turnMax players dbFilePath = do
   DB.saveBoard (Right dbFilePath) turn board2
 
   putStrLn "Bot Status"
-  mapM (\x -> putStrLn $ T.unpack (E.fromLeft "All good" x)) $ map (eph . pBotHandler) players1
+  _ <- mapM (\x -> putStrLn $ T.unpack (E.fromLeft "All good" x)) $ map (eph . pBotHandler) players1
 
   if (turn >= turnMax)
   then return ()
