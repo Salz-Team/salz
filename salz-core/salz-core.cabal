@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 325f8fca42f6ac1b3c744b3bb4303021814bd89058f2c6b693cbd10ae72f5e2e
+-- hash: 9dc5c589b38df5728ba3b8e33a2c22a858a83c65e2b64f403557d23537e778f3
 
 name:           salz-core
 version:        0.1.0.0
@@ -44,6 +44,7 @@ library
     , filepath
     , modular-arithmetic
     , mtl
+    , optparse-applicative
     , postgresql-simple
     , process
     , sqlite-simple
@@ -59,6 +60,7 @@ executable salz-engine
   other-modules:
       BotBuilder
       BotHandler
+      EngineOptions
       Game
       Paths_salz_core
   hs-source-dirs:
@@ -73,6 +75,7 @@ executable salz-engine
     , filepath
     , modular-arithmetic
     , mtl
+    , optparse-applicative
     , postgresql-simple
     , process
     , salz-core
@@ -99,6 +102,7 @@ executable salz-viewer
     , filepath
     , modular-arithmetic
     , mtl
+    , optparse-applicative
     , postgresql-simple
     , process
     , salz-core
@@ -126,6 +130,7 @@ test-suite salz-engine-test
     , filepath
     , modular-arithmetic
     , mtl
+    , optparse-applicative
     , postgresql-simple
     , process
     , salz-engine

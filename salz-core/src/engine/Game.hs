@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TupleSections, DataKinds #-}
 
-module Game ( startServerGameEngine
-            , startLocalGameEngine
+module Game ( startGameEngine
             ) where
     
 import Player
@@ -9,6 +8,7 @@ import qualified BotHandler as BH
 import Data.Modular
 import Step
 import Types
+import EngineOptions
 import qualified BotBuilder as BB
 import qualified Board as B
 import qualified Database as DB
@@ -19,10 +19,22 @@ import qualified System.IO as SO
 import GHC.TypeLits hiding (Mod)
 import qualified Data.Either as E
 
-startServerGameEngine :: T.Text -> IO ()
-startServerGameEngine dbstring = do
-  SO.hSetBuffering SO.stdout SO.LineBuffering
-  serverGameLoop (Board [] :: Board 100 100 CellInfo) 0 [] dbstring
+startGameEngine :: EngineCmdLineArgs -> IO ()
+startGameEngine arg = case arg of
+  ServerArgs -> do
+    dbstring <- connectionString
+    SO.hSetBuffering SO.stdout SO.LineBuffering
+    serverGameLoop (Board [] :: Board 100 100 CellInfo) 0 [] dbstring
+  LocalArgs dbFilePath turnMax buildPaths -> do
+    let buildCmds = zip [1..] buildPaths
+  
+    botDirs <- mapMSecond BB.buildBot buildCmds
+    newHandlers <- mapMSecond_ (\pid -> E.either (return . BotHandler . Left) (BH.startBot pid)) botDirs :: IO [(PlayerId, BotHandler)]
+    let players = updatePlayers newHandlers []
+    let board = createSpawns (Board [] :: Board 100 100 CellInfo) players
+  
+    localGameLoop board 0 turnMax players dbFilePath
+
 
 serverGameLoop :: (KnownNat w, KnownNat h) => Board w h CellInfo -> Int -> [Player] -> T.Text -> IO ()
 serverGameLoop board turnm players dbConnectionString = do
@@ -55,19 +67,6 @@ serverGameLoop board turnm players dbConnectionString = do
   putStrLn "Wait"
   CC.threadDelay 1000000
   serverGameLoop board3 turn players2 dbConnectionString
-
-startLocalGameEngine :: [String] -> IO ()
-startLocalGameEngine args = do
-  let dbFilePath = args!!0
-  let turnMax = read (args!!1)
-  let buildCmds = zip [1..] (drop 2 args)
-
-  botDirs <- mapMSecond BB.buildBot buildCmds
-  newHandlers <- mapMSecond_ (\pid -> E.either (return . BotHandler . Left) (BH.startBot pid)) botDirs :: IO [(PlayerId, BotHandler)]
-  let players = updatePlayers newHandlers []
-  let board = createSpawns (Board [] :: Board 100 100 CellInfo) players
-
-  localGameLoop board 0 turnMax players dbFilePath
 
 localGameLoop :: (KnownNat w, KnownNat h) => Board w h CellInfo -> Int -> Int -> [Player] -> FilePath -> IO ()
 localGameLoop board pturn turnMax players dbFilePath = do
