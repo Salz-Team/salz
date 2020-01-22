@@ -4,6 +4,8 @@ module Database ( getLastSnapshotTurn
                 , getSnapshot
                 , getMoves
                 , getBuildCmds
+                , saveSnapshot
+                , saveMoves
                 , savePlayersStatus ) where
     
 import qualified Database.PostgreSQL.Simple as PSQL
@@ -95,7 +97,7 @@ getBuildCmds cs = do
     writeBuild con1 = aExecute con1 query() >> return ()
 
 savePlayersStatus :: ConString -> [MT.Player] -> IO ()
-savePlayersStaus cs players = do
+savePlayersStatus cs players = do
   con <- aConnectRepeat cs
 
   let botHandlers = map (\p -> (MT.pPlayerId p, MT.eph $ MT.pBotHandler p)) players
@@ -108,6 +110,12 @@ savePlayersStaus cs players = do
     writeStatus :: AConnection -> (Int, E.Either T.Text a) -> IO ()
     writeStatus conn1 (i, Left errMsg) = aExecute conn1 errorQuery(errMsg, i) >> return ()
     writeStatus _ _ = return ()
+
+formatTurn :: Int
+           -> UTCTime
+           -> MT.Cell w h MT.CellInfo
+           -> (Int, Int, Int, Int, UTCTime)
+formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i, time)
 
 
 saveSnapshot :: ConString -> Int -> MT.Board h w MT.CellInfo -> IO ()
@@ -124,7 +132,7 @@ saveSnapshot cs turn board = do
   aClose conn
   return ()
 
-saveMoves :: ConString -> turn -> [(PlayerId, Int, Int)] -> IO ()
+saveMoves :: ConString -> Int -> [(MT.PlayerId, Int, Int)] -> IO ()
 saveMoves cs turn moves = do
   conn <- aConnectRepeat cs
   
@@ -134,12 +142,12 @@ saveMoves cs turn moves = do
   time <- getCurrentTime
   let formatedMoves = formatMoves turn time moves
   
-  aExecuteMany conn mquery)
+  aExecuteMany conn mquery formatedMoves
   aClose conn
   return ()
   where
-    formatMoves :: Int -> UTCTime -> [(PlayerId, Int, Int)] -> [(Int, Int, Int, PlayerId, UTCTime)]
-    formatMoves turn time moves = map  -- TODO
+    formatMoves :: Int -> UTCTime -> [(MT.PlayerId, Int, Int)] -> [(Int, Int, Int, MT.PlayerId, UTCTime)]
+    formatMoves turn time = map (\(pid, x, y) -> (turn, x, y, pid, time))
   
   
 
@@ -187,10 +195,4 @@ aQuery_  (Left con) query = PSQL.query_ con (PSQL.Types.Query (TE.encodeUtf8 que
 
 -- saveGame can throw exceptions from the Database.PostgreSQL.Simple class
 -- these exceptions are not handled
-
-formatTurn :: Int
-           -> UTCTime
-           -> MT.Cell w h MT.CellInfo
-           -> (Int, Int, Int, Int, UTCTime)
-formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i, time)
 

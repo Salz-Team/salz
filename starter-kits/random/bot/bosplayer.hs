@@ -9,7 +9,7 @@ minit = do
   return $ read $ (words raw)!!0
 
 parseMap :: String -> [(Int, Int, Int)]
-parseMap raw = threeify $ map read $ words raw
+parseMap raw = threeify $ map read $ take 30 $ words raw
   where
     threeify (a:b:c:rst) = (a,b,c):(threeify rst)
     threeify [] = []

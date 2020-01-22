@@ -1,5 +1,6 @@
 module Player ( applyCommands
               , getPlayerCells
+              , filterLegalCommands
               ) where
 
 import Board
@@ -30,6 +31,12 @@ getLegalCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(Player, 
 getLegalCommands board cmds = map getLegalCommand cmds
   where
     getLegalCommand (p, clst) = (pPlayerId p, filter (isCommandLegal board (pPlayerId p)) $ take 3 clst)
+
+filterLegalCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(Player, [Command])] -> [(PlayerId, Int, Int)]
+filterLegalCommands board cmds = foldr foldHelper [] $ getLegalCommands board cmds
+  where
+    foldHelper :: (PlayerId, [Command]) -> [(PlayerId, Int, Int)] -> [(PlayerId, Int, Int)]
+    foldHelper (pid, lst) res = (map (\(Flip x y) -> (pid, x, y)) lst) ++ res
 
 applyFlips :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(PlayerId, [Command])] -> Board w h CellInfo
 applyFlips board cmds = foldl togglePlayerCells board cmds
