@@ -13,7 +13,9 @@
     <button @click.prevent.stop="forwardFrame">
       <b-icon icon="step-forward" />
     </button>
-    <button @click.prevent.stop="toggleSpeed">{{ speed }}x</button>
+    <button class="speed-button" @click.prevent.stop="toggleSpeed">
+      {{ speed }}x
+    </button>
     <div class="frame-progress-container">
       <input
         id="frame-progress"
