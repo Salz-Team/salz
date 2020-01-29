@@ -1,9 +1,12 @@
 {-# LANGUAGE OverloadedStrings, StandaloneDeriving, FlexibleInstances #-}
 
-module Database ( saveBoard
-                , getBoard
+module Database ( getLastSnapshotTurn
+                , getSnapshot
+                , getMoves
                 , getBuildCmds
-                , savePlayers ) where
+                , saveSnapshot
+                , saveMoves
+                , savePlayersStatus ) where
     
 import qualified Database.PostgreSQL.Simple as PSQL
 import qualified Database.PostgreSQL.Simple.Types as PSQL.Types
@@ -23,11 +26,20 @@ import qualified Types as MT
 import qualified Control.Exception as CE
 
 type AConnection = Either PSQL.Connection SQLT.Connection
+type ConString = Either T.Text FilePath
 
-getBoard :: (KnownNat w, KnownNat h) => Either T.Text FilePath -> Int -> IO (MT.Board w h MT.CellInfo)
-getBoard cs turn = do
+getLastSnapshotTurn :: ConString -> IO (Maybe Int)
+getLastSnapshotTurn cs = do
   con <- aConnectRepeat cs
-  let mquery = "SELECT x, y, playerid FROM game WHERE turnid = ?;"
+  let mquery = "SELECT MAX(turnid) from snapshots;"
+  result <- aQuery_ con mquery
+  aClose con
+  return $ head $ head result
+
+getSnapshot :: (KnownNat w, KnownNat h) => ConString -> Int -> IO (MT.Board w h MT.CellInfo)
+getSnapshot cs turn = do
+  con <- aConnectRepeat cs
+  let mquery = "SELECT x, y, playerid FROM snapshots WHERE turnid = ?;"
   result <- aQuery con mquery [turn]
   aClose con
   let cells = readCells result
@@ -40,37 +52,52 @@ getBoard cs turn = do
     readCell (x, y, pid) = MT.Cell (toMod x) (toMod y) (MT.CellInfo pid)
 
     liftList :: (Maybe Int, Maybe Int, Maybe Int) -> Maybe (Int, Int, Int)
-    liftList (Nothing, _, _) = Nothing
-    liftList (_, Nothing, _) = Nothing
-    liftList (_, _, Nothing) = Nothing
     liftList (Just a, Just b, Just c) = Just (a, b, c)
+    liftList _ = Nothing
 
-
-getBuildCmds :: Either T.Text FilePath -> IO [(MT.PlayerId, FilePath)]
+-- Types are turn Min -> turn Max -> [(turnid, x, y, playerid)]
+getMoves ::  ConString -> Int -> Int -> IO [(Int, Int, Int, MT.PlayerId)]
+getMoves cs min max = do
+  con <- aConnectRepeat cs
+  let mquery = "SELECT turnid, x, y, playerid FROM moves WHERE turnid BETWEEN ? AND ?;"
+  result <- aQuery con mquery [min, max]
+  aClose con
+  return $ M.catMaybes $ map liftList result
+  where
+    liftList :: (Maybe Int, Maybe Int, Maybe Int, Maybe Int) -> Maybe (Int, Int, Int, MT.PlayerId)
+    liftList (Just a, Just b, Just c, Just d) = Just (a, b, c, d)
+    liftList _ = Nothing
+    
+-- (playerid, username, updatedbot, botstatus)
+readPlayers :: ConString -> IO ([(Int, Maybe T.Text, Maybe FilePath, Maybe T.Text)])
+readPlayers connectionString = do
+  conn <- aConnectRepeat connectionString
+  let mquery = "SELECT * FROM players"
+  result <- aQuery_ conn mquery
+  aClose conn
+  return result
+  
+getBuildCmds :: ConString -> IO [(MT.PlayerId, FilePath)]
 getBuildCmds cs = do
   players <- readPlayers cs
-  let trimmed = map (\(p, _, _, updateBot, botDir, _) -> (p, updateBot, botDir)) players
-  let valid = M.catMaybes $ map toMaybe trimmed
 
   con <- aConnectRepeat cs
   _ <- writeBuild con
   aClose con
 
-  return valid
+  return $ M.catMaybes $ map toBuildCmds players
   where
-    toMaybe :: (a, Maybe Bool, Maybe c) -> Maybe (a, c)
-    toMaybe (_, Nothing, _) = Nothing
-    toMaybe (_, _, Nothing) = Nothing
-    toMaybe (_, Just False, _) = Nothing
-    toMaybe (a, Just True, Just c) = Just (a, c)
-
-    query = "UPDATE players SET updatedbot = False;"
+    toBuildCmds :: (a, b, Maybe FilePath, c) -> Maybe (a, FilePath)
+    toBuildCmds (_, _, Just "", _) = Nothing
+    toBuildCmds (a, _, Just b, _) = Just (a, b)
+    toBuildCmds _ = Nothing
+    
+    query = "UPDATE players SET botdir = '';"
     writeBuild :: AConnection -> IO ()
     writeBuild con1 = aExecute con1 query() >> return ()
 
--- save status if there is one and save the bot location if there is one
-savePlayers :: Either T.Text FilePath -> [MT.Player] -> IO ()
-savePlayers cs players = do
+savePlayersStatus :: ConString -> [MT.Player] -> IO ()
+savePlayersStatus cs players = do
   con <- aConnectRepeat cs
 
   let botHandlers = map (\p -> (MT.pPlayerId p, MT.eph $ MT.pBotHandler p)) players
@@ -84,14 +111,20 @@ savePlayers cs players = do
     writeStatus conn1 (i, Left errMsg) = aExecute conn1 errorQuery(errMsg, i) >> return ()
     writeStatus _ _ = return ()
 
+formatTurn :: Int
+           -> UTCTime
+           -> MT.Cell w h MT.CellInfo
+           -> (Int, Int, Int, Int, UTCTime)
+formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i, time)
 
-saveBoard :: Either T.Text FilePath -> Int -> MT.Board h w MT.CellInfo -> IO ()
-saveBoard connectionString turn board = do
-  conn <- aConnectRepeat connectionString
 
-  aExecute conn "CREATE TABLE IF NOT EXISTS game (id SERIAL PRIMARY KEY, turnid INTEGER, x INTEGER, y INTEGER, playerid INTEGER, generated_at TIMESTAMP);"()
+saveSnapshot :: ConString -> Int -> MT.Board h w MT.CellInfo -> IO ()
+saveSnapshot cs turn board = do
+  conn <- aConnectRepeat cs
 
-  let mquery = "INSERT INTO game (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?);"
+  aExecute conn "CREATE TABLE IF NOT EXISTS snapshots (id SERIAL PRIMARY KEY, turnid INTEGER, x INTEGER, y INTEGER, playerid INTEGER, generated_at TIMESTAMP);"()
+
+  let mquery = "INSERT INTO snapshots (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?);"
   time <- getCurrentTime
   let cells = (MT.bCells board)
   let rows = map (formatTurn turn time) cells
@@ -99,16 +132,34 @@ saveBoard connectionString turn board = do
   aClose conn
   return ()
 
+saveMoves :: ConString -> Int -> [(MT.PlayerId, Int, Int)] -> IO ()
+saveMoves cs turn moves = do
+  conn <- aConnectRepeat cs
+  
+  aExecute conn "CREATE TABLE IF NOT EXISTS moves (id SERIAL PRIMARY KEY, turnid INTEGER, x INTEGER, y INTEGER, playerid INTEGER, generated_at TIMESTAMP);"()
+  
+  let mquery = "INSERT INTO moves (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?);"
+  time <- getCurrentTime
+  let formatedMoves = formatMoves turn time moves
+  
+  aExecuteMany conn mquery formatedMoves
+  aClose conn
+  return ()
+  where
+    formatMoves :: Int -> UTCTime -> [(MT.PlayerId, Int, Int)] -> [(Int, Int, Int, MT.PlayerId, UTCTime)]
+    formatMoves turn time = map (\(pid, x, y) -> (turn, x, y, pid, time))
+  
+  
 
 --
 -- Dual Database Library
 --
 
-aConnect :: Either T.Text FilePath -> IO AConnection
+aConnect :: ConString -> IO AConnection
 aConnect (Right fp) = Right <$> SQLT.open fp
 aConnect (Left cs) = Left <$> PSQL.connectPostgreSQL (TE.encodeUtf8 cs)
 
-aConnectRepeat :: Either T.Text FilePath -> IO AConnection
+aConnectRepeat :: ConString -> IO AConnection
 aConnectRepeat t = CE.catch (aConnect t) handle
   where
     handle :: IOError -> IO AConnection
@@ -145,20 +196,3 @@ aQuery_  (Left con) query = PSQL.query_ con (PSQL.Types.Query (TE.encodeUtf8 que
 -- saveGame can throw exceptions from the Database.PostgreSQL.Simple class
 -- these exceptions are not handled
 
-formatTurn :: Int
-           -> UTCTime
-           -> MT.Cell w h MT.CellInfo
-           -> (Int, Int, Int, Int, UTCTime)
-formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i, time)
-
--- saveGame can throw exceptions from the Database.PostgreSQL.Simple class
--- these exceptions are not handled
--- (playerid, username, botdir, updatedbot, newbotdir, botstatus)
-readPlayers :: Either T.Text FilePath ->
-               IO ([(Int, Maybe T.Text, Maybe FilePath, Maybe Bool, Maybe FilePath, Maybe T.Text)])
-readPlayers connectionString = do
-  conn <- aConnectRepeat connectionString
-  let mquery = "SELECT * FROM players"
-  result <- aQuery_ conn mquery
-  aClose conn
-  return result

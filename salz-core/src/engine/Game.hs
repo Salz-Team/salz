@@ -61,8 +61,8 @@ serverGameLoop board turnm players dbConnectionString = do
   let board3 = step board2
 
   putStrLn "Save Status"
-  DB.saveBoard (Left dbConnectionString) turn board3
-  DB.savePlayers (Left dbConnectionString) players2
+  --DB.saveBoard (Left dbConnectionString) turn board3
+  --DB.savePlayers (Left dbConnectionString) players2
 
   putStrLn "Wait"
   CC.threadDelay 1000000
@@ -87,7 +87,10 @@ localGameLoop board pturn turnMax players dbFilePath = do
   print  board2
 
   putStrLn "Save Status"
-  DB.saveBoard (Right dbFilePath) turn board2
+  DB.saveMoves (Right dbFilePath) turn (filterLegalCommands board botCmds)
+  if (turn `mod` 100 == 0)
+  then DB.saveSnapshot (Right dbFilePath) turn board2
+  else return ()
 
   putStrLn "Bot Status"
   status <- mapM (\x -> putStrLn $ T.unpack (E.fromLeft "All good" x)) $ map (eph . pBotHandler) players1
