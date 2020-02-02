@@ -61,8 +61,11 @@ serverGameLoop board turnm players dbConnectionString = do
   let board3 = step board2
 
   putStrLn "Save Status"
-  --DB.saveBoard (Left dbConnectionString) turn board3
-  --DB.savePlayers (Left dbConnectionString) players2
+  DB.saveMoves (Left dbConnectionString) turn (filterLegalCommands board1 botCmds)
+  if (turn `mod` 100 == 0)
+  then DB.saveSnapshot (Left dbConnectionString) turn board3
+  else return ()
+  DB.savePlayersStatus (Left dbConnectionString) players2
 
   putStrLn "Wait"
   CC.threadDelay 1000000

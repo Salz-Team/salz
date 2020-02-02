@@ -20,7 +20,7 @@ isMyNeighbour :: (KnownNat w, KnownNat h) => Board w h CellInfo -> PlayerId -> C
 isMyNeighbour board pid cell = any (\x -> dist x cell < 3) $ getPlayerCells board pid
 
 isNearEnemy :: (KnownNat w, KnownNat h) => Board w h CellInfo -> Cell w h CellInfo -> Bool
-isNearEnemy board cell = any (\x -> dist x cell <30) $ getOtherPlayersCells board (cPlayerId  $ cItem cell)
+isNearEnemy board cell = any (\x -> dist x cell < 30) $ getOtherPlayersCells board (cPlayerId  $ cItem cell)
 
 isCommandLegal :: (KnownNat w, KnownNat h) => Board w h CellInfo -> PlayerId -> Command -> Bool
 isCommandLegal board pid (Flip x y) = isMyNeighbour board pid cell && (not $ isNearEnemy board cell)
