@@ -2,7 +2,7 @@
 
 module ViewerDraw where
 
-import ViewerState
+import qualified ViewerState as VS
 import Types
 import Board
 
@@ -13,16 +13,18 @@ import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Graphics.Vty as V
 
-drawUI :: ViewerState -> [Widget ()]
-drawUI state = [ C.center $ drawBoard (board state) ]
+drawUI :: VS.ViewerState -> [Widget ()]
+drawUI state = [ C.center $ hBox $ [drawBoard state, vBox [drawStats state, drawMoves state]] ]
 
-drawBoard :: Board 100 100 CellInfo -> Widget ()
-drawBoard board = withBorderStyle BS.unicodeBold
-  $ B.borderWithLabel (str "salz")
+drawBoard :: VS.ViewerState -> Widget ()
+drawBoard state = withBorderStyle BS.unicodeBold
+  $ B.borderWithLabel (str ("salz"))
   $ vBox rows
   where
+    board = VS.board state
+    (vx, vy) = VS.location state
     rows = [hBox $ cellsInRow r | r <- [99,98..0]]
-    cellsInRow y = [drawCoord (Cell (toMod x) (toMod y) ()) | x <- [0..99]]
+    cellsInRow y = [drawCoord (Cell (toMod (x+vx)) (toMod (y+vy)) ()) | x <- [0..99]]
     drawCoord = drawCell . (getCellAt board)
 
 drawCell :: Maybe (Cell w h CellInfo) -> Widget ()
@@ -31,6 +33,26 @@ drawCell Nothing = withAttr emptyAttr cw
 
 cw :: Widget ()
 cw = str "  "
+
+drawStats :: VS.ViewerState -> Widget ()
+drawStats state = withBorderStyle BS.unicodeBold
+ $ B.border
+ $ hLimit 22
+ $ vLimit 22
+ $ vBox [ str ("Location: " ++ (show (VS.location state)))
+        , str ("Turn: " ++ (show (VS.turn state)))
+        ]
+
+drawMoves :: VS.ViewerState -> Widget ()
+drawMoves state = withBorderStyle BS.unicodeBold
+ $ B.borderWithLabel (str "Bot moves")
+ $ hLimit 22
+ $ vBox prettyMoves
+  where
+    prettyMoves = map pretify $ filter (\(a,_,_,_) -> a == (VS.turn state)) (VS.moves state)
+    pretify (_, x, y, pid) = hBox [ withAttr (attrName $ fullAttr ++ (show (mod pid 6))) (str " ")
+                                  , str ("  " ++ show pid ++ "    " ++ show x ++ "  " ++ show y)
+                                  ]
 
 emptyAttr = "emptyAttr"
 fullAttr = "fullAttr"

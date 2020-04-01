@@ -49,6 +49,7 @@ loadGame fp = do
   moves <- DB.getMoves (Right fp) firstTurn (firstTurn+100)
   return VS.ViewerState
     { VS.turn = firstTurn
+    , VS.play = False
     , VS.location = (0, 0)
     , VS.dbfilepath = fp
     , VS.board = snap
