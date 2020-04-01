@@ -16,6 +16,9 @@ import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Graphics.Vty as V
 
+
+import Viewer
+
 main :: IO ()
 main = do
   args <- getArgs
