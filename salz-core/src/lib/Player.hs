@@ -27,12 +27,12 @@ isCommandLegal board pid (Flip x y) = isMyNeighbour board pid cell && (not $ isN
   where
     cell = Cell (toMod x) (toMod y) (CellInfo pid)
 
-getLegalCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(Player, [Command])] -> [(PlayerId, [Command])]
+getLegalCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(PlayerId, [Command])] -> [(PlayerId, [Command])]
 getLegalCommands board cmds = map getLegalCommand cmds
   where
-    getLegalCommand (p, clst) = (pPlayerId p, filter (isCommandLegal board (pPlayerId p)) $ take 3 clst)
+    getLegalCommand (p, clst) = (p, filter (isCommandLegal board p) $ take 3 clst)
 
-filterLegalCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(Player, [Command])] -> [(PlayerId, Int, Int)]
+filterLegalCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(PlayerId, [Command])] -> [(PlayerId, Int, Int)]
 filterLegalCommands board cmds = foldr foldHelper [] $ getLegalCommands board cmds
   where
     foldHelper :: (PlayerId, [Command]) -> [(PlayerId, Int, Int)] -> [(PlayerId, Int, Int)]
@@ -43,5 +43,5 @@ applyFlips board cmds = foldl togglePlayerCells board cmds
   where
     togglePlayerCells board1 (pid, clst) = foldl toggleCell board1 $ map (\(Flip x y) -> Cell (toMod x) (toMod y) (CellInfo pid)) clst
 
-applyCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(Player, [Command])] -> Board w h CellInfo
+applyCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(PlayerId, [Command])] -> Board w h CellInfo
 applyCommands board cmds = applyFlips board $ getLegalCommands board cmds

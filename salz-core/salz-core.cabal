@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0f8ace169d9a050ba36281ad8b7994384fe4d14da809e6eff194b81219e5962f
+-- hash: d135b354686d39d5205e717374fedae11a25297fb0e36f3563394899f7225215
 
 name:           salz-core
 version:        0.1.0.0
@@ -99,6 +99,7 @@ executable salz-viewer
   other-modules:
       EventHandler
       Viewer
+      ViewerDraw
       ViewerOptions
       ViewerState
       Board
