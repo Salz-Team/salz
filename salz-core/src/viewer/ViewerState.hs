@@ -7,7 +7,8 @@ data ViewerState = ViewerState
   { turn :: Int
   , location :: (Int, Int)
   , dbfilepath :: FilePath
-  , board :: [Limited (Board 100 100 Int)]
+  , board :: (Board 100 100 CellInfo)
+  , moves :: [(Int, Int, Int, PlayerId)]
   }
 
 data MapArea = MapArea
@@ -20,5 +21,3 @@ data MapArea = MapArea
 data TurnRange = TurnRange
   { firstTurn :: Int
   } deriving (Show)
-
-data Limited x = Limited MapArea TurnRange x

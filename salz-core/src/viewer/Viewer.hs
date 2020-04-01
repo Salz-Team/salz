@@ -1,28 +1,57 @@
+{-# LANGUAGE DataKinds #-}
 module Viewer ( startViewer
               ) where
 
-
 import qualified ViewerOptions as VO
+import qualified EventHandler  as EH
 import qualified ViewerState as VS
-import qualified DataBase as DB
+import qualified ViewerDraw as VD
+import qualified Database as DB
+
+import Brick
+import Brick.BChan
+import Control.Monad (forever, void)
+import Control.Concurrent (threadDelay, forkIO)
+import qualified Graphics.Vty as V
 
 
 startViewer :: VO.ViewerCmdLineArgs -> IO ()
 startViewer args = do
-  board <- loadGame 0 (0, 0)
-  let initialState = loadGame Limited (MapArea 0 0 100 100) (TurnRange 0 50) ()
-  return ()
-  
+  print (VO.dbFilePath args)
+  initialState <- loadGame (VO.dbFilePath args)
+  chan <- newBChan 10
+  forkIO $ forever $ do
+    writeBChan chan EH.Tick
+    threadDelay 100000
+  let buildVty = V.mkVty V.defaultConfig
+  initialVty <- buildVty
+  void $ customMain initialVty buildVty (Just chan) app initialState
 
 
-loadGame :: FilePath -> Limited x -> IO (Limited Board)
-loadGame fp (Limited ma tr _) = do
-  snapshotTurns <- getSnapshotTurns (Right fp)
-  
-  where
-    firstTurn = VS.firstTurn tr
-    firstTurn = VS.Turn tr
-    
-  
--- take the the closest snapshot before the firstTurn and then calculate as much as you need for
--- the lastTurn or untill the next snapshot
+
+app :: App VS.ViewerState EH.Tick ()
+app = App { appDraw=VD.drawUI
+          , appChooseCursor = neverShowCursor
+          , appHandleEvent = EH.handleEvent
+          , appStartEvent = return
+          , appAttrMap = const VD.theMap
+          }
+
+
+-- Get first snapshot and then load all of the commands untill the next snapshot
+
+loadGame :: FilePath -> IO VS.ViewerState
+loadGame fp = do
+  snapshotTurns <- DB.getSnapshotTurns (Right fp)
+  let firstTurn = head snapshotTurns
+
+  snap <- DB.getSnapshot (Right fp) firstTurn
+  moves <- DB.getMoves (Right fp) firstTurn (firstTurn+100)
+  return VS.ViewerState
+    { VS.turn = firstTurn
+    , VS.location = (0, 0)
+    , VS.dbfilepath = fp
+    , VS.board = snap
+    , VS.moves = moves
+    }
+

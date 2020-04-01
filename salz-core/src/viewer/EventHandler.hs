@@ -5,6 +5,9 @@ import Brick
 import ViewerState
 
 
+type Name = ()
+data Tick = Tick
+
 handleEvent :: ViewerState -> BrickEvent Name Tick -> EventM Name (Next ViewerState)
 handleEvent state (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue (state {turn = (turn state)-1})
 handleEvent state (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue (state {turn = (turn state)+1})
