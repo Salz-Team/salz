@@ -16,7 +16,6 @@ handleEvent :: ViewerState -> BrickEvent Name Tick -> EventM Name (Next ViewerSt
 handleEvent state (AppEvent Tick                      ) = continue (appTick state)
 handleEvent state (VtyEvent (V.EvKey (V.KChar ' ') [])) = continue (state {play = not (play state)})
 
-handleEvent state (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue (state {turn = (turn state)-1})
 handleEvent state (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue (stepTurn state)
 
 -- move the view
@@ -35,7 +34,7 @@ stepTurn vs = vs { turn = (turn vs)+1
                  , board = board2
                  }
   where
-    board1 = applyCommands (board vs) (meltMoves $ unpackMoves (moves vs) (turn vs))
+    board1 = applyCommands (board vs) (meltMoves $ unpackMoves (moves vs) ((turn vs)+1))
     board2 = step board1
 
     unpackMoves :: [(Int, Int, Int, PlayerId)] -> Int -> [(PlayerId, Command)]
