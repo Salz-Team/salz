@@ -1,0 +1,143 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 9dc5c589b38df5728ba3b8e33a2c22a858a83c65e2b64f403557d23537e778f3
+
+name:           salz-core
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/Oba#readme>
+homepage:       https://github.com/lugarun#readme
+bug-reports:    https://github.com/lugarun/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2019 Author name here
+license:        BSD3
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/lugarun
+
+library
+  exposed-modules:
+      Board
+      Database
+      ExternalProcessHandler
+      Player
+      Step
+      Types
+  other-modules:
+      Paths_salz_core
+  hs-source-dirs:
+      src/lib
+  build-depends:
+      base >=4.7 && <5
+    , brick
+    , directory
+    , either
+    , filepath
+    , modular-arithmetic
+    , mtl
+    , optparse-applicative
+    , postgresql-simple
+    , process
+    , sqlite-simple
+    , temporary
+    , text
+    , time
+    , transformers
+    , vty
+  default-language: Haskell2010
+
+executable salz-engine
+  main-is: Main.hs
+  other-modules:
+      BotBuilder
+      BotHandler
+      EngineOptions
+      Game
+      Paths_salz_core
+  hs-source-dirs:
+      app/engine
+      src/engine
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , brick
+    , directory
+    , either
+    , filepath
+    , modular-arithmetic
+    , mtl
+    , optparse-applicative
+    , postgresql-simple
+    , process
+    , salz-core
+    , sqlite-simple
+    , temporary
+    , text
+    , time
+    , transformers
+    , vty
+  default-language: Haskell2010
+
+executable salz-viewer
+  main-is: Main.hs
+  other-modules:
+      Paths_salz_core
+  hs-source-dirs:
+      app/viewer
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , brick
+    , directory
+    , either
+    , filepath
+    , modular-arithmetic
+    , mtl
+    , optparse-applicative
+    , postgresql-simple
+    , process
+    , salz-core
+    , sqlite-simple
+    , temporary
+    , text
+    , time
+    , transformers
+    , vty
+  default-language: Haskell2010
+
+test-suite salz-engine-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_salz_core
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , brick
+    , directory
+    , either
+    , filepath
+    , modular-arithmetic
+    , mtl
+    , optparse-applicative
+    , postgresql-simple
+    , process
+    , salz-engine
+    , sqlite-simple
+    , temporary
+    , text
+    , time
+    , transformers
+    , vty
+  default-language: Haskell2010

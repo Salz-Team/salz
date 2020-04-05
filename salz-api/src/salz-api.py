@@ -18,6 +18,9 @@ app.secret_key = "verysecret"
 CORS(app)
 oauth = OAuth(app)
 
+app.config['APPLICATION_ROOT'] = "/api"
+# app.config['SERVER_NAME'] = "salz.life/api/"
+
 
 # Load up env vars
 
@@ -112,6 +115,8 @@ def userupload():
 @app.route('/login')
 def login():
 
+    print(request.headers)
+
     requestclient = request.args.get('client')
 
     if requestclient:
@@ -120,7 +125,7 @@ def login():
     else:
         redirect_uri = url_for('authorized', _external = True)
 
-    return oauth.github.authorize_redirect(redirect_uri=redirect_uri)
+    return oauth.github.authorize_redirect(redirect_uri)
 
 @app.route('/login/auth/web')
 def authorized_webredirect():
