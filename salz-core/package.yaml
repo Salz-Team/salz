@@ -46,6 +46,7 @@ executables:
     source-dirs:
     - app/engine
     - src/engine
+    - src/lib
     ghc-options:
     - -Wall
     - -Wcompat
@@ -59,7 +60,10 @@ executables:
     - salz-core
   salz-viewer:
     main:                Main.hs
-    source-dirs:         app/viewer
+    source-dirs:
+    - app/viewer
+    - src/viewer
+    - src/lib
     ghc-options:
     - -Wall
     - -Wcompat

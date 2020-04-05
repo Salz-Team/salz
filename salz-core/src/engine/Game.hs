@@ -24,7 +24,7 @@ startGameEngine arg = case arg of
   ServerArgs -> do
     dbstring <- connectionString
     SO.hSetBuffering SO.stdout SO.LineBuffering
-    serverGameLoop (Board [] :: Board 100 100 CellInfo) 0 [] dbstring
+    serverGameLoop (Board [] :: Board 100 100 CellInfo) (-1) [] dbstring
   LocalArgs dbFilePath turnMax buildPaths -> do
     let buildCmds = zip [1..] buildPaths
   
@@ -33,7 +33,7 @@ startGameEngine arg = case arg of
     let players = updatePlayers newHandlers []
     let board = createSpawns (Board [] :: Board 100 100 CellInfo) players
   
-    localGameLoop board 0 turnMax players dbFilePath
+    localGameLoop board (-1) turnMax players dbFilePath
 
 
 serverGameLoop :: (KnownNat w, KnownNat h) => Board w h CellInfo -> Int -> [Player] -> T.Text -> IO ()
@@ -55,13 +55,13 @@ serverGameLoop board turnm players dbConnectionString = do
   putStrLn "Run Bots"
   botCmds <- mapM (BH.botTurn board1) players1
   let players2 = map fst botCmds
-  let board2 = applyCommands board1 botCmds
+  let board2 = applyCommands board1 $ map (\(p, cmd) -> (pPlayerId p, cmd)) botCmds
 
   putStrLn "Step Game"
   let board3 = step board2
 
   putStrLn "Save Status"
-  DB.saveMoves (Left dbConnectionString) turn (filterLegalCommands board1 botCmds)
+  DB.saveMoves (Left dbConnectionString) turn (filterLegalCommands board1 $ map (\(p, cmd) -> (pPlayerId p, cmd)) botCmds)
   if (turn `mod` 100 == 0)
   then DB.saveSnapshot (Left dbConnectionString) turn board3
   else return ()
@@ -81,7 +81,7 @@ localGameLoop board pturn turnMax players dbFilePath = do
   putStrLn "Run Bots"
   botCmds <- mapM (BH.botTurn board) players
   let players1 = map fst botCmds
-  let board1 = applyCommands board botCmds
+  let board1 = applyCommands board $ map (\(p, cmd) -> (pPlayerId p, cmd)) botCmds
   print $ map snd botCmds
   print board1
 
@@ -90,7 +90,7 @@ localGameLoop board pturn turnMax players dbFilePath = do
   print  board2
 
   putStrLn "Save Status"
-  DB.saveMoves (Right dbFilePath) turn (filterLegalCommands board botCmds)
+  DB.saveMoves (Right dbFilePath) turn (filterLegalCommands board $ map (\(p, cmd) -> (pPlayerId p, cmd)) botCmds)
   if (turn `mod` 100 == 0)
   then DB.saveSnapshot (Right dbFilePath) turn board2
   else return ()

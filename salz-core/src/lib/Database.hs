@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, StandaloneDeriving, FlexibleInstances #-}
 
-module Database ( getLastSnapshotTurn
+module Database ( getSnapshotTurns
                 , getSnapshot
                 , getMoves
                 , getBuildCmds
@@ -28,13 +28,16 @@ import qualified Control.Exception as CE
 type AConnection = Either PSQL.Connection SQLT.Connection
 type ConString = Either T.Text FilePath
 
-getLastSnapshotTurn :: ConString -> IO (Maybe Int)
-getLastSnapshotTurn cs = do
+getSnapshotTurns :: ConString -> IO [Int]
+getSnapshotTurns cs = do
   con <- aConnectRepeat cs
-  let mquery = "SELECT MAX(turnid) from snapshots;"
+  let mquery = "SELECT DISTINCT turnid from snapshots;"
   result <- aQuery_ con mquery
   aClose con
-  return $ head $ head result
+  return $ liftList result
+  where
+    liftList :: [[Maybe Int]] -> [Int]
+    liftList list = M.catMaybes $ concat list
 
 getSnapshot :: (KnownNat w, KnownNat h) => ConString -> Int -> IO (MT.Board w h MT.CellInfo)
 getSnapshot cs turn = do

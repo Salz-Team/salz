@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9dc5c589b38df5728ba3b8e33a2c22a858a83c65e2b64f403557d23537e778f3
+-- hash: d135b354686d39d5205e717374fedae11a25297fb0e36f3563394899f7225215
 
 name:           salz-core
 version:        0.1.0.0
@@ -62,10 +62,17 @@ executable salz-engine
       BotHandler
       EngineOptions
       Game
+      Board
+      Database
+      ExternalProcessHandler
+      Player
+      Step
+      Types
       Paths_salz_core
   hs-source-dirs:
       app/engine
       src/engine
+      src/lib
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -90,9 +97,22 @@ executable salz-engine
 executable salz-viewer
   main-is: Main.hs
   other-modules:
+      EventHandler
+      Viewer
+      ViewerDraw
+      ViewerOptions
+      ViewerState
+      Board
+      Database
+      ExternalProcessHandler
+      Player
+      Step
+      Types
       Paths_salz_core
   hs-source-dirs:
       app/viewer
+      src/viewer
+      src/lib
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
