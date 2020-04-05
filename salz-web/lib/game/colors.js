@@ -28,5 +28,5 @@ export const Color = {
   dark_turquiose: '0x00d8b5',
   dark_cyan: '0x0070ff',
   dark_blue: '0x0033b8',
-  dark_purple: '0x4b27bd'
+  dark_purple: '0x4b27bd',
 };

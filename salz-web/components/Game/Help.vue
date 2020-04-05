@@ -2,21 +2,19 @@
   <div class="gameUIContainer help-ui">
     <div class="help-ui__header">
       <h2>Help</h2>
-      <button class="closeUI" @click="closeUI">
+      <button @click="closeUI" class="closeUI">
         <b-icon icon="close" />
       </button>
     </div>
     <div class="help-ui__body">
-      Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy
-      nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut
-      wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit
-      lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum
-      iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel
-      illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto
-      odio dignissim qui blandit praesent luptatum zzril delenit augue duis
-      dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis
-      eleifend option congue nihil imperdiet doming id quod mazim placerat facer
-      possim assum.
+      Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod
+      tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis
+      nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
+      Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel
+      illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui
+      blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Nam liber
+      tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat
+      facer possim assum.
     </div>
   </div>
 </template>
@@ -62,13 +60,13 @@ import { mapState } from 'vuex';
 export default {
   computed: {
     ...mapState({
-      showHelp: (state) => state.game.showHelp
-    })
+      showHelp: state => state.game.showHelp,
+    }),
   },
   methods: {
     closeUI() {
       this.$store.dispatch('game/setShowHelp', !this.showHelp);
-    }
-  }
+    },
+  },
 };
 </script>

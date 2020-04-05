@@ -15,7 +15,7 @@ export default class Player {
     this.color = color;
     this.cells = [];
 
-    cells.forEach((cell) => {
+    cells.forEach(cell => {
       const cellObj = new Cell(id, cell.x, cell.y, color);
       this.cells.push(cellObj);
     });

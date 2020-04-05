@@ -14,7 +14,7 @@ export default {
    ** Application env variables
    */
   env: {
-    apiurl: apiBaseurl()
+    apiurl: apiBaseurl(),
   },
   /*
    ** Headers of the page
@@ -27,16 +27,16 @@ export default {
       {
         hid: 'description',
         name: 'description',
-        content: process.env.npm_package_description || ''
-      }
+        content: process.env.npm_package_description || '',
+      },
     ],
     link: [
       {
         rel: 'icon',
         type: 'image/x-icon',
-        href: '/assets/images/square-logo/primaryfg/transparentbg/@16.png'
-      }
-    ]
+        href: '/assets/images/square-logo/primaryfg/transparentbg/@16.png',
+      },
+    ],
   },
   /*
    ** Customize the progress-bar color
@@ -48,7 +48,7 @@ export default {
   css: [
     '@assets/css/bulma-configs.scss',
     '@assets/css/styles.scss',
-    '@assets/css/bulma-local.scss'
+    '@assets/css/bulma-local.scss',
   ],
   /*
    ** Plugins to load before mounting the App
@@ -59,7 +59,7 @@ export default {
    */
   buildModules: [
     // Doc: https://github.com/nuxt-community/eslint-module
-    '@nuxtjs/eslint-module'
+    '@nuxtjs/eslint-module',
   ],
   /*
    ** Nuxt.js modules
@@ -70,16 +70,16 @@ export default {
     // Info: https://axios.nuxtjs.org/setup
     '@nuxtjs/axios',
     // Doc: https://markdown-it.github.io/markdown-it/
-    '@nuxtjs/markdownit'
+    '@nuxtjs/markdownit',
   ],
   axios: {
     // proxyHeaders: false
-    baseURL: apiBaseurl()
+    baseURL: apiBaseurl(),
   },
   markdownit: {
     preset: 'default',
     html: true,
-    typographer: true
+    typographer: true,
   },
   /*
    ** Build configuration
@@ -89,5 +89,5 @@ export default {
      ** You can extend webpack config here
      */
     // extend(config, ctx) {}
-  }
+  },
 };

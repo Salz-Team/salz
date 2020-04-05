@@ -46,32 +46,32 @@ export default {
     FrameControl,
     Hotkeys,
     Ranking,
-    Help
+    Help,
   },
   data() {
     return {
       index: [],
-      viewport: null
+      viewport: null,
     };
   },
   computed: {
     ...mapState({
-      user: (state) => state.login.username,
-      userid: (state) => state.login.id,
-      currentFrameNumber: (state) => state.game.activeFrame,
-      totalFrames: (state) => state.game.framesLength,
-      hideUI: (state) => state.game.hideUI,
-      showRanking: (state) => state.game.showRanking,
-      showHelp: (state) => state.game.showHelp
-    })
+      user: state => state.login.username,
+      userid: state => state.login.id,
+      currentFrameNumber: state => state.game.activeFrame,
+      totalFrames: state => state.game.framesLength,
+      hideUI: state => state.game.hideUI,
+      showRanking: state => state.game.showRanking,
+      showHelp: state => state.game.showHelp,
+    }),
   },
   asyncData({ $axios }) {
     return $axios
       .$get('/frames')
-      .then((res) => {
+      .then(res => {
         return { index: res };
       })
-      .catch((e) => {
+      .catch(e => {
         // eslint-disable-next-line
         console.warn(e);
         return { index: { frames: [] } };
@@ -94,15 +94,14 @@ export default {
       Color.turquiose,
       Color.cyan,
       Color.blue,
-      Color.purple
+      Color.purple,
     ];
     const playerColorDict = {};
-    this.index.frames.forEach((frame) => {
-      frame.forEach((player) => {
+    this.index.frames.forEach(frame => {
+      frame.forEach(player => {
         const id = player.playerid;
         if (typeof playerColorDict[id] === 'undefined') {
-          playerColorDict[id] =
-            cellcolors[Math.floor(Math.random() * cellcolors.length)];
+          playerColorDict[id] = cellcolors[Math.floor(Math.random() * cellcolors.length)];
         }
         player.color = playerColorDict[id];
       });
@@ -131,21 +130,15 @@ export default {
     }
 
     // figure out the dimensions for the canvas
-    const appWidth = Math.max(
-      document.documentElement.clientWidth,
-      window.innerWidth || 0
-    );
-    const appHeight = Math.max(
-      document.documentElement.clientHeight,
-      window.innerHeight || 0
-    );
+    const appWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+    const appHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
 
     const app = new Application({
       width: appWidth,
       height: appHeight,
       backgroundColor: Color.black,
       resizeTo: wrapper,
-      resolution: window.devicePixelRatio || 1
+      resolution: window.devicePixelRatio || 1,
     });
     wrapper.appendChild(app.view);
 
@@ -157,7 +150,7 @@ export default {
       screenHeight: window.innerHeight,
       worldWidth: vpWorldWidth,
       worldHeight: vpWorldHeight,
-      interaction: app.renderer.plugins.interaction
+      interaction: app.renderer.plugins.interaction,
     });
 
     // Set the centre to be the mediod of player's cells
@@ -168,9 +161,7 @@ export default {
       this.viewport.moveCenter(0, 0);
     } else {
       // camera should point at middle of cluster.
-      this.viewport.moveCenter(
-        ...sketchyMedoid(playerID, this.index.frames[0])
-      );
+      this.viewport.moveCenter(...sketchyMedoid(playerID, this.index.frames[0]));
     }
 
     app.stage.addChild(this.viewport);
@@ -183,7 +174,7 @@ export default {
         minWidth: vpWorldWidth / 5,
         minHeight: vpWorldHeight / 5,
         maxWidth: vpWorldWidth * 5,
-        maxHeight: vpWorldHeight * 5
+        maxHeight: vpWorldHeight * 5,
       });
 
     const gameFrame = await new GameFrame(
@@ -193,11 +184,11 @@ export default {
             {
               turnid: 0,
               playerid: 0,
-              pos: []
-            }
+              pos: [],
+            },
           ]),
       vpWorldWidth,
-      vpWorldHeight
+      vpWorldHeight,
     );
     this.viewport.addChild(gameFrame);
 
@@ -216,15 +207,12 @@ export default {
      * @param   {number}  dy  Pixels to move y by
      */
     this.viewport.moveViewport = function(dx, dy) {
-      this.viewport.moveCenter(
-        this.viewport.center.x + dx,
-        this.viewport.center.y + dy
-      );
+      this.viewport.moveCenter(this.viewport.center.x + dx, this.viewport.center.y + dy);
     };
 
     EventBus.$on('updateFrameIndex', () => {
       gameFrame.mountFrame(frames[this.currentFrameNumber]);
     });
-  }
+  },
 };
 </script>

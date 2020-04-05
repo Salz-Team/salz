@@ -1,7 +1,7 @@
 <template>
   <div class="container column is-12">
     <section class="section">
-      <div class="is-mobile" v-html="about"></div>
+      <div v-html="about" class="is-mobile"></div>
     </section>
   </div>
 </template>
@@ -13,7 +13,7 @@ export default {
   computed: {
     about() {
       return about;
-    }
-  }
+    },
+  },
 };
 </script>

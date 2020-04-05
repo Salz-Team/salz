@@ -9,8 +9,8 @@ beforeEach(() => {
       isLoggedIn: () => true,
       token: () => 'sometoken',
       username: () => 'Player 1',
-      id: () => 0
-    }
+      id: () => 0,
+    },
   });
 });
 
@@ -29,8 +29,8 @@ describe('Navbar', () => {
         isLoggedIn: () => false,
         token: () => '',
         username: () => 'Player 1',
-        id: () => 0
-      }
+        id: () => 0,
+      },
     });
 
     expect(wrapper.find('.navbar-end > li').text()).toBe('Login');

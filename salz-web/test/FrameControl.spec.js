@@ -8,8 +8,8 @@ beforeEach(() => {
     computed: {
       currentFrameNumber: () => 50,
       lastFrame: () => 100,
-      isPlaying: () => false
-    }
+      isPlaying: () => false,
+    },
   });
 });
 

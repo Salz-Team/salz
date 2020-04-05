@@ -1,12 +1,13 @@
 import Player from '../entities/player';
 
+/**
+ * @class Frame
+ * @extends Array
+ *
+ * @description A game frame is an array of {@link Player}
+ */
 export default class Frame extends Array {
   /**
-   * Create Frame
-   * (extends Array)
-   *
-   * Add players to frame
-   *
    * @constructor
    * @param   {Array}   frame   Frame with cells to add
    *
@@ -25,7 +26,7 @@ export default class Frame extends Array {
   async setupPlayers(frame) {
     await new Promise((resolve, reject) => {
       try {
-        frame.forEach((player) => {
+        frame.forEach(player => {
           const p = new Player(player.playerid, player.color, player.pos);
           this.push(p);
         });

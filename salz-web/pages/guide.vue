@@ -15,6 +15,6 @@ export default {
   name: 'Guide',
   data() {
     return {};
-  }
+  },
 };
 </script>

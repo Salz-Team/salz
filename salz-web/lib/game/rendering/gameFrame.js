@@ -14,7 +14,7 @@ export default class GameFrame extends Container {
   constructor(frame, width = 1000, height = 1000) {
     super({
       width,
-      height
+      height,
     });
     this.turnid = frame[0].turnid;
     this.addCells(frame);
@@ -25,7 +25,7 @@ export default class GameFrame extends Container {
    */
   clear() {
     this.removeChildren();
-    document.querySelectorAll('.cellInfoContainer').forEach((c) => {
+    document.querySelectorAll('.cellInfoContainer').forEach(c => {
       c.parentNode.removeChild(c);
     });
   }
@@ -37,8 +37,8 @@ export default class GameFrame extends Container {
   async addCells(frame) {
     await new Promise((resolve, reject) => {
       try {
-        frame.forEach((player) => {
-          player.cells.forEach((cell) => {
+        frame.forEach(player => {
+          player.cells.forEach(cell => {
             this.addChild(cell);
           });
         });
