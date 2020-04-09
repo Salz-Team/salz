@@ -11,6 +11,7 @@ import qualified System.FilePath as FP
 import qualified Control.Exception as CE
 import qualified Data.Text as T
 import qualified Data.Either as E
+import qualified Data.Either.Combinators as EC
 
 -- File conflicts in the botDir are not checked for, old bots are not deleted
 -- Also, there are no checks for anything, malicious build scripts are free
@@ -18,17 +19,13 @@ import qualified Data.Either as E
 -- for.
 -- this script MUST be rewritten before hosted on a server open to public
 
-
-data BuildError = BuildError T.Text
+data BuildError = BuildError { unpack :: T.Text }
   deriving Show
 
 instance CE.Exception BuildError
 
-buildBot :: FilePath -> IO ( E.Either T.Text FilePath )
-buildBot tarPath = translate <$> CE.try (buildBot_ tarPath)
-  where
-    translate (Left (BuildError t)) = Left t
-    translate (Right fp) = Right fp
+buildBot :: FilePath -> IO (E.Either T.Text FilePath)
+buildBot tarPath = EC.mapLeft unpack <$> CE.try (buildBot_ tarPath)
 
 buildBot_ :: FilePath -> IO ( FilePath )
 buildBot_ tarPath = TF.withSystemTempDirectory "build" $ \buildDir -> do

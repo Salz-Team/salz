@@ -36,6 +36,8 @@ dependencies:
 - brick
 - vty
 - optparse-applicative
+- typed-process
+- deepseq
 
 library:
   source-dirs: src/lib

@@ -1,75 +1,115 @@
 {-# LANGUAGE OverloadedStrings #-}
 module BotHandler
   ( BotHandler
-  , startBot
-  , botTurn
   )
     where
 
-import ExternalProcessHandler
-
 import qualified Data.Text as T
 import qualified Data.Either as E
-import Text.Read
+import Data.Either.Combinators
+import qualified Control.Exception as CE
+import Control.DeepSeq
+import Data.String
+import System.FilePath
+import System.Process.Typed
+import System.Timeout
+import System.IO
+import System.Exit
+import GHC.IO.Handle
 import Types
 
-import qualified Control.Exception as CE
-import Data.Typeable (Typeable)
+data BotHandler =
+    NewBot { filepath :: FilePath
+           , playerId :: Int
+           , startingLocation :: (Int, Int)
+           }
+    | Bot { filepath :: FilePath
+          , playerId :: Int
+          , memory :: T.Text
+          , errorLog :: T.Text
+          , commands :: [(Int, Int)]
+          } deriving Show
 
 
-startBot :: Int -> FilePath -> IO BotHandler
-startBot pid fp = (createExternalProcess fp) >>= (E.either skip initialize)
+data RunError = RunError T.Text
+  deriving Show
+
+instance CE.Exception RunError
+
+tShow :: Show a => a -> T.Text
+tShow = T.pack . show
+
+fromJustException :: Maybe a -> T.Text -> IO a
+fromJustException (Just a) _ = return a
+fromJustException Nothing er = CE.throwIO (RunError er)
+
+timedCallandResponse :: Int -> Handle -> Handle -> T.Text -> IO T.Text
+timedCallandResponse time stdin stdout call = do
+  hPutStrLn stdin (T.unpack call)
+  hFlush stdin
+
+  response <- timeout time (T.pack <$> (hGetLine stdout))
+  fromJustException response ("Time ran out on call: " `T.append` call)
+
+timedWaitExitCode :: Int -> Process Handle Handle Handle -> IO ExitCode
+timedWaitExitCode time process = do
+  exitCode <- timeout time (waitExitCode process)
+  fromJustException exitCode "Time ran out waiting for bot to shutdown"
+
+tryRunError :: IO a -> IO (Either T.Text a)
+tryRunError f = mapLeft (\(RunError txt) -> txt) <$> CE.try f
+
+initializeBot :: BotHandler -> IO (E.Either T.Text BotHandler)
+initializeBot bot = tryRunError $ withProcessWait botConfig $ \process -> do
+    let call = T.intercalate " " ["Initialize", tShow pid, tShow (fst sloc), tShow (snd sloc)]
+    memory <- timedCallandResponse 100 (getStdin process) (getStdout process) call
+    hClose (getStdin process)
+
+
+    exitCode <- timedWaitExitCode 100 process
+
+    errormsg' <- T.pack <$> hGetContents (getStderr process)
+    errormsg <- CE.evaluate $ force errormsg'
+
+    return $ Bot { filepath = fp
+                 , playerId = pid
+                 , memory = memory
+                 , errorLog = errormsg
+                 , commands = []
+                 }
   where
-    skip _ = return (BotHandler $ Left "Bot couldn't start.")
-    initialize e = do
-      _ <- timedCallandResponse 5000 e (T.pack (show pid))
-      return $ BotHandler (Right e)
+    fp = filepath bot
+    sloc = startingLocation bot
+    pid = playerId bot
+    botConfig = setStdin createPipe
+              $ setStdout createPipe
+              $ setStderr createPipe
+              $ setWorkingDir (dropFileName fp)
+              $ fromString fp
 
-botTurn :: Board w h CellInfo -> Player -> IO (Player, [Command])
-botTurn board player = E.either skip takeTurn (eph $ pBotHandler player)
+takeTurn :: Board w h CellInfo -> BotHandler -> IO (E.Either T.Text BotHandler)
+takeTurn world bot = tryRunError $ withProcessWait botConfig $ \process -> do
+    mapReq <- timedCallandResponse 100 (getStdin process) (getStdout process) mem
+    let reqMap = undefined
+    rawCmds <- timedCallandResponse 100 (getStdin process) (getStdout process) reqMap
+    newMem <- timedCallandResponse 100 (getStdin process) (getStdout process) ""
+    hClose (getStdin process)
+
+    exitCode <- timedWaitExitCode 100 process
+
+    errormsg' <- T.pack <$> hGetContents (getStderr process)
+    errormsg <- CE.evaluate $ force errormsg'
+
+    return $ bot { errorLog = errormsg
+                 , commands = undefined -- rawCmds
+                 , memory = newMem
+                 }
   where
-    skip _ = return (player, [])
-    takeTurn :: ExternalProcessHandler -> IO (Player, [Command])
-    takeTurn e = do
-      res <- timedCallandResponse 50000 e parsedBoard
-      let commands = rightToList $ res >>= parsePlayer
-      let player1 = player {pBotHandler = BotHandler (res >> Right e)}
-      return $ (player1, commands)
-    parsedBoard = parseBoard board
+    mem = memory bot
+    fp = filepath bot
+    botConfig = setStdin createPipe
+              $ setStdout createPipe
+              $ setStderr createPipe
+              $ setWorkingDir (dropFileName fp)
+              $ fromString fp
 
-parseBoard :: Board h w CellInfo -> T.Text
-parseBoard b = T.concat $ map showCell cells
-  where
-    cells = bCells b
-    showCell :: Cell h w CellInfo -> T.Text
-    showCell (Cell x y (CellInfo pid)) = T.pack $ (show x) ++ " "
-                                               ++ (show y) ++ " "
-                                               ++ (show pid) ++ " "
-
-parsePlayer:: T.Text -> (Either T.Text [Command])
-parsePlayer t = do
-  let bt = T.words t
-  il <- mapM textReadEither bt
-  split il
-
-  where
-    textReadEither :: T.Text -> Either T.Text Int
-    textReadEither t1 = translateLeft (\_ -> "NonIntCoordinate") $ readEither (T.unpack t1)
-
-    split :: [Int] -> Either T.Text [Command]
-    split [] = Right []
-    split (_:[]) = Left "OddNumOfCoordinates"
-    split (a:b:r) = ((Flip a b):) <$> split r
-
-translateLeft :: (a -> c) -> Either a b -> Either c b
-translateLeft f (Left a) = Left $ f a
-translateLeft _ (Right a) = Right a
-
-data TmpException = TmpException
- deriving (Show, Typeable)
-
-instance CE.Exception TmpException
-
-rightToList :: Either a [b] -> [b]
-rightToList (Left _) = []
-rightToList (Right lst) = lst

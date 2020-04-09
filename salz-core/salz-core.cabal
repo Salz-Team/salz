@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d135b354686d39d5205e717374fedae11a25297fb0e36f3563394899f7225215
+-- hash: 21a81c1cf6e8cc22189a016cdcf9b78a36c24c8414b1016d411a886ef874bed5
 
 name:           salz-core
 version:        0.1.0.0
@@ -28,7 +28,6 @@ library
   exposed-modules:
       Board
       Database
-      ExternalProcessHandler
       Player
       Step
       Types
@@ -39,6 +38,7 @@ library
   build-depends:
       base >=4.7 && <5
     , brick
+    , deepseq
     , directory
     , either
     , filepath
@@ -52,6 +52,7 @@ library
     , text
     , time
     , transformers
+    , typed-process
     , vty
   default-language: Haskell2010
 
@@ -64,7 +65,6 @@ executable salz-engine
       Game
       Board
       Database
-      ExternalProcessHandler
       Player
       Step
       Types
@@ -77,6 +77,7 @@ executable salz-engine
   build-depends:
       base >=4.7 && <5
     , brick
+    , deepseq
     , directory
     , either
     , filepath
@@ -91,6 +92,7 @@ executable salz-engine
     , text
     , time
     , transformers
+    , typed-process
     , vty
   default-language: Haskell2010
 
@@ -104,7 +106,6 @@ executable salz-viewer
       ViewerState
       Board
       Database
-      ExternalProcessHandler
       Player
       Step
       Types
@@ -117,6 +118,7 @@ executable salz-viewer
   build-depends:
       base >=4.7 && <5
     , brick
+    , deepseq
     , directory
     , either
     , filepath
@@ -131,6 +133,7 @@ executable salz-viewer
     , text
     , time
     , transformers
+    , typed-process
     , vty
   default-language: Haskell2010
 
@@ -145,6 +148,7 @@ test-suite salz-engine-test
   build-depends:
       base >=4.7 && <5
     , brick
+    , deepseq
     , directory
     , either
     , filepath
@@ -159,5 +163,6 @@ test-suite salz-engine-test
     , text
     , time
     , transformers
+    , typed-process
     , vty
   default-language: Haskell2010
