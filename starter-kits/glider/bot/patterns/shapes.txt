@@ -1,0 +1,10 @@
+# Blinker
+----
+XXX
+----
+# Glider
+----
+XXX
+  X
+ X
+----

@@ -1,0 +1,128 @@
+# Blinker
+----
+*X*
+----
+X
+X
+X
+----
+# Glider
+----
+*
+X
+*
+----
+  *
+XXX
+----
+* X
+ XX
+X
+----
+# Glider-to-4-blinkers
+----
+X*X
+*XX
+ X
+----
+ X
+X X
+
+XXX
+----
+ X
+ X
+X X
+ X
+ X
+----
+XXX
+X X
+XXX
+----
+  X
+ X X
+X   X
+ X X
+  X
+----
+  X
+ XXX
+XX XX
+ XXX
+  X
+----
+ XXX
+X   X
+X   X
+X   X
+ XXX
+----
+   X
+  XXX
+ X X X
+XXX XXX
+ X X X
+  XXX
+   X
+----
+  XXX
+X     X
+X     X
+X     X
+  XXX
+----
+# Kill-blinker
+----
+*
+
+XXX
+----
+X
+ X
+ X
+----
+XX
+----
+# Blinker-to-4-blinkers
+----
+ *
+XXX
+ *
+----
+XXX
+X X
+XXX
+----
+  X
+ X X
+X   X
+ X X
+  X
+----
+  X
+ XXX
+XX XX
+ XXX
+  X
+----
+ XXX
+X   X
+X   X
+X   X
+ XXX
+----
+   X
+  XXX
+ X X X
+XXX XXX
+ X X X
+  XXX
+   X
+----
+  XXX
+X     X
+X     X
+X     X
+  XXX
+----
