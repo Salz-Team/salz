@@ -36,7 +36,7 @@ startGameEngine arg = case arg of
     localGameLoop board (-1) turnMax players dbFilePath
 
 
-serverGameLoop :: (KnownNat w, KnownNat h) => Board w h CellInfo -> Int -> [Player] -> T.Text -> IO ()
+serverGameLoop :: Map.Map -> Int -> [Player] -> T.Text -> IO ()
 serverGameLoop board turnm players dbConnectionString = do
   putStrLn ""
   putStrLn "New turn"

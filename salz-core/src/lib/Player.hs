@@ -3,11 +3,6 @@ module Player ( applyCommands
               , filterLegalCommands
               ) where
 
-import Board
-import Types
-
-import GHC.TypeLits hiding (Mod)
-import Data.Modular
 
 
 getPlayerCells :: Board h w CellInfo -> PlayerId -> [Cell h w CellInfo]
@@ -45,3 +40,5 @@ applyFlips board cmds = foldl togglePlayerCells board cmds
 
 applyCommands :: (KnownNat w, KnownNat h) => Board w h CellInfo -> [(PlayerId, [Command])] -> Board w h CellInfo
 applyCommands board cmds = applyFlips board $ getLegalCommands board cmds
+
+

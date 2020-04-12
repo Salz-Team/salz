@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module BotHandler
-  ( BotHandler
+  ( Bot(..)
+  , takeTurn
   )
     where
 
@@ -16,22 +17,28 @@ import System.Timeout
 import System.IO
 import System.Exit
 import GHC.IO.Handle
-import Types
 
-data BotHandler =
-    NewBot { filepath :: FilePath
-           , playerId :: Int
-           , startingLocation :: (Int, Int)
-           }
-    | Bot { filepath :: FilePath
-          , playerId :: Int
-          , memory :: T.Text
-          , errorLog :: T.Text
-          , commands :: [(Int, Int)]
-          } deriving Show
+import qualified Map as Map
+
+data Bot = Crashed { playerId :: Int
+                   , errorLog :: T.Text
+                   , memory :: T.Text
+                   , errorMsg :: T.Text
+                   }
+          | NewBot { playerId :: Int
+                   , filePath :: FilePath
+                   , startingLocation :: (Int, Int)
+                   }
+          | Bot    { playerId :: Int
+                   , filePath :: FilePath
+                   , memory :: T.Text
+                   , errorLog :: T.Text
+                   , commands :: [(Int, Int)]
+                   } deriving Show
 
 
-data RunError = RunError T.Text
+
+data RunError = RunError Bot
   deriving Show
 
 instance CE.Exception RunError
@@ -56,11 +63,13 @@ timedWaitExitCode time process = do
   exitCode <- timeout time (waitExitCode process)
   fromJustException exitCode "Time ran out waiting for bot to shutdown"
 
-tryRunError :: IO a -> IO (Either T.Text a)
-tryRunError f = mapLeft (\(RunError txt) -> txt) <$> CE.try f
+tryRunError :: IO Bot -> IO Bot
+tryRunError b = E.either (\(RunError bot) -> bot) id <$> CE.try b
 
-initializeBot :: BotHandler -> IO (E.Either T.Text BotHandler)
-initializeBot bot = tryRunError $ withProcessWait botConfig $ \process -> do
+initializeBot :: Bot -> IO Bot
+initializeBot (Crashed a b c d) = return (Crashed a b c d)
+initializeBot (Bot a b c d e) = return (Bot a b c d e)
+initializeBot (NewBot pid fp sloc) = withProcessWait botConfig $ \process -> do
     let call = T.intercalate " " ["Initialize", tShow pid, tShow (fst sloc), tShow (snd sloc)]
     memory <- timedCallandResponse 100 (getStdin process) (getStdout process) call
     hClose (getStdin process)
@@ -87,9 +96,11 @@ initializeBot bot = tryRunError $ withProcessWait botConfig $ \process -> do
               $ setWorkingDir (dropFileName fp)
               $ fromString fp
 
-takeTurn :: Board w h CellInfo -> BotHandler -> IO (E.Either T.Text BotHandler)
-takeTurn world bot = tryRunError $ withProcessWait botConfig $ \process -> do
+takeTurn :: Map.Map -> BotHandler -> IO Bot
+takeTurn world (NewBot fp pid sloc) = initializeBot (NewBot fp pid sloc) >>= takeTurn world
+takeTurn world (Bot fp _ mem _ _ ) = tryRunError $ withProcessWait botConfig $ \process -> do
     mapReq <- timedCallandResponse 100 (getStdin process) (getStdout process) mem
+
     let reqMap = undefined
     rawCmds <- timedCallandResponse 100 (getStdin process) (getStdout process) reqMap
     newMem <- timedCallandResponse 100 (getStdin process) (getStdout process) ""
@@ -104,9 +115,8 @@ takeTurn world bot = tryRunError $ withProcessWait botConfig $ \process -> do
                  , commands = undefined -- rawCmds
                  , memory = newMem
                  }
+takeTurn _ bot = return bot
   where
-    mem = memory bot
-    fp = filepath bot
     botConfig = setStdin createPipe
               $ setStdout createPipe
               $ setStderr createPipe

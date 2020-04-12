@@ -7,7 +7,9 @@ module Database ( getSnapshotTurns
                 , saveSnapshot
                 , saveMoves
                 , savePlayersStatus ) where
-    
+
+import qualified Map as Map
+
 import qualified Database.PostgreSQL.Simple as PSQL
 import qualified Database.PostgreSQL.Simple.Types as PSQL.Types
 
@@ -22,7 +24,6 @@ import qualified Data.Either as E
 import qualified Data.Maybe as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
-import qualified Types as MT
 import qualified Control.Exception as CE
 
 type AConnection = Either PSQL.Connection SQLT.Connection
@@ -39,27 +40,26 @@ getSnapshotTurns cs = do
     liftList :: [[Maybe Int]] -> [Int]
     liftList list = M.catMaybes $ concat list
 
-getSnapshot :: (KnownNat w, KnownNat h) => ConString -> Int -> IO (MT.Board w h MT.CellInfo)
+getSnapshot :: ConString -> Int -> IO Map.Map
 getSnapshot cs turn = do
   con <- aConnectRepeat cs
   let mquery = "SELECT x, y, playerid FROM snapshots WHERE turnid = ?;"
   result <- aQuery con mquery [turn]
   aClose con
-  let cells = readCells result
-  return $ MT.Board cells
+  return $ readCells result
   where
-    readCells ::(KnownNat w, KnownNat h) => [(Maybe Int, Maybe Int, Maybe Int)] -> [MT.Cell w h MT.CellInfo]
-    readCells cl = map readCell $ M.catMaybes $ map liftList cl
+    readMap ::[(Maybe Int, Maybe Int, Maybe Int)] -> Map.Map
+    readMap cl = Map.M $ M.catMaybes $ map liftList cl
 
-    readCell :: (KnownNat w, KnownNat h) => (Int, Int, Int) -> MT.Cell w h MT.CellInfo
-    readCell (x, y, pid) = MT.Cell (toMod x) (toMod y) (MT.CellInfo pid)
+    readCell :: (Int, Int, Int) -> (Map.Coord, Int)
+    readCell (x, y, pid) = (Map.C x y, pid)
 
     liftList :: (Maybe Int, Maybe Int, Maybe Int) -> Maybe (Int, Int, Int)
     liftList (Just a, Just b, Just c) = Just (a, b, c)
     liftList _ = Nothing
 
 -- Types are turn Min -> turn Max -> [(turnid, x, y, playerid)]
-getMoves ::  ConString -> Int -> Int -> IO [(Int, Int, Int, MT.PlayerId)]
+getMoves ::  ConString -> Int -> Int -> IO [(Int, Int, Int, Int)]
 getMoves cs min max = do
   con <- aConnectRepeat cs
   let mquery = "SELECT turnid, x, y, playerid FROM moves WHERE turnid BETWEEN ? AND ?;"
@@ -67,7 +67,7 @@ getMoves cs min max = do
   aClose con
   return $ M.catMaybes $ map liftList result
   where
-    liftList :: (Maybe Int, Maybe Int, Maybe Int, Maybe Int) -> Maybe (Int, Int, Int, MT.PlayerId)
+    liftList :: (Maybe Int, Maybe Int, Maybe Int, Maybe Int) -> Maybe (Int, Int, Int, Int)
     liftList (Just a, Just b, Just c, Just d) = Just (a, b, c, d)
     liftList _ = Nothing
     
@@ -80,7 +80,7 @@ readPlayers connectionString = do
   aClose conn
   return result
   
-getBuildCmds :: ConString -> IO [(MT.PlayerId, FilePath)]
+getBuildCmds :: ConString -> IO [(Int, FilePath)]
 getBuildCmds cs = do
   players <- readPlayers cs
 
@@ -114,28 +114,21 @@ savePlayersStatus cs players = do
     writeStatus conn1 (i, Left errMsg) = aExecute conn1 errorQuery(errMsg, i) >> return ()
     writeStatus _ _ = return ()
 
-formatTurn :: Int
-           -> UTCTime
-           -> MT.Cell w h MT.CellInfo
-           -> (Int, Int, Int, Int, UTCTime)
-formatTurn  turn time (MT.Cell x y (MT.CellInfo i)) = (turn, unMod x, unMod y, i, time)
 
-
-saveSnapshot :: ConString -> Int -> MT.Board h w MT.CellInfo -> IO ()
-saveSnapshot cs turn board = do
+saveSnapshot :: ConString -> Int -> Map.Map -> IO ()
+saveSnapshot cs turn (Map.Map mapLst) = do
   conn <- aConnectRepeat cs
 
   aExecute conn "CREATE TABLE IF NOT EXISTS snapshots (id SERIAL PRIMARY KEY, turnid INTEGER, x INTEGER, y INTEGER, playerid INTEGER, generated_at TIMESTAMP);"()
 
   let mquery = "INSERT INTO snapshots (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?);"
   time <- getCurrentTime
-  let cells = (MT.bCells board)
-  let rows = map (formatTurn turn time) cells
+  let rows = map (\(C x y, pid) -> (turn, x, y, pid, time)) mapLst
   aExecuteMany conn mquery rows
   aClose conn
   return ()
 
-saveMoves :: ConString -> Int -> [(MT.PlayerId, Int, Int)] -> IO ()
+saveMoves :: ConString -> Int -> [(Int, Int, Int)] -> IO ()
 saveMoves cs turn moves = do
   conn <- aConnectRepeat cs
   
@@ -149,7 +142,7 @@ saveMoves cs turn moves = do
   aClose conn
   return ()
   where
-    formatMoves :: Int -> UTCTime -> [(MT.PlayerId, Int, Int)] -> [(Int, Int, Int, MT.PlayerId, UTCTime)]
+    formatMoves :: Int -> UTCTime -> [(Int, Int, Int)] -> [(Int, Int, Int, Int, UTCTime)]
     formatMoves turn time = map (\(pid, x, y) -> (turn, x, y, pid, time))
   
   
