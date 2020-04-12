@@ -20,9 +20,10 @@ import GHC.IO.Handle
 import GHC.IO.Exception
 import Data.List
 import Control.Monad.Trans.Class
-import Control.Monad.State.Class (MonadState(..))
+import Control.Monad.State.Class (MonadState(..), modify)
 import Control.Monad.IO.Class
 import Data.Maybe
+import Text.Read (readMaybe)
 
 import qualified Map as Map
 
@@ -110,8 +111,8 @@ execBot p b botM = snd <$> runBotT botM b <* stopProcess p
 
 initialize :: Bot -> IO Bot
 initialize (Crashed a b c d) = return (Crashed a b c d)
-initializeBot (Bot a b c d e f) = return (Bot a b c d e f)
-initializeBot b = withProcessWait botConfig $ \p -> execBot p b $ do
+initialize (Bot a b c d e f) = return (Bot a b c d e f)
+initialize b = withProcessWait botConfig $ \p -> execBot p b $ do
   bot <- get
   liftIO $ hPutStrLn (getStdin p) $ intercalate " " [ "Initialize"
                                                     , show (playerId bot)
@@ -134,16 +135,19 @@ initializeBot b = withProcessWait botConfig $ \p -> execBot p b $ do
 
 takeTurn :: Map.Map -> Bot -> IO Bot
 takeTurn _ (Crashed a b c d) = return (Crashed a b c d)
-takeTurn map (NewBot a b c) = return (takeTurn map (initialize (NewBot a b c)))
+takeTurn map (NewBot a b c) = (initialize (NewBot a b c)) >>= takeTurn map
 takeTurn map b = withProcessWait botConfig $ \p -> execBot p b $ do
   bot <- get
   liftIO $ hPutStrLn (getStdin p) (memory b)
   liftIO $ hFlush (getStdin p)
   response <- tryIO "Timeout while waiting for map request." $ timeout 1000 (hGetLine (getStdout p))
-  put $ bot {mapReq = Just ((1, 1), 1)}
-  liftIO $ hPutStrLn (getStdin p) (show map)
+  mapReq <- tryIO "Couldn't parse map request." $ return (readMapRequest response)
+  modify $ (\bot -> bot {mapReq = Just mapReq})
+  liftIO $ hPutStrLn (getStdin p) (show (Map.getRegion map mapReq))
   liftIO $ hFlush (getStdin p)
   response <- tryIO "Timeout while waiting for commands." $ timeout 1000 (hGetLine (getStdout p))
+  modify $ (\bot -> bot {commands = readCommands response})
+
   return ()
   where
     botConfig = setStdin createPipe
@@ -152,3 +156,17 @@ takeTurn map b = withProcessWait botConfig $ \p -> execBot p b $ do
               $ setWorkingDir (dropFileName (filePath b))
               $ fromString (filePath b)
 
+readMapRequest :: String -> Maybe ((Int, Int), Int)
+readMapRequest str = threeify intList
+  where
+    intList = mapMaybe readMaybe $ words str
+    threeify [a,b,c] = Just ((a, b), c)
+    threeify _ = Nothing
+
+
+readCommands :: String -> [(Int, Int)]
+readCommands str = duify intList
+  where
+    intList = mapMaybe readMaybe $ words str
+    duify (a:b:rst) = [(a, b)] ++ (duify rst)
+    duify _ = []

@@ -3,6 +3,8 @@ module Map ( MInt(..)
            , Map(..)
            , rotateCoordsAround
            , toCoord
+           , getRegion
+           , dist
            ) where
 
 import Text.Read
@@ -16,7 +18,7 @@ mapSize = 100
 -- MInt
 --------------------------------------------------------------------------------
 
-data MInt = I {unMod :: Integer} deriving Eq
+data MInt = I Integer deriving Eq
 
 instance Show MInt where
   show (I a) = show a
@@ -31,6 +33,10 @@ instance Num MInt where
 
 instance Read MInt where
   readPrec = fmap fromInteger readPrec
+
+instance Enum MInt where
+  toEnum i = I $ toEnum i
+  fromEnum (I a) = fromInteger $ a `mod` mapSize
 
 --------------------------------------------------------------------------------
 -- Coord
@@ -48,10 +54,6 @@ instance Num Coord where
   fromInteger n = C (I n) (I n)
   abs    = undefined  -- make the warnings stop
   signum = undefined
-
-instance Enum MInt where
-  toEnum i = I $ toEnum i
-  fromEnum (I a) = fromInteger $ a `mod` mapSize
 
 instance Read Coord where
   readPrec = do
@@ -91,3 +93,13 @@ rotateCoordsAround pivot times = map (((+) pivot). rotateCoord . ((-) pivot))
 
 toCoord :: (Int, Int) -> Coord
 toCoord (x, y) = C (toEnum x) (toEnum y)
+
+dist :: Coord -> Coord -> Int
+dist (C ax ay) (C bx by) = fromEnum (ax - bx) + fromEnum (ay - by)
+
+getRegion :: Map -> ((Int, Int), Int) -> Map
+getRegion (M mlst) ((x, y), radius) = M $ filter (inRegion (C (toEnum x) (toEnum y)) radius) mlst
+  where
+    inRegion :: Coord -> Int -> (Coord, Int) -> Bool
+    inRegion orig radius (x, _) = dist orig x <= radius
+
