@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 21a81c1cf6e8cc22189a016cdcf9b78a36c24c8414b1016d411a886ef874bed5
+-- hash: 8d79d41824b952bbe23da6ae4b546c395b343db76f4cf09d04b9700691d26067
 
 name:           salz-core
 version:        0.1.0.0
@@ -26,11 +26,10 @@ source-repository head
 
 library
   exposed-modules:
-      Board
       Database
+      Map
       Player
       Step
-      Types
   other-modules:
       Paths_salz_core
   hs-source-dirs:
@@ -63,11 +62,10 @@ executable salz-engine
       BotHandler
       EngineOptions
       Game
-      Board
       Database
+      Map
       Player
       Step
-      Types
       Paths_salz_core
   hs-source-dirs:
       app/engine
@@ -104,11 +102,10 @@ executable salz-viewer
       ViewerDraw
       ViewerOptions
       ViewerState
-      Board
       Database
+      Map
       Player
       Step
-      Types
       Paths_salz_core
   hs-source-dirs:
       app/viewer
