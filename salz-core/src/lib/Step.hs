@@ -1,48 +1,37 @@
-module Step where
+module Step (step) where
 
-import Board
-import Types
-
+import qualified Map as Map
 import Data.Maybe
 import Data.List
-import GHC.TypeLits hiding (Mod)
 
 
-step :: (KnownNat w, KnownNat h) =>
-  Board h w CellInfo -> Board h w CellInfo
-step b = b { bCells = newCells}
+step :: Map.Map -> Map.Map
+step (Map.M oldlst) = Map.M $ (filterLiveCells oldlst) ++ (produceNewCells (Map.M oldlst))
+
+
+filterLiveCells :: [(Map.Coord, Int)] -> [(Map.Coord, Int)]
+filterLiveCells oldm = filter isHealthy oldm
   where
-    newCells = (filterLiveCells b) ++ (produceNewCells b)
+    isHealthy :: (Map.Coord, Int) -> Bool
+    isHealthy c = elem (length $ Map.getNeighbours (Map.M oldm) (fst c)) [2, 3]
 
-filterLiveCells :: (KnownNat w, KnownNat h) =>
-  Board h w CellInfo -> [Cell h w CellInfo]
-filterLiveCells b = filter (healthy b) (bCells b)
+produceNewCells :: Map.Map -> [(Map.Coord, Int)]
+produceNewCells oldm = catMaybes $ potentialNewCells
   where
-    healthy b1 c = elem (numNeighbours b1 c) [2, 3]
-
-produceNewCells :: (KnownNat w, KnownNat h) =>
-  Board h w CellInfo -> [Cell h w CellInfo]
-produceNewCells b = catMaybes $ produceCells b
-  where
-    produceCells :: (KnownNat w, KnownNat h) =>
-      Board h w CellInfo -> [Maybe (Cell h w CellInfo)]
-    produceCells b1 = map (maybeBorn b1) $ getUniqueEmptyNeighbours b1 (bCells b1)
+    potentialNewCells = map maybeBorn $ Map.getUniqueEmptyNeighbours oldm
     
-    maybeBorn :: (KnownNat w, KnownNat h) =>
-      Board h w CellInfo -> Cell h w a -> Maybe (Cell h w CellInfo)
-    maybeBorn b1 c
-      | isBorn b1 c = Just $ fillCell (CellInfo (newOwner b1 c)) c
+    maybeBorn :: Map.Coord -> Maybe (Map.Coord, Int)
+    maybeBorn c
+      | isBorn c = Just (c, newOwner c)
       | otherwise = Nothing
     
     
-    isBorn :: (KnownNat w, KnownNat h) =>
-      Board h w CellInfo -> Cell h w a -> Bool
-    isBorn b1 c = elem (numNeighbours b1 c) [3]
+    isBorn :: Map.Coord -> Bool
+    isBorn c = elem (length $ Map.getNeighbours oldm c) [3]
+   
     
-    
-    newOwner :: (KnownNat w, KnownNat h) =>
-      Board h w CellInfo -> Cell h w a -> PlayerId
-    newOwner b1 c = most $  map (cPlayerId . cItem) $ getNeighbours b1 c
+    newOwner :: Map.Coord -> Int
+    newOwner c = most $  map snd $ Map.getNeighbours oldm c
 
 most :: (Eq a) => [a] -> a
 most l = snd $ head $ sortBy (\a b -> fst a `compare` fst b) occurences

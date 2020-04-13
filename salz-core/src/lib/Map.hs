@@ -5,6 +5,8 @@ module Map ( MInt(..)
            , toCoord
            , getRegion
            , dist
+           , getNeighbours
+           , getUniqueEmptyNeighbours
            ) where
 
 import Text.Read
@@ -94,12 +96,30 @@ rotateCoordsAround pivot times = map (((+) pivot). rotateCoord . ((-) pivot))
 toCoord :: (Int, Int) -> Coord
 toCoord (x, y) = C (toEnum x) (toEnum y)
 
+fromCoord :: Coord -> (Int, Int)
+fromCoord (C x y) = (fromEnum x, fromEnum y)
+
 dist :: Coord -> Coord -> Int
-dist (C ax ay) (C bx by) = fromEnum (ax - bx) + fromEnum (ay - by)
+dist (C ax ay) (C bx by) = max (fromEnum (ax - bx)) (fromEnum (ay - by))
 
 getRegion :: Map -> ((Int, Int), Int) -> Map
 getRegion (M mlst) ((x, y), radius) = M $ filter (inRegion (C (toEnum x) (toEnum y)) radius) mlst
   where
     inRegion :: Coord -> Int -> (Coord, Int) -> Bool
     inRegion orig radius (x, _) = dist orig x <= radius
+
+getNeighbours :: Map -> Coord -> [(Coord, Int)]
+getNeighbours (M mlst) c = filter isNeighbour mlst
+  where
+    isNeighbour :: (Coord, Int) -> Bool
+    isNeighbour (x, _) = dist c x == 1
+
+getUniqueEmptyNeighbours :: Map -> [Coord]
+getUniqueEmptyNeighbours (M mlst) = filter isEmpty $ nub $ concat $ map (getNeighbourCoords . fst) mlst
+  where
+    getNeighbourCoords :: Coord -> [Coord]
+    getNeighbourCoords x = [x + disp | disp <- [toCoord (x, y) | x <- [-1..1], y <- [-1..1], (x, y) /= (0, 0)]  ]
+
+    isEmpty :: Coord -> Bool
+    isEmpty x = [] == (filter ((x ==) . fst) mlst)
 
