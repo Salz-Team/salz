@@ -9,6 +9,7 @@ module Database ( getSnapshotTurns
                 , savePlayersStatus ) where
 
 import qualified Map as Map
+import qualified BotHandler as BH
 
 import qualified Database.PostgreSQL.Simple as PSQL
 import qualified Database.PostgreSQL.Simple.Types as PSQL.Types
@@ -17,7 +18,6 @@ import qualified Database.SQLite.Simple as SQLT
 
 import Data.Time.Clock
 import Data.Modular
-import GHC.TypeLits hiding (Mod)
 
 import qualified Control.Concurrent as CC
 import qualified Data.Either as E
@@ -46,13 +46,13 @@ getSnapshot cs turn = do
   let mquery = "SELECT x, y, playerid FROM snapshots WHERE turnid = ?;"
   result <- aQuery con mquery [turn]
   aClose con
-  return $ readCells result
+  return $ readMap result
   where
     readMap ::[(Maybe Int, Maybe Int, Maybe Int)] -> Map.Map
-    readMap cl = Map.M $ M.catMaybes $ map liftList cl
+    readMap cl = Map.M $ map readCell $  M.catMaybes $ map liftList cl
 
     readCell :: (Int, Int, Int) -> (Map.Coord, Int)
-    readCell (x, y, pid) = (Map.C x y, pid)
+    readCell (x, y, pid) = (Map.C (toEnum x) (toEnum y), pid)
 
     liftList :: (Maybe Int, Maybe Int, Maybe Int) -> Maybe (Int, Int, Int)
     liftList (Just a, Just b, Just c) = Just (a, b, c)
@@ -99,31 +99,29 @@ getBuildCmds cs = do
     writeBuild :: AConnection -> IO ()
     writeBuild con1 = aExecute con1 query() >> return ()
 
-savePlayersStatus :: ConString -> [MT.Player] -> IO ()
-savePlayersStatus cs players = do
+savePlayersStatus :: ConString -> [BH.Bot] -> IO ()
+savePlayersStatus cs bots = do
   con <- aConnectRepeat cs
 
-  let botHandlers = map (\p -> (MT.pPlayerId p, MT.eph $ MT.pBotHandler p)) players
-
-  _ <- mapM (writeStatus con) botHandlers
+  _ <- mapM (writeStatus con) bots
   aClose con
   return ()
   where
-    errorQuery = "UPDATE players SET botstatus = ? WHERE playerid = ?;"
-    writeStatus :: AConnection -> (Int, E.Either T.Text a) -> IO ()
-    writeStatus conn1 (i, Left errMsg) = aExecute conn1 errorQuery(errMsg, i) >> return ()
+    errorQuery = "UPDATE players SET botmemory = ?, botstderr = ?, errormsg = ? WHERE playerid = ?;"
+    writeStatus :: AConnection -> BH.Bot -> IO ()
+    writeStatus conn1 (BH.Crashed pid errorLog memory errormsg) = aExecute conn1 errorQuery(memory, errorLog, errormsg, pid) >> return ()
     writeStatus _ _ = return ()
 
 
 saveSnapshot :: ConString -> Int -> Map.Map -> IO ()
-saveSnapshot cs turn (Map.Map mapLst) = do
+saveSnapshot cs turn (Map.M mapLst) = do
   conn <- aConnectRepeat cs
 
   aExecute conn "CREATE TABLE IF NOT EXISTS snapshots (id SERIAL PRIMARY KEY, turnid INTEGER, x INTEGER, y INTEGER, playerid INTEGER, generated_at TIMESTAMP);"()
 
   let mquery = "INSERT INTO snapshots (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?);"
   time <- getCurrentTime
-  let rows = map (\(C x y, pid) -> (turn, x, y, pid, time)) mapLst
+  let rows = map (\(Map.C x y, pid) -> (turn, fromEnum x, fromEnum y, pid, time)) mapLst
   aExecuteMany conn mquery rows
   aClose conn
   return ()
