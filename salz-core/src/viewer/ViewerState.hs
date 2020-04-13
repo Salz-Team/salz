@@ -1,14 +1,14 @@
 {-# LANGUAGE DataKinds #-}
 module ViewerState where
-    
-import Types
+
+import qualified Map as Map
 
 data ViewerState = ViewerState
   { turn :: Int
   , play :: Bool
   , location :: (Int, Int)
   , dbfilepath :: FilePath
-  , board :: (Board 100 100 CellInfo)
-  , moves :: [(Int, Int, Int, PlayerId)]
+  , board :: Map.Map
+  , moves :: [(Int, Int, Int, Int)]
   }
 

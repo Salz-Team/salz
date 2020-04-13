@@ -72,7 +72,7 @@ getMoves cs min max = do
     liftList _ = Nothing
     
 -- (playerid, username, updatedbot, botstatus)
-readPlayers :: ConString -> IO ([(Int, Maybe T.Text, Maybe FilePath, Maybe T.Text)])
+readPlayers :: ConString -> IO ([(Int, Maybe T.Text, Maybe FilePath, Maybe T.Text, Maybe T.Text, Maybe T.Text)])
 readPlayers connectionString = do
   conn <- aConnectRepeat connectionString
   let mquery = "SELECT * FROM players"
@@ -80,7 +80,7 @@ readPlayers connectionString = do
   aClose conn
   return result
   
-getBuildCmds :: ConString -> IO [(Int, FilePath)]
+getBuildCmds :: ConString -> IO [BH.Bot]
 getBuildCmds cs = do
   players <- readPlayers cs
 
@@ -90,9 +90,9 @@ getBuildCmds cs = do
 
   return $ M.catMaybes $ map toBuildCmds players
   where
-    toBuildCmds :: (a, b, Maybe FilePath, c) -> Maybe (a, FilePath)
-    toBuildCmds (_, _, Just "", _) = Nothing
-    toBuildCmds (a, _, Just b, _) = Just (a, b)
+    toBuildCmds :: (Int, b, Maybe FilePath, c, d, e) -> Maybe BH.Bot
+    toBuildCmds (_, _, Just "", _, _, _) = Nothing
+    toBuildCmds (a, _, Just b, _, _, _) = Just $ BH.UnBuilt a b
     toBuildCmds _ = Nothing
     
     query = "UPDATE players SET botdir = '';"
@@ -103,6 +103,7 @@ savePlayersStatus :: ConString -> [BH.Bot] -> IO ()
 savePlayersStatus cs bots = do
   con <- aConnectRepeat cs
 
+  aExecute con "CREATE TABLE IF NOT EXISTS snapshots (playerid SERIAL PRIMARY KEY, username VARCHAR, botdir VARCHAR, botmemory VARCHAR, botstderr VARCHAR, errormsg VARCHAR);"()
   _ <- mapM (writeStatus con) bots
   aClose con
   return ()
@@ -126,7 +127,7 @@ saveSnapshot cs turn (Map.M mapLst) = do
   aClose conn
   return ()
 
-saveMoves :: ConString -> Int -> [(Int, Int, Int)] -> IO ()
+saveMoves :: ConString -> Int -> [(Map.Coord, Int)] -> IO ()
 saveMoves cs turn moves = do
   conn <- aConnectRepeat cs
   
@@ -140,8 +141,8 @@ saveMoves cs turn moves = do
   aClose conn
   return ()
   where
-    formatMoves :: Int -> UTCTime -> [(Int, Int, Int)] -> [(Int, Int, Int, Int, UTCTime)]
-    formatMoves turn time = map (\(pid, x, y) -> (turn, x, y, pid, time))
+    formatMoves :: Int -> UTCTime -> [(Map.Coord, Int)] -> [(Int, Int, Int, Int, UTCTime)]
+    formatMoves turn time = map (\(Map.C x y, pid) -> (turn, fromEnum x, fromEnum y, pid, time))
   
   
 

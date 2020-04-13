@@ -3,8 +3,7 @@
 module ViewerDraw where
 
 import qualified ViewerState as VS
-import Types
-import Board
+import qualified Map as Map
 
 import Data.Modular
 import Brick
@@ -21,14 +20,14 @@ drawBoard state = withBorderStyle BS.unicodeBold
   $ B.borderWithLabel (str ("salz"))
   $ vBox rows
   where
-    board = VS.board state
+    map_ = VS.board state
     (vx, vy) = VS.location state
     rows = [hBox $ cellsInRow r | r <- [99,98..0]]
-    cellsInRow y = [drawCoord (Cell (toMod (x+vx)) (toMod (y+vy)) ()) | x <- [0..99]]
-    drawCoord = drawCell . (getCellAt board)
+    cellsInRow y = [drawCoord (Map.toCoord (x+vx, y+vy)) | x <- [0..99]]
+    drawCoord = drawCell . (Map.getCellAt map_)
 
-drawCell :: Maybe (Cell w h CellInfo) -> Widget ()
-drawCell (Just (Cell _ _ (CellInfo pid))) = withAttr (attrName $ fullAttr ++ (show (mod pid 6))) cw
+drawCell :: Maybe Int -> Widget ()
+drawCell (Just pid) = withAttr (attrName $ fullAttr ++ (show (mod pid 6))) cw
 drawCell Nothing = withAttr emptyAttr cw
 
 cw :: Widget ()

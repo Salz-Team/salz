@@ -34,7 +34,7 @@ produceNewCells oldm = catMaybes $ potentialNewCells
     newOwner c = most $  map snd $ Map.getNeighbours oldm c
 
 most :: (Eq a) => [a] -> a
-most l = snd $ head $ sortBy (\a b -> fst a `compare` fst b) occurences
+most l = snd $ head $ sortBy (\a b -> fst b `compare` fst a) occurences
   where
     occurences = map (\x -> (length $ findIndices (x ==) l, x)) uniq
     uniq = nub l

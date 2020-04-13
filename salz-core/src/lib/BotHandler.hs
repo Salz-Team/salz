@@ -2,6 +2,9 @@
 module BotHandler
   ( Bot(..)
   , takeTurn
+  , isCrashed
+  , isUnBuilt
+  , maybeCommands
   )
     where
 
@@ -42,11 +45,22 @@ data Bot = Crashed { playerId :: Int
                    , errorLog :: String
                    , commands :: [(Int, Int)]
                    , mapReq :: Maybe ((Int, Int), Int)
-                   } deriving Show
+                   }
+          | UnBuilt { playerId :: Int
+                    , filePath :: FilePath
+                    } deriving Show
 
 isCrashed :: Bot -> Bool
 isCrashed (Crashed _ _ _ _) = True
 isCrashed _ = False
+
+isUnBuilt :: Bot -> Bool
+isUnBuilt (UnBuilt _ _) = True
+isUnBuilt _ = False
+
+maybeCommands :: Bot -> Maybe [(Map.Coord, Int)]
+maybeCommands (Bot pid _ _ _ cmds _) = Just $ map (\a -> (Map.toCoord a, pid)) cmds
+maybeCommands  _ = Nothing
 
 newtype BotT m a = BotT { runBotT :: Bot -> m (Maybe a, Bot) }
 
@@ -112,17 +126,17 @@ execBot p b botM = snd <$> runBotT botM b <* stopProcess p
 initialize :: Bot -> IO Bot
 initialize (Crashed a b c d) = return (Crashed a b c d)
 initialize (Bot a b c d e f) = return (Bot a b c d e f)
+initialize (UnBuilt a b) = return (UnBuilt a b)
 initialize b = withProcessWait botConfig $ \p -> execBot p b $ do
   bot <- get
   liftIO $ hPutStrLn (getStdin p) $ intercalate " " [ "Initialize"
                                                     , show (playerId bot)
                                                     , show (fst $ startingLocation bot)
                                                     , show (snd $ startingLocation bot)
-                                                    , "\n"
                                                     ]
   liftIO $ hFlush (getStdin p)
 
-  response <- tryIO "Timeout while waiting for initial response." $ timeout 1000 (hGetLine (getStdout p))
+  response <- tryIO "Timeout while waiting for initalize response." $ timeout 1000000000 (hGetLine (getStdout p))
   put $ Bot (playerId bot) (filePath bot) response "" [] Nothing
 
   return ()
@@ -136,16 +150,17 @@ initialize b = withProcessWait botConfig $ \p -> execBot p b $ do
 takeTurn :: Map.Map -> Bot -> IO Bot
 takeTurn _ (Crashed a b c d) = return (Crashed a b c d)
 takeTurn map (NewBot a b c) = (initialize (NewBot a b c)) >>= takeTurn map
-takeTurn map b = withProcessWait botConfig $ \p -> execBot p b $ do
+takeTurn _ (UnBuilt a b) = return (UnBuilt a b)
+takeTurn map_ b = withProcessWait botConfig $ \p -> execBot p b $ do
   bot <- get
   liftIO $ hPutStrLn (getStdin p) (memory b)
   liftIO $ hFlush (getStdin p)
-  response <- tryIO "Timeout while waiting for map request." $ timeout 1000 (hGetLine (getStdout p))
+  response <- tryIO "Timeout while waiting for map request." $ timeout 10000000000 (hGetLine (getStdout p))
   mapReq <- tryIO "Couldn't parse map request." $ return (readMapRequest response)
   modify $ (\bot -> bot {mapReq = Just mapReq})
-  liftIO $ hPutStrLn (getStdin p) (show (Map.getRegion map mapReq))
+  liftIO $ hPutStrLn (getStdin p) (show (Map.getRegion map_ mapReq))
   liftIO $ hFlush (getStdin p)
-  response <- tryIO "Timeout while waiting for commands." $ timeout 1000 (hGetLine (getStdout p))
+  response <- tryIO "Timeout while waiting for commands." $ timeout 10000000000 (hGetLine (getStdout p))
   modify $ (\bot -> bot {commands = readCommands response})
 
   return ()
@@ -165,7 +180,7 @@ readMapRequest str = threeify intList
 
 
 readCommands :: String -> [(Int, Int)]
-readCommands str = duify intList
+readCommands str = take 3 $ duify intList
   where
     intList = mapMaybe readMaybe $ words str
     duify (a:b:rst) = [(a, b)] ++ (duify rst)

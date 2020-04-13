@@ -1,9 +1,9 @@
 module EventHandler where
 
 import ViewerState
-import Types
 import Step
 import Player
+import qualified Map as Map
 
 import qualified Graphics.Vty as V
 import Brick
@@ -34,14 +34,11 @@ stepTurn vs = vs { turn = (turn vs)+1
                  , board = board2
                  }
   where
-    board1 = applyCommands (board vs) (meltMoves $ unpackMoves (moves vs) ((turn vs)+1))
+    board1 = applyCommands (board vs) (unpackMoves (moves vs) ((turn vs)+1))
     board2 = step board1
 
-    unpackMoves :: [(Int, Int, Int, PlayerId)] -> Int -> [(PlayerId, Command)]
-    unpackMoves moves turn = map (\(_,x,y,pid) -> (pid, Flip x y)) $ filter (\(a,_,_,_) -> a == turn) moves
-
-    meltMoves :: [(PlayerId, Command)] -> [(PlayerId, [Command])]
-    meltMoves lin = map (\lst -> (fst (head lst), map snd lst)) $ groupBy (\a b -> (fst a) == (fst b)) lin
+    unpackMoves :: [(Int, Int, Int, Int)] -> Int -> [(Map.Coord, Int)]
+    unpackMoves moves turn = map (\(_,x,y,pid) -> (Map.toCoord (x, y), pid)) $ filter (\(a,_,_,_) -> a == turn) moves
 
 
 

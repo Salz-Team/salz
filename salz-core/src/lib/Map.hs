@@ -7,6 +7,7 @@ module Map ( MInt(..)
            , dist
            , getNeighbours
            , getUniqueEmptyNeighbours
+           , getCellAt
            ) where
 
 import Text.Read
@@ -23,7 +24,7 @@ mapSize = 100
 data MInt = I Integer deriving Eq
 
 instance Show MInt where
-  show (I a) = show a
+  show (I a) = show $ a `mod` mapSize
 
 instance Num MInt where
   fromInteger n = I (n `mod` mapSize)
@@ -100,7 +101,8 @@ fromCoord :: Coord -> (Int, Int)
 fromCoord (C x y) = (fromEnum x, fromEnum y)
 
 dist :: Coord -> Coord -> Int
-dist (C ax ay) (C bx by) = max (fromEnum (ax - bx)) (fromEnum (ay - by))
+dist (C ax ay) (C bx by) = max (min (fromEnum mapSize - fromEnum (ax - bx)) (fromEnum (ax - bx)))
+                               (min (fromEnum mapSize - fromEnum (ay - by)) (fromEnum (ay - by)))
 
 getRegion :: Map -> ((Int, Int), Int) -> Map
 getRegion (M mlst) ((x, y), radius) = M $ filter (inRegion (C (toEnum x) (toEnum y)) radius) mlst
@@ -123,3 +125,5 @@ getUniqueEmptyNeighbours (M mlst) = filter isEmpty $ nub $ concat $ map (getNeig
     isEmpty :: Coord -> Bool
     isEmpty x = [] == (filter ((x ==) . fst) mlst)
 
+getCellAt :: Map -> Coord -> Maybe Int
+getCellAt (M mlst) x = snd <$> find (\(c,_) -> c == x ) mlst

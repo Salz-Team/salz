@@ -1,4 +1,6 @@
 module Player ( applyCommands
+              , getPlayerCells
+              , filterLegalCommands
               ) where
 
 import qualified Map as Map
@@ -9,8 +11,8 @@ applyCommands map cmds = foldl applyCommand map $ filterLegalCommands map cmds
   where
     applyCommand :: Map.Map -> (Map.Coord, Int) -> Map.Map
     applyCommand (Map.M mlst) cel = if length (delete cel mlst) /= length mlst
-                                    then Map.M $ cel:mlst
-                                    else Map.M $ delete cel mlst
+                                    then Map.M $ delete cel mlst
+                                    else Map.M $ cel:mlst
 
 filterLegalCommands :: Map.Map -> [(Map.Coord, Int)] -> [(Map.Coord, Int)]
 filterLegalCommands map cmds = filter (isCommandLegal map) cmds

@@ -3,6 +3,8 @@ module BotBuilder ( buildBot
                   , BuildError
                   ) where
 
+import qualified BotHandler as BH
+
 import qualified System.IO.Temp as TF
 import qualified System.Exit as SE
 import qualified System.Process as SP
@@ -24,8 +26,13 @@ data BuildError = BuildError { unpack :: T.Text }
 
 instance CE.Exception BuildError
 
-buildBot :: FilePath -> IO (E.Either T.Text FilePath)
-buildBot tarPath = EC.mapLeft unpack <$> CE.try (buildBot_ tarPath)
+buildBot :: BH.Bot -> IO BH.Bot
+buildBot (BH.UnBuilt pid tarPath) = E.either (\err -> BH.Crashed pid "" "" (T.unpack err))
+                                             (\fp -> BH.NewBot pid fp (0, 0))
+                                             <$> eitherErrPath
+  where
+    eitherErrPath = EC.mapLeft unpack <$> CE.try (buildBot_ tarPath)
+buildBot b = return b
 
 buildBot_ :: FilePath -> IO ( FilePath )
 buildBot_ tarPath = TF.withSystemTempDirectory "build" $ \buildDir -> do
