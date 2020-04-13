@@ -13,6 +13,7 @@ import qualified Database as DB
 
 import qualified Data.Text as T
 import qualified Control.Concurrent as CC
+import qualified Control.Concurrent.Async as CA
 import qualified System.IO as SO
 
 import GHC.TypeLits hiding (Mod)
@@ -28,7 +29,7 @@ startGameEngine arg = case arg of
     serverGameLoop (Map.M []) (-1) [] dbstring
   LocalArgs dbFilePath turnMax buildPaths -> do
     let bots = map (\(pid, tarPath) -> BH.UnBuilt pid tarPath) $ zip [1..] buildPaths
-    bots' <- mapM BB.buildBot bots
+    bots' <- CA.mapConcurrently BB.buildBot bots
   
     localGameLoop (Map.M []) (-1) turnMax bots' dbFilePath
 
@@ -43,13 +44,13 @@ serverGameLoop map_ turnm bots dbConnectionString = do
 
   putStrLn "Updating Players"
   buildCmds <- DB.getBuildCmds (Left dbConnectionString)
-  builtBots <- mapM BB.buildBot buildCmds
+  builtBots <- CA.mapConcurrently BB.buildBot buildCmds
 
   let bots' = unionBy (\a b -> BH.playerId a == BH.playerId b) builtBots bots
   let map' = createSpawns map_ bots'
 
   putStrLn "Run Bots"
-  bots'' <- mapM (BH.takeTurn map') bots'
+  bots'' <- CA.mapConcurrently (BH.takeTurn map') bots'
   let cmds  = P.filterLegalCommands map' $ concat $ catMaybes $ map BH.maybeCommands bots''
   let map'' = P.applyCommands map' cmds
 
@@ -75,7 +76,7 @@ localGameLoop map_ pturn turnMax bots dbFilePath = do
 
   putStrLn "Run Bots"
   let map' = createSpawns map_ bots
-  bots' <- mapM (BH.takeTurn map') bots
+  bots' <- CA.mapConcurrently (BH.takeTurn map') bots
   let cmds  = P.filterLegalCommands map' $ concat $ catMaybes $ map BH.maybeCommands bots'
   let map'' = P.applyCommands map' cmds
 

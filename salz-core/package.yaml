@@ -38,6 +38,7 @@ dependencies:
 - optparse-applicative
 - typed-process
 - deepseq
+- async
 
 library:
   source-dirs: src/lib

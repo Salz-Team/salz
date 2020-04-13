@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f5d970987a4f7e6b3635365d88bc868f6af89f97fcbab9ab00876fffad30e4cb
+-- hash: 3b6ceeff22f27958dce9a8ccf8e985bc52f73eff4f9288a799c788ff4dc12055
 
 name:           salz-core
 version:        0.1.0.0
@@ -36,7 +36,8 @@ library
   hs-source-dirs:
       src/lib
   build-depends:
-      base >=4.7 && <5
+      async
+    , base >=4.7 && <5
     , brick
     , deepseq
     , directory
@@ -74,7 +75,8 @@ executable salz-engine
       src/lib
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      async
+    , base >=4.7 && <5
     , brick
     , deepseq
     , directory
@@ -115,7 +117,8 @@ executable salz-viewer
       src/lib
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      async
+    , base >=4.7 && <5
     , brick
     , deepseq
     , directory
@@ -145,7 +148,8 @@ test-suite salz-engine-test
       test
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      async
+    , base >=4.7 && <5
     , brick
     , deepseq
     , directory
