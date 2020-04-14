@@ -113,6 +113,7 @@ saveErrorLogs cs bots turn = do
     errorQuery = "INSERT INTO errorlogs (playerid, turn, botmemory, botstderr, errormsg) VALUES (?,?,?,?,?);"
     writeStatus :: AConnection -> BH.Bot -> IO ()
     writeStatus conn1 (BH.Crashed pid errorLog memory errormsg) = aExecute conn1 errorQuery(pid, turn, memory, errorLog, errormsg) >> return ()
+    writeStatus conn1 (BH.Bot pid _ memory errorLog _ _) = aExecute conn1 errorQuery(pid, turn, memory, errorLog, ("No error to report." :: String)) >> return ()
     writeStatus _ _ = return ()
 
 getErrorLogs :: ConString -> Int ->  IO [(Int, String, String, String)]

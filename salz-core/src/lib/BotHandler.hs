@@ -136,7 +136,7 @@ initialize b = withProcessWait botConfig $ \p -> execBot p b $ do
                                                     ]
   liftIO $ hFlush (getStdin p)
 
-  response <- tryIO "Timeout while waiting for initalize response." $ timeout 1000000000 (hGetLine (getStdout p))
+  response <- tryIO "Timeout while waiting for initalize response." $ timeout 1000000 (hGetLine (getStdout p))
   put $ Bot (playerId bot) (filePath bot) response "" [] Nothing
 
   return ()
@@ -155,13 +155,15 @@ takeTurn map_ b = withProcessWait botConfig $ \p -> execBot p b $ do
   bot <- get
   liftIO $ hPutStrLn (getStdin p) (memory b)
   liftIO $ hFlush (getStdin p)
-  response <- tryIO "Timeout while waiting for map request." $ timeout 10000000000 (hGetLine (getStdout p))
+  response <- tryIO "Timeout while waiting for map request." $ timeout 1000000 (hGetLine (getStdout p))
   mapReq <- tryIO "Couldn't parse map request." $ return (readMapRequest response)
   modify $ (\bot -> bot {mapReq = Just mapReq})
   liftIO $ hPutStrLn (getStdin p) (show (Map.getRegion map_ mapReq))
   liftIO $ hFlush (getStdin p)
-  response <- tryIO "Timeout while waiting for commands." $ timeout 10000000000 (hGetLine (getStdout p))
+  response <- tryIO "Timeout while waiting for commands." $ timeout 1000000 (hGetLine (getStdout p))
   modify $ (\bot -> bot {commands = readCommands response})
+  response <- tryIO "Timeout while waiting for new memory." $ timeout 1000000 (hGetLine (getStdout p))
+  modify $ (\bot -> bot {memory = response})
 
   return ()
   where
