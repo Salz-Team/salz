@@ -164,6 +164,10 @@ takeTurn map_ b = withProcessWait botConfig $ \p -> execBot p b $ do
   modify $ (\bot -> bot {commands = readCommands response})
   response <- tryIO "Timeout while waiting for new memory." $ timeout 1000000 (hGetLine (getStdout p))
   modify $ (\bot -> bot {memory = response})
+  response' <- tryIO "Timeout while waiting for stderr to close." $ timeout 1000000 (hGetContents (getStderr p))
+  response <- liftIO $ CE.evaluate $ force response'
+  modify $ (\bot -> bot {errorLog = (errorLog bot) ++ response})
+
 
   return ()
   where

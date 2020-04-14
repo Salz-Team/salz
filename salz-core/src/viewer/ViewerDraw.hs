@@ -37,7 +37,7 @@ cw = str "  "
 
 drawStats :: VS.ViewerState -> Widget ()
 drawStats state = withBorderStyle BS.unicodeBold
- $ B.border
+ $ B.borderWithLabel (str ("stats"))
  $ hLimit 22
  $ vLimit 22
  $ vBox [ str ("Location: " ++ (show (VS.location state)))
@@ -46,7 +46,7 @@ drawStats state = withBorderStyle BS.unicodeBold
 
 drawMoves :: VS.ViewerState -> Widget ()
 drawMoves state = withBorderStyle BS.unicodeBold
- $ B.borderWithLabel (str "Bot moves")
+ $ B.borderWithLabel (str "bot moves")
  $ hLimit 22
  $ vBox prettyMoves
   where
@@ -57,7 +57,7 @@ drawMoves state = withBorderStyle BS.unicodeBold
 
 drawErrorLog :: VS.ViewerState -> Widget ()
 drawErrorLog state = withBorderStyle BS.unicodeBold
- $ B.border
+ $ B.borderWithLabel (str ("bot debugger"))
  $ hLimit 100
  $ vBox prettyErrors
    where
