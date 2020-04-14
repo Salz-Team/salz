@@ -43,7 +43,7 @@ app = App { appDraw=VD.drawUI
 loadGame :: FilePath -> IO VS.ViewerState
 loadGame fp = do
   snapshotTurns <- DB.getSnapshotTurns (Right fp)
-  let firstTurn = head snapshotTurns
+  let firstTurn = if length snapshotTurns == 0 then 0 else head snapshotTurns
 
   snap <- DB.getSnapshot (Right fp) firstTurn
   moves <- DB.getMoves (Right fp) firstTurn (firstTurn+100)
@@ -54,5 +54,6 @@ loadGame fp = do
     , VS.dbfilepath = fp
     , VS.board = snap
     , VS.moves = moves
+    , VS.errlogs = Nothing
     }
 

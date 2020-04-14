@@ -1,9 +1,10 @@
 module EventHandler where
 
-import ViewerState
+import qualified ViewerState as VS
 import Step
 import Player
 import qualified Map as Map
+import qualified Database as DB
 
 import qualified Graphics.Vty as V
 import Brick
@@ -12,9 +13,9 @@ import Data.List
 type Name = ()
 data Tick = Tick
 
-handleEvent :: ViewerState -> BrickEvent Name Tick -> EventM Name (Next ViewerState)
+handleEvent :: VS.ViewerState -> BrickEvent Name Tick -> EventM Name (Next VS.ViewerState)
 handleEvent state (AppEvent Tick                      ) = continue (appTick state)
-handleEvent state (VtyEvent (V.EvKey (V.KChar ' ') [])) = continue (state {play = not (play state)})
+handleEvent state (VtyEvent (V.EvKey (V.KChar ' ') [])) = continue (state {VS.play = not (VS.play state)})
 
 handleEvent state (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue (stepTurn state)
 
@@ -24,17 +25,29 @@ handleEvent state (VtyEvent (V.EvKey (V.KChar 's') [])) = continue (move 's' sta
 handleEvent state (VtyEvent (V.EvKey (V.KChar 'd') [])) = continue (move 'd' state)
 handleEvent state (VtyEvent (V.EvKey (V.KChar 'a') [])) = continue (move 'a' state)
 
+handleEvent state (VtyEvent (V.EvKey (V.KChar 'l') [])) = suspendAndResume (loadErrLog state)
+
 handleEvent state (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt state
 handleEvent state (VtyEvent (V.EvKey V.KEsc [])) = halt state
 handleEvent state _ = continue state
 
+loadErrLog :: VS.ViewerState -> IO VS.ViewerState
+loadErrLog state = do
+  errlogs <- DB.getErrorLogs (Right (VS.dbfilepath state)) (VS.turn state)
+  print (VS.turn state)
+  print errlogs
+  return $ state {VS.errlogs = Just errlogs}
 
-stepTurn :: ViewerState -> ViewerState
-stepTurn vs = vs { turn = (turn vs)+1
-                 , board = board2
+
+
+
+stepTurn :: VS.ViewerState -> VS.ViewerState
+stepTurn vs = vs { VS.turn = (VS.turn vs)+1
+                 , VS.board = board2
+                 , VS.errlogs = Nothing
                  }
   where
-    board1 = applyCommands (board vs) (unpackMoves (moves vs) ((turn vs)+1))
+    board1 = applyCommands (VS.board vs) (unpackMoves (VS.moves vs) ((VS.turn vs)+1))
     board2 = step board1
 
     unpackMoves :: [(Int, Int, Int, Int)] -> Int -> [(Map.Coord, Int)]
@@ -42,14 +55,14 @@ stepTurn vs = vs { turn = (turn vs)+1
 
 
 
-move :: Char -> ViewerState -> ViewerState
-move 'w' state = state {location = (fst (location state), (snd (location state)) + 5 )}
-move 's' state = state {location = (fst (location state), (snd (location state)) - 5 )}
-move 'a' state = state {location = ((fst (location state)) - 5, snd (location state))}
-move 'd' state = state {location = ((fst (location state)) + 5, snd (location state))}
+move :: Char -> VS.ViewerState -> VS.ViewerState
+move 'w' state = state {VS.location = (fst (VS.location state), (snd (VS.location state)) + 5 )}
+move 's' state = state {VS.location = (fst (VS.location state), (snd (VS.location state)) - 5 )}
+move 'a' state = state {VS.location = ((fst (VS.location state)) - 5, snd (VS.location state))}
+move 'd' state = state {VS.location = ((fst (VS.location state)) + 5, snd (VS.location state))}
 
 
-appTick :: ViewerState -> ViewerState
-appTick state = if (play state) == False
+appTick :: VS.ViewerState -> VS.ViewerState
+appTick state = if (VS.play state) == False
                 then state
                 else (stepTurn state)

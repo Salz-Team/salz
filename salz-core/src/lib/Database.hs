@@ -6,6 +6,8 @@ module Database ( getSnapshotTurns
                 , getBuildCmds
                 , saveSnapshot
                 , saveMoves
+                , getErrorLogs
+                , saveErrorLogs
                 , savePlayersStatus ) where
 
 import qualified Map as Map
@@ -99,11 +101,38 @@ getBuildCmds cs = do
     writeBuild :: AConnection -> IO ()
     writeBuild con1 = aExecute con1 query() >> return ()
 
+saveErrorLogs :: ConString-> [BH.Bot] -> Int ->  IO ()
+saveErrorLogs cs bots turn = do
+  con <- aConnectRepeat cs
+
+  aExecute con "CREATE TABLE IF NOT EXISTS errorlogs (id SERIAL PRIMARY KEY, playerid INTEGER, turn INTEGER, botmemory VARCHAR, botstderr VARCHAR, errormsg VARCHAR);"()
+  _ <- mapM (writeStatus con) bots
+  aClose con
+  return ()
+  where
+    errorQuery = "INSERT INTO errorlogs (playerid, turn, botmemory, botstderr, errormsg) VALUES (?,?,?,?,?);"
+    writeStatus :: AConnection -> BH.Bot -> IO ()
+    writeStatus conn1 (BH.Crashed pid errorLog memory errormsg) = aExecute conn1 errorQuery(pid, turn, memory, errorLog, errormsg) >> return ()
+    writeStatus _ _ = return ()
+
+getErrorLogs :: ConString -> Int ->  IO [(Int, String, String, String)]
+getErrorLogs cs turn = do
+  con <- aConnectRepeat cs
+  let mquery = "SELECT playerid, botmemory, botstderr, errormsg FROM errorlogs WHERE turn = ?;"
+  result <- aQuery con mquery [turn]
+  aClose con
+  return $ M.catMaybes $ map liftList result
+  where
+    liftList :: (Maybe Int, Maybe String, Maybe String, Maybe String) -> Maybe (Int, String, String, String)
+    liftList (Just a, b, c, d) = Just (a, M.fromMaybe "" b, M.fromMaybe "" c, M.fromMaybe "" d)
+    liftList _ = Nothing
+
+
 savePlayersStatus :: ConString -> [BH.Bot] -> IO ()
 savePlayersStatus cs bots = do
   con <- aConnectRepeat cs
 
-  aExecute con "CREATE TABLE IF NOT EXISTS snapshots (playerid SERIAL PRIMARY KEY, username VARCHAR, botdir VARCHAR, botmemory VARCHAR, botstderr VARCHAR, errormsg VARCHAR);"()
+  aExecute con "CREATE TABLE IF NOT EXISTS players (playerid SERIAL PRIMARY KEY, username VARCHAR, botdir VARCHAR, botmemory VARCHAR, botstderr VARCHAR, errormsg VARCHAR);"()
   _ <- mapM (writeStatus con) bots
   aClose con
   return ()

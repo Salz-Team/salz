@@ -10,5 +10,6 @@ data ViewerState = ViewerState
   , dbfilepath :: FilePath
   , board :: Map.Map
   , moves :: [(Int, Int, Int, Int)]
+  , errlogs :: Maybe [(Int, String, String, String)]
   }
 

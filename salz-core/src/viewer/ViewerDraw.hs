@@ -11,9 +11,11 @@ import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Graphics.Vty as V
+import qualified Data.Maybe as M
+import qualified Data.List as L
 
 drawUI :: VS.ViewerState -> [Widget ()]
-drawUI state = [ C.center $ hBox $ [drawBoard state, vBox [drawStats state, drawMoves state]] ]
+drawUI state = [ C.center $ hBox $ [drawBoard state, vBox [drawStats state, drawMoves state, drawErrorLog state]] ]
 
 drawBoard :: VS.ViewerState -> Widget ()
 drawBoard state = withBorderStyle BS.unicodeBold
@@ -52,6 +54,16 @@ drawMoves state = withBorderStyle BS.unicodeBold
     pretify (_, x, y, pid) = hBox [ withAttr (attrName $ fullAttr ++ (show (mod pid 6))) (str " ")
                                   , str ("  " ++ show pid ++ "    " ++ show x ++ "  " ++ show y)
                                   ]
+
+drawErrorLog :: VS.ViewerState -> Widget ()
+drawErrorLog state = withBorderStyle BS.unicodeBold
+ $ B.border
+ $ hLimit 100
+ $ vBox prettyErrors
+   where
+   prettyErrors = M.maybe [str "Press l while paused to see errorLogs."] prettyLogs (VS.errlogs state)
+   prettyLogs logs = map (\x -> strWrap (L.intercalate "\n" $ toStr x)) logs
+   toStr (a, b, c, d) = ["Bot " ++ (show a), "Memory:", b, "Stderr:", c, "Error Message:", d]
 
 emptyAttr = "emptyAttr"
 fullAttr = "fullAttr"

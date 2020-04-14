@@ -89,7 +89,7 @@ localGameLoop map_ pturn turnMax bots dbFilePath = do
   if (turn `mod` 100 == 0)
   then DB.saveSnapshot (Right dbFilePath) turn map'''
   else return ()
-  DB.savePlayersStatus (Right dbFilePath) bots'
+  DB.saveErrorLogs (Right dbFilePath) bots' turn
 
 
   if (turn >= turnMax)
