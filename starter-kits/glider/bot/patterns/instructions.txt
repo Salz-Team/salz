@@ -84,6 +84,15 @@ X
 ----
 XX
 ----
+# Blinker-to-glider
+----
+  *
+XXX
+----
+* X
+ XX
+ X
+----
 # Blinker-to-4-blinkers
 ----
  *

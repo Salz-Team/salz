@@ -69,13 +69,6 @@ toCoord (x, y) = C (toEnum x) (toEnum y)
 -- IO
 --------------------------------------------------------------------------------
 
-takeTurn :: ([(Coord, Int)] -> [Coord]) -> IO ()
-takeTurn f = do
-    raw <- getLine
-    let cells = parseMap raw
-    let commands = f cells
-    let commandString = intercalate " " $ map show $ commands
-    putStrLn $ "" ++ commandString
 
 parseMap :: String -> [(Coord, Int)]
 parseMap = format . map read . words
