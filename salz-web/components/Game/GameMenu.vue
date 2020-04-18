@@ -1,30 +1,22 @@
 <template>
   <div class="gameMenu-container">
     <div
-      class="gameUIContainer gameMenu-toggle"
       :class="{ active: menuIsActive }"
       @click="toggleMenuActivity"
+      class="gameUIContainer gameMenu-toggle"
     >
       <transition name="fade" mode="out-in">
-        <b-icon v-if="!menuIsActive" key="menuOpen" icon="menu" />
-        <b-icon v-else key="menuClose" icon="close" />
+        <b-icon key="menuOpen" v-if="!menuIsActive" icon="menu" />
+        <b-icon key="menuClose" v-else icon="close" />
       </transition>
     </div>
-    <div class="gameUIContainer gameMenu" :class="{ active: menuIsActive }">
+    <div :class="{ active: menuIsActive }" class="gameUIContainer gameMenu">
       <div v-for="(item, key) of menuItems" :key="key">
-        <button
-          v-if="item.type === 'action'"
-          class="menuItem"
-          @click="item.action"
-        >
+        <button v-if="item.type === 'action'" @click="item.action" class="menuItem">
           <b-icon :icon="item.icon" size="is-large" />
           {{ item.title }}
         </button>
-        <nuxt-link
-          v-else-if="item.type === 'link'"
-          class="menuItem"
-          :to="item.to"
-        >
+        <nuxt-link v-else-if="item.type === 'link'" :to="item.to" class="menuItem">
           <b-icon :icon="item.icon" size="is-large" />
           {{ item.title }}
         </nuxt-link>
@@ -146,7 +138,7 @@ export default {
           title: 'Guide',
           icon: 'book',
           type: 'link',
-          to: { name: 'guide' }
+          to: { name: 'guide' },
         },
         {
           title: 'Fullscreen',
@@ -154,7 +146,7 @@ export default {
           type: 'action',
           action: () => {
             fullscreen(this.wrapper);
-          }
+          },
         },
         {
           title: 'Hotkeys',
@@ -162,7 +154,7 @@ export default {
           type: 'action',
           action: () => {
             this.$store.dispatch('game/setShowHotkeys', !this.showHotkeys);
-          }
+          },
         },
         {
           title: 'Ranking',
@@ -170,7 +162,7 @@ export default {
           type: 'action',
           action: () => {
             this.$store.dispatch('game/setShowRanking', !this.showRanking);
-          }
+          },
         },
         {
           title: 'Help',
@@ -178,7 +170,7 @@ export default {
           type: 'action',
           action: () => {
             this.$store.dispatch('game/setShowHelp', !this.showHelp);
-          }
+          },
         },
         {
           title: 'Hide UI',
@@ -186,18 +178,18 @@ export default {
           type: 'action',
           action: () => {
             this.$store.dispatch('game/hideUI');
-          }
-        }
-      ]
+          },
+        },
+      ],
     };
   },
   computed: {
     ...mapState({
-      menuIsActive: (state) => state.game.menuIsActive,
-      showHotkeys: (state) => state.game.showHotkeys,
-      showRanking: (state) => state.game.showRanking,
-      showHelp: (state) => state.game.showHelp
-    })
+      menuIsActive: state => state.game.menuIsActive,
+      showHotkeys: state => state.game.showHotkeys,
+      showRanking: state => state.game.showRanking,
+      showHelp: state => state.game.showHelp,
+    }),
   },
   mounted() {
     this.wrapper = document.querySelector('#salz-game-inner-view');
@@ -205,7 +197,7 @@ export default {
   methods: {
     toggleMenuActivity() {
       this.$store.dispatch('game/setMenuIsActive', !this.menuIsActive);
-    }
-  }
+    },
+  },
 };
 </script>

@@ -2,21 +2,19 @@
   <div class="gameUIContainer ranking-ui">
     <div class="ranking-ui__header">
       <h2>Ranking</h2>
-      <button class="closeUI" @click="closeUI">
+      <button @click="closeUI" class="closeUI">
         <b-icon icon="close" />
       </button>
     </div>
     <div class="ranking-ui__body">
-      Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy
-      nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut
-      wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit
-      lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum
-      iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel
-      illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto
-      odio dignissim qui blandit praesent luptatum zzril delenit augue duis
-      dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis
-      eleifend option congue nihil imperdiet doming id quod mazim placerat facer
-      possim assum.
+      Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod
+      tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis
+      nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
+      Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel
+      illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui
+      blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Nam liber
+      tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat
+      facer possim assum.
     </div>
   </div>
 </template>
@@ -73,13 +71,13 @@ export default {
   },
   computed: {
     ...mapState({
-      showRanking: (state) => state.game.showRanking
-    })
+      showRanking: state => state.game.showRanking,
+    }),
   },
   methods: {
     closeUI() {
       this.$store.dispatch('game/setShowRanking', !this.showRanking);
-    }
-  }
+    },
+  },
 };
 </script>

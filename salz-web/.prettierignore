@@ -1,0 +1,22 @@
+STRAT
+specs/
+
+# node.js
+node_modules/
+coverage/
+dist/
+
+# nuxt
+.nuxt/
+
+# Docker
+Dockerfile
+
+# images
+*.png
+*.jpg
+*.ico
+*.svg
+
+# ignores for files that Prettier cannot infer
+*.sass

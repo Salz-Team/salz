@@ -1,8 +1,6 @@
 let isFullscreen = false;
 document.cancelFullScreen =
-  document.cancelFullScreen ||
-  document.webkitCancelFullScreen ||
-  document.mozCancelFullScreen;
+  document.cancelFullScreen || document.webkitCancelFullScreen || document.mozCancelFullScreen;
 
 function onFullscreenChange() {
   isFullscreen = !isFullscreen;

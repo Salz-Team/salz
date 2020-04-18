@@ -5,11 +5,11 @@ export const state = () => ({
   isLoggedIn: false,
   token: null,
   username: null,
-  id: null
+  id: null,
 });
 
 export const mutations = {
-  loginRequest: (state) => {
+  loginRequest: state => {
     state.status = 'logging in';
   },
   loginSuccess: (state, value) => {
@@ -21,23 +21,23 @@ export const mutations = {
     state.username = p.login;
     state.id = p.id;
   },
-  loginFailure: (state) => {
+  loginFailure: state => {
     state.status = 'login failed';
     state.isLoggedIn = false;
     state.token = null;
     state.username = null;
     state.id = null;
   },
-  logoutRequest: (state) => {
+  logoutRequest: state => {
     state.status = 'logging out';
   },
-  logoutSuccess: (state) => {
+  logoutSuccess: state => {
     state.status = 'logged out';
     state.isLoggedIn = false;
     state.token = null;
     state.username = null;
     state.id = null;
-  }
+  },
 };
 
 export const actions = {
@@ -49,7 +49,7 @@ export const actions = {
       const parsedJwt = parseJWT(jwt);
       const user = {
         username: parsedJwt.login,
-        id: parsedJwt.id
+        id: parsedJwt.id,
       };
       sessionStorage.setItem('user', JSON.stringify(user));
       commit('loginSuccess', jwt);
@@ -68,7 +68,7 @@ export const actions = {
       if (storedUser === null) {
         const user = {
           username: parsedJwt.login,
-          id: parsedJwt.id
+          id: parsedJwt.id,
         };
         sessionStorage.setItem('user', JSON.stringify(user));
       }
@@ -84,12 +84,12 @@ export const actions = {
     sessionStorage.removeItem('user');
     this.$axios.setHeader('Authorization:Bearer', null);
     commit('logoutSuccess');
-  }
+  },
 };
 
 export const getters = {
-  token: (state) => state.token,
-  username: (state) => state.username,
-  id: (state) => state.id,
-  isLoggedIn: (state) => state.isLoggedIn
+  token: state => state.token,
+  username: state => state.username,
+  id: state => state.id,
+  isLoggedIn: state => state.isLoggedIn,
 };

@@ -13,19 +13,17 @@
     <button @click.prevent.stop="forwardFrame">
       <b-icon icon="step-forward" />
     </button>
-    <button class="speed-button" @click.prevent.stop="toggleSpeed">
-      {{ speed }}x
-    </button>
+    <button @click.prevent.stop="toggleSpeed" class="speed-button">{{ speed }}x</button>
     <div class="frame-progress-container">
       <input
         id="frame-progress"
-        name="frame-progress"
         :title="currentFrameNumber"
-        type="range"
-        min="0"
         :max="lastFrame"
         :value="currentFrameNumber"
         @input="setFrame"
+        name="frame-progress"
+        type="range"
+        min="0"
       />
     </div>
   </div>
@@ -106,15 +104,15 @@ export default {
     return {
       speed: 1,
       nowPlayingClock: null,
-      progress: 0
+      progress: 0,
     };
   },
   computed: {
     ...mapState({
-      currentFrameNumber: (state) => state.game.activeFrame,
-      lastFrame: (state) => state.game.lastFrame,
-      isPlaying: (state) => state.game.nowPlaying
-    })
+      currentFrameNumber: state => state.game.activeFrame,
+      lastFrame: state => state.game.lastFrame,
+      isPlaying: state => state.game.nowPlaying,
+    }),
   },
   methods: {
     togglePlayPause() {
@@ -175,7 +173,7 @@ export default {
     setFrame() {
       const index = document.querySelector('#frame-progress').value;
       this.$store.dispatch('game/setActiveFrame', index);
-    }
-  }
+    },
+  },
 };
 </script>

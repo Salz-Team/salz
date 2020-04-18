@@ -23,23 +23,17 @@ export default class Cell extends Sprite {
     this.position.set(x * 10, -y * 10);
     this.interactive = true;
 
-    this.on('mouseover', (event) => {
+    this.on('mouseover', event => {
       let cellInfoBox;
       const delay = setTimeout(() => {
         const oriEvent = event.data.originalEvent;
         const cellInfoObj = {
           owner: this.owner,
           x: this.cellx,
-          y: this.celly
+          y: this.celly,
         };
-        cellInfoBox = new CellInfoBox(
-          oriEvent.clientX,
-          oriEvent.clientY,
-          cellInfoObj
-        );
-        document
-          .querySelector('#salz-game-inner-view')
-          .appendChild(cellInfoBox);
+        cellInfoBox = new CellInfoBox(oriEvent.clientX, oriEvent.clientY, cellInfoObj);
+        document.querySelector('#salz-game-inner-view').appendChild(cellInfoBox);
       }, 200);
 
       // once we leave the cell, remove cellInfoBox
@@ -48,9 +42,7 @@ export default class Cell extends Sprite {
         clearTimeout(delay);
         if (typeof cellInfoBox !== 'undefined') {
           setTimeout(() => {
-            document
-              .querySelector('#salz-game-inner-view')
-              .removeChild(cellInfoBox);
+            document.querySelector('#salz-game-inner-view').removeChild(cellInfoBox);
           }, 100);
         }
 

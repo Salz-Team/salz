@@ -1,5 +1,5 @@
 <template>
-  <div class="container column is-12" @dragover.prevent @drop.stop.prevent>
+  <div @dragover.prevent @drop.stop.prevent class="container column is-12">
     <section class="section">
       <div class="is-mobile">
         <h1>
@@ -14,21 +14,17 @@
           <div class="account-info-table-names">
             <b><b-icon icon="upload" /> Upload bot</b>
           </div>
-          <form
-            method="post"
-            accept-charset="utf-8"
-            @submit.prevent="submitBot"
-          >
+          <form @submit.prevent="submitBot" method="post" accept-charset="utf-8">
             <label id="botname-label" for="botname">
               Bot name
               <input
-                v-if="botfile !== null"
                 id="bot"
-                type="text"
+                v-if="botfile !== null"
                 :value="botfile.name"
+                type="text"
                 name="bot"
               />
-              <input v-else id="bot" type="text" value="" name="bot" />
+              <input id="bot" v-else type="text" value="" name="bot" />
             </label>
             <div
               id="drop_zone"
@@ -39,30 +35,25 @@
               @dragover.prevent
               @dragend="isDraggedOver = false"
             >
-              <label
-                v-if="botfile === null"
-                id="input-bot-label"
-                for="input-bot"
-              >
-                Click or drop your <code>&lt;botname&gt;.tar.gz</code> file
-                here.
+              <label id="input-bot-label" v-if="botfile === null" for="input-bot">
+                Click or drop your <code>&lt;botname&gt;.tar.gz</code> file here.
                 <input
                   id="input-bot"
                   ref="file"
+                  @change="fileInputHandler"
                   name="bot"
                   accept=".tar.gz"
                   type="file"
-                  @change="fileInputHandler"
                 />
               </label>
               <div v-if="botfile !== null" class="botfile-container">
                 <span><b-icon icon="zip-box" /> {{ botfile.file.name }}</span>
-                <button class="bot-remove-button" @click="botfile = null">
+                <button @click="botfile = null" class="bot-remove-button">
                   <b-icon icon="close" />
                 </button>
               </div>
             </div>
-            <button type="Submit" :disabled="botfile == null">Submit</button>
+            <button :disabled="botfile == null" type="Submit">Submit</button>
             {{ uploadMsg }}
           </form>
         </div>
@@ -160,18 +151,18 @@ export default {
     return {
       user: {
         username: null,
-        id: null
+        id: null,
       },
       botfile: null,
       isDraggedOver: false,
-      uploadMsg: ''
+      uploadMsg: '',
     };
   },
   mounted() {
     this.$store.dispatch('login/grabToken');
     this.user = {
       username: this.$store.state.login.username,
-      id: this.$store.state.login.id
+      id: this.$store.state.login.id,
     };
     if (this.user.username === null) {
       this.$router.push({ name: 'index' });
@@ -186,7 +177,7 @@ export default {
             const file = ev.dataTransfer.items[i].getAsFile();
             this.botfile = {
               name: this.getBotname(file),
-              file
+              file,
             };
           }
         }
@@ -196,7 +187,7 @@ export default {
       const file = this.$refs.file.files[0];
       this.botfile = {
         name: this.getBotname(file),
-        file
+        file,
       };
     },
     submitBot(ev) {
@@ -205,8 +196,8 @@ export default {
       this.$axios
         .$post('/user/upload', formdata, {
           headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+            'Content-Type': 'multipart/form-data',
+          },
         })
         .then(() => {
           this.uploadMsg = 'Bot successfully uploaded!';
@@ -223,7 +214,7 @@ export default {
      */
     getBotname(file) {
       return file.name.replace('.tar.gz', '');
-    }
-  }
+    },
+  },
 };
 </script>

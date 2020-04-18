@@ -4,7 +4,7 @@
 
 ## Build Setup
 
-``` bash
+```bash
 # install dependencies
 $ npm install
 
@@ -23,4 +23,4 @@ For detailed explanation on how things work, check out [Nuxt.js docs](https://nu
 
 ## Dev Notes
 
-* For tentative colorscheme reference, see `specs/Color show off.png`.
+- For tentative colorscheme reference, see `specs/Color show off.png`.

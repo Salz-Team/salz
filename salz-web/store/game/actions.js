@@ -65,5 +65,5 @@ export default {
   },
   showUI({ commit }) {
     commit('setHiddenUI', false);
-  }
+  },
 };

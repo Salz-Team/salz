@@ -1,13 +1,19 @@
 @import '~assets/css/bulma-configs';
 @import '~assets/css/colors';
 
-html, body {
+html,
+body {
   background: var(--body-bg-color);
   color: var(--body-fg-color);
   overflow-y: visible;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin-top: 20px;
 
   small {
@@ -71,4 +77,3 @@ h6 {
     cursor: pointer;
   }
 }
-

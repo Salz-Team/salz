@@ -1,8 +1,6 @@
 <template>
   <div class="container column is-12">
-    <section class="section">
-      Logging in with <b-icon icon="github-circle" /> Github
-    </section>
+    <section class="section">Logging in with <b-icon icon="github-circle" /> Github</section>
   </div>
 </template>
 
@@ -44,6 +42,6 @@ export default {
     setTimeout(() => {
       this.$router.push({ name: 'index' });
     }, 200);
-  }
+  },
 };
 </script>

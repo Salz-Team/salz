@@ -25,6 +25,6 @@ export default {
       this.$store.dispatch('login/dropToken');
       this.$router.push({ name: 'index' });
     }, 300);
-  }
+  },
 };
 </script>

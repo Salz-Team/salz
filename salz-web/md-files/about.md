@@ -34,4 +34,3 @@ If two players cells are next to each other the game of life rules continue
 as normal. The only extension is that when a new cell is created, it belongs
 to the player who has the most cells around it (if the number of players
 are tied then the order should be random, which is not yet implemented).
-

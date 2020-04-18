@@ -1,19 +1,11 @@
 <template>
-  <nav
-    class="navbar header has-shadow is-primary"
-    role="navigation"
-    aria-label="main navigation"
-  >
+  <nav class="navbar header has-shadow is-primary" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
       <a class="navbar-item" href="/">
-        <img
-          src="/assets/images/full-logo/full-logo@96h-white.png"
-          alt="salz"
-          height="28"
-        />
+        <img src="/assets/images/full-logo/full-logo@96h-white.png" alt="salz" height="28" />
       </a>
 
-      <div class="navbar-burger" @click="toggleNavbar">
+      <div @click="toggleNavbar" class="navbar-burger">
         <span />
         <span />
         <span />
@@ -29,9 +21,7 @@
       </ul>
       <ul v-if="isLoggedIn" class="navbar-end">
         <li @click="closeNavbar">
-          <nuxt-link to="account">
-            <b-icon icon="account" /> {{ username }}
-          </nuxt-link>
+          <nuxt-link to="account"> <b-icon icon="account" /> {{ username }} </nuxt-link>
         </li>
         <li @click="closeNavbar">
           <nuxt-link to="logout"><b-icon icon="logout" /> Logout</nuxt-link>
@@ -129,29 +119,29 @@ export default {
         {
           title: 'Home',
           icon: 'home',
-          to: { name: 'index' }
+          to: { name: 'index' },
         },
         {
           title: 'About',
           icon: 'book',
-          to: { name: 'about' }
+          to: { name: 'about' },
         },
         {
           title: 'Game',
           icon: 'gamepad',
-          to: { name: 'game' }
-        }
+          to: { name: 'game' },
+        },
       ],
-      loginurl: process.env.apiurl + '/login?client=web'
+      loginurl: process.env.apiurl + '/login?client=web',
     };
   },
   computed: {
     ...mapState({
-      isLoggedIn: (state) => state.login.isLoggedIn,
-      token: (state) => state.login.token,
-      username: (state) => state.login.username,
-      id: (state) => state.login.id
-    })
+      isLoggedIn: state => state.login.isLoggedIn,
+      token: state => state.login.token,
+      username: state => state.login.username,
+      id: state => state.login.id,
+    }),
   },
   methods: {
     toggleNavbar() {
@@ -167,7 +157,7 @@ export default {
       if (navMenu.classList.contains('active')) {
         navMenu.classList.remove('active');
       }
-    }
-  }
+    },
+  },
 };
 </script>

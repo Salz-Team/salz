@@ -34,5 +34,5 @@ export default {
   },
   setShowHelp: (state, b) => {
     state.showHelp = b;
-  }
+  },
 };

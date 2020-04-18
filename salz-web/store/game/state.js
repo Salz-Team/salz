@@ -9,5 +9,5 @@ export default () => ({
   menuIsActive: false,
   showHotkeys: false,
   showRanking: false,
-  showHelp: false
+  showHelp: false,
 });
