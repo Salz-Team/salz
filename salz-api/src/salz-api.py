@@ -21,9 +21,7 @@ oauth = OAuth(app)
 app.config['APPLICATION_ROOT'] = "/api"
 # app.config['SERVER_NAME'] = "salz.life/api/"
 
-
 # Load up env vars
-
 PGDB = os.getenv("POSTGRES_DB", "postgres")
 PGUSER = os.getenv("POSTGRES_USER", "postgres")
 PGPASS = os.getenv("POSTGRES_PASSWORD", "mysecretpassword")
@@ -34,7 +32,8 @@ WEBHOST = os.getenv("WEB_HOST", "http://localhost:3000")
 
 BOTLOCATION = os.getenv("BOTLOCATION", ".")
 
-
+SNAPSHOT_DEFAULT_HISTORY = 500 # 500 turns is ~ 5 snapshots?
+TURNS_DEFAULT_HISTORY = 100 # should cover whatever the last snapshot is
 
 oauth.register(
     name='github',
@@ -48,9 +47,7 @@ oauth.register(
     api_base_url='https://api.github.com/',
     access_token_url='https://github.com/login/oauth/access_token',
     authorize_url='https://github.com/login/oauth/authorize'
-
 )
-
 
 def jwtobject(header):
     schema, token = header.split(' ')
@@ -89,7 +86,6 @@ def userdata():
 @jwt_auth
 @db_session
 def userupload():
-
     f = request.files['bot']
 
     # get username from JWT, then playerid
@@ -203,7 +199,15 @@ wait_for_connection()
 set_sql_debug(True)
 
 # classes corresponding to tables in the db
-class Game(db.Entity):
+class Snapshots(db.Entity):
+    id = PrimaryKey(int, auto=True)
+    turnid = Required(int)
+    x = Required(int)
+    y = Required(int)
+    playerid = Required(int)
+    generated_at = Required(datetime.datetime)
+
+class Moves(db.Entity):
     id = PrimaryKey(int, auto=True)
     turnid = Required(int)
     x = Required(int)
@@ -217,64 +221,118 @@ class Players(db.Entity):
     botdir = Optional(str)
     updatedbot = Required(bool)
     newbotdir = Optional(str)
-    botstatus = Optional(str)
+    botmemory = Optional(str)
+    botstderr = Optional(str)
+    errormsg = Optional(str)
 
 # so pony knows how the Game class relates to the Game table
 db.generate_mapping()
 
-# things accessing the db need to have the db_session decorator
-@app.route('/frames')
 @db_session
-def get_frames():
+def get_latest_turnid_move():
+    return max(m.turnid for m in Moves)
+
+@db_session
+def get_latest_snapshot_turnid():
+    return max(s.turnid for s in Snapshots)
+
+@app.route('/moves')
+@db_session
+def get_moves():
     args = request.args
+    # if start and end: range select
+    # if start: all moves between start and latest
+    # if end: all moves between 0 and end.
+    # if neither start nor end: default moves history (from latest snapshot)
 
-    latest_turnid = db.select('* FROM get_latest_turnid()')[0]
-
-    # validate some shit
-
-    # Make sure there's gamedata, if not, return empty frames
-    if latest_turnid == None:
-        response = app.response_class(
-                response = json.dumps({"frames" : []}),
-                status = 200,
-                mimetype='application/json')
-        return response
-
-    # Check for query string args
-    if ('startframe' in args) and ('endframe' in args):
-
-        try:
-            sf = int(args['startframe'])
-            ef = int(args['endframe'])
-        except ValueError as e:
-            return abort(400)
-
-        startFrame = sf
-        endFrame = ef
-    elif ('numframes' in args):
-
-        try:
-            nf = int(args['numframes'])
-        except ValueError as e:
-            return abort(400)
-
-        endFrame = latest_turnid
-        startFrame = endFrame - nf
-
+    if ('start' in args) and ('end' in args):
+        start = int(args['start'])
+        end = int(args['end'])
     else:
-        endFrame = latest_turnid
-        startFrame = endFrame - DEFAULT_TURNHISTORY
+        latest_snap = get_latest_snapshot_turnid()
+        latest_turn = get_latest_turnid_move()
+        start = int(args['start']) if ('start' in args) else latest_snap
+        end = int(args['end']) if ('end' in args) else latest_turn
 
-    frames = db.select('* from get_frames($startFrame, $endFrame)')
-
-    # pony not decoding the json, so I guess I gotta.
-    jsonframes = [json.loads(x) for x in frames]
+    # validate start/end
+    if not ((start >= 0) and (end >= start)):
+        return "fuck whatever the bad input code is"
 
     response = app.response_class(
-            response = json.dumps({"frames" : jsonframes}),
+            response = json.dumps(getturns(start, end)),
             status = 200,
             mimetype='application/json')
     return response
+
+@app.route('/snapshots')
+@db_session
+def get_snapshots():
+    args = request.args
+    # if start and end: range select
+    # if start: all snapshots between start and latest
+    # if end: all snapshots between 0 and end.
+    # if neither start nor end: default snapshot history (latest - 500 turns?)
+
+    if ('start' in args) and ('end' in args):
+        start = int(args['start'])
+        end = int(args['end'])
+        
+    else:
+        latest_turn = get_latest_snapshot_turnid()
+        end = int(args['end']) if ('end' in args) else latest_turn
+        start = int(args['start']) if ('start' in args) else max(latest_turn - SNAPSHOT_DEFAULT_HISTORY, 0)
+        
+    # validate start/end
+    if not ((start >= 0) and (end >= start)):
+        return "fuck whatever the bad input code is"
+
+    response = app.response_class(
+            response = json.dumps(getsnaps(start, end)),
+            status = 200,
+            mimetype='application/json')
+
+    return response
+    
+@db_session
+def getsnaps(start, end):
+    snaps = []
+    # TODO: write this as a stored procedure for zooms.
+    
+    # get the unique turns associated with snapshots
+    turns = select(s.turnid for s in Snapshots if s.turnid >= start and s.turnid <= end)[:]
+    for t in turns:
+        rows = select(s for s in Snapshots if s.turnid == t)[:]
+        cells = []
+        for row in rows:
+            cells.append({'playerid': row.playerid,
+                'x': row.x,
+                'y': row.y
+            })
+        snaps.append({'cells': cells,
+            'turnid': t
+        })
+    return snaps
+
+@db_session
+def getturns(start, end):
+    turns = []
+
+    for turnid in range(start, end+1):
+        # get players
+        turn = select(t for t in Moves if t.turnid == turnid)[:]
+        players = {}
+        # players as dict for "quick and/or easy construction"
+        # converted to proper list format after.
+        # fuck this db schema. I hate that I was dumb enough to think of this.
+        for t in turn:
+            pid = t.playerid
+            move = {'x': t.x, 'y': t.y}
+            players[pid] = players[pid] + [move] if pid in players else [move]
+
+        playerlist = [{'playerid': k, 'moves' : v} for k,v in players.items()]
+        turns.append({'turnid': turnid, 'players': playerlist})
+
+    return turns
 
 if __name__ == '__main__':
     app.debug = True
