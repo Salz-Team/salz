@@ -28,17 +28,17 @@
         </li>
       </ul>
       <ul v-if="isLoggedIn" class="navbar-end">
-        <li @click="toggleNavbar">
+        <li @click="closeNavbar">
           <nuxt-link to="account">
             <b-icon icon="account" /> {{ username }}
           </nuxt-link>
         </li>
-        <li @click="toggleNavbar">
+        <li @click="closeNavbar">
           <nuxt-link to="logout"><b-icon icon="logout" /> Logout</nuxt-link>
         </li>
       </ul>
       <ul v-else class="navbar-end">
-        <li @click="toggleNavbar">
+        <li @click="closeNavbar">
           <a :href="loginurl"><b-icon icon="login" /> Login</a>
         </li>
       </ul>
@@ -122,6 +122,7 @@ ul {
 import { mapState } from 'vuex';
 
 export default {
+  name: 'Navbar',
   data() {
     return {
       items: [
@@ -154,13 +155,17 @@ export default {
   },
   methods: {
     toggleNavbar() {
-      if (window.outerWidth <= 1023) {
-        const navMenu = document.querySelector('.navbar-menu');
-        if (navMenu.classList.contains('active')) {
-          navMenu.classList.remove('active');
-        } else {
-          navMenu.classList.add('active');
-        }
+      const navMenu = document.querySelector('.navbar-menu');
+      if (navMenu.classList.contains('active')) {
+        navMenu.classList.remove('active');
+      } else {
+        navMenu.classList.add('active');
+      }
+    },
+    closeNavbar() {
+      const navMenu = document.querySelector('.navbar-menu');
+      if (navMenu.classList.contains('active')) {
+        navMenu.classList.remove('active');
       }
     }
   }
