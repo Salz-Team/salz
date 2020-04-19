@@ -13,16 +13,10 @@ export class Cell {
     this.owner = -1;
     this.x = x;
     this.y = y;
-    this.isAlive = false;
-    this.nextState = false;
   }
 
   equals = cell => {
     return cell.x === this.x && cell.y === this.y;
-  };
-
-  iterate = () => {
-    this.isAlive = this.nextState;
   };
 }
 
@@ -33,58 +27,85 @@ export class Cell {
  */
 export default class Grid {
   /**
-   * @param {number} w    The width of the grid
-   * @param {number} h    The height of the grid
+   * @param {number} size    The width and height of grid
    */
-  constructor(w, h) {
+  constructor(size) {
     const cells = [];
-    for (let i = 1; i <= w; i++) {
-      for (let j = 1; j <= h; j++) {
-        cells.push(new Cell(i, j));
-      }
-    }
 
-    this.w = w;
-    this.h = h;
+    this.size = size;
     this.cells = cells;
   }
 
   /**
    * Iterates the grid to the next state
+   * turnMoves format is [move], where move.x is x and move.y is y
    */
   next(turnMoves = []) {
-    turnMoves.players.forEach(player => {
-      player.moves.forEach(move => {
-        const targetCellIndex = this.cells.findIndex(cell => cell.equals(move));
-        if (targetCellIndex !== -1) {
-          this.cells[targetCellIndex].isAlive = true;
-          this.cells[targetCellIndex].nextState = true;
-        }
-      });
-    });
+    /////////////////////////Apply Player Commands///////////////////////////////
+    for (let move_ in turnMoves){
+      const move = new Cell(move_.x, move_.y);
+      move.owner = move_.owner;
 
-    this.cells.forEach(cell => {
-      const aliveNeighbours = this.getNeighboursOf(cell).filter(neighbour => neighbour.isAlive);
+      if (this.cells.filter(cell => move.equals(cell))){
+        this.cells = this.cells.filter(cell => !move.equals(cell));
+      } else {
+        this.cells.push(move):
+      }
+    };
 
-      if (cell.isAlive) {
-        if (aliveNeighbours.length < 2 || aliveNeighbours.length > 3) cell.nextState = false;
-        else cell.nextState = true;
-      } else if (aliveNeighbours.length === 3) cell.nextState = true;
-      else cell.nextState = false;
-    });
-    this.cells.forEach(cell => cell.iterate());
+
+    /////////////////////////Step Game of Life///////////////////////////////////
+    const isAlive = cell => {
+      return this.cells.includes(cell);
+    };
+
+    const getEmptyNeighboursOf = cell => {
+      return [for (x of [-1, 0, 1]) for (y of [-1, 0, 1]) new Cell(x, y)].filter(cell => !isAlive(cell));
+    };
+
+    const getAliveNeighboursOf = cell => {
+      return [for (x of [-1, 0, 1]) for (y of [-1, 0, 1]) new Cell(x, y)].filter(isAlive);
+    };
+
+    const isBorn = cell => {
+      const numAliveNeighbours = getAliveNeighboursOf(cell).length;
+      if (numAliveNeighbours == 3){
+        return true ;
+      } else {
+        return false ;
+      }
+    };
+
+    const setOwner = cell => {
+      const aliveNeighbours = getAliveNeighboursOf(cell);
+      // most should return the pid that occures most in aliveNeighbours
+      // if there is a tie, pick the highest pid
+      cell.owner = most(aliveNeighbours);
+      return cell
+    };
+
+    const isHealthy = cell => {
+      const numAliveNeighbours = getAliveNeighboursOf(cell).length;
+      if ( [2,3].includes(numAliveNeighbours) ){
+        return true ;
+      } else {
+        return false ;
+      }
+    };
+
+
+    //                unique            ( neighbours                             )
+    const emptyNeighbours = Array.from(new Set( this.cells.map(getEmptyNeighboursOf).flat()));
+
+    const newCells = emptyNeighbours.filter(isBorn).map(setOwner);
+
+
+    const stillAliveCells = this.cells.filter(isHealthy)
+
+    // step turn
+    this.cells = [...newCells, ...stillAliveCells];
   }
 
-  getNeighboursOf = cell => {
-    return this.cells.filter(gridCell => {
-      const diffx = Math.abs(gridCell.x - cell.x);
-      const diffy = Math.abs(gridCell.y - cell.y);
-
-      if (diffx === 0 && diffy === 0) return false;
-
-      if (diffx <= 1 && diffy <= 1) return true;
-    });
-  };
 
   mountSnapshot = snapshot => {
     snapshot.cells.forEach(cell => {
