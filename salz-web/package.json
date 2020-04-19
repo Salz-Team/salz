@@ -12,7 +12,8 @@
     "test": "npm run prettier:check && npm run lint && jest",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "prettier:check": "prettier --check \"./**/*.{js,json,vue,scss,md}\"",
-    "prettier:write": "prettier --write \"./**/*.{js,json,vue,scss,md}\""
+    "prettier:write": "prettier --write \"./**/*.{js,json,vue,scss,md}\"",
+    "lint:fix": "eslint --fix --ext .js,.vue --ignore-path .gitignore ."
   },
   "lint-staged": {
     "*.{js,vue}": "eslint"
