@@ -6,7 +6,7 @@ import qualified Map as Map
 data ViewerState = ViewerState
   { turn :: Int
   , play :: Bool
-  , location :: (Int, Int)
+  , location :: Map.Coord
   , dbfilepath :: FilePath
   , board :: Map.Map
   , moves :: [(Int, Int, Int, Int)]

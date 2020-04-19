@@ -38,7 +38,7 @@ instance Read MInt where
   readPrec = fmap fromInteger readPrec
 
 instance Enum MInt where
-  toEnum i = I $ toEnum i
+  toEnum i = I $ (toEnum i) `mod` mapSize
   fromEnum (I a) = fromInteger $ a `mod` mapSize
 
 --------------------------------------------------------------------------------

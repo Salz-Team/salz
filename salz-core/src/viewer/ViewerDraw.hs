@@ -23,9 +23,9 @@ drawBoard state = withBorderStyle BS.unicodeBold
   $ vBox rows
   where
     map_ = VS.board state
-    (vx, vy) = VS.location state
+    (Map.C vx vy) = VS.location state
     rows = [hBox $ cellsInRow r | r <- [99,98..0]]
-    cellsInRow y = [drawCoord (Map.toCoord (x+vx, y+vy)) | x <- [0..99]]
+    cellsInRow y = [drawCoord $ Map.C ((Map.I x)+vx) ((Map.I y)+vy) | x <- [0..99]]
     drawCoord = drawCell . (Map.getCellAt map_)
 
 drawCell :: Maybe Int -> Widget ()
