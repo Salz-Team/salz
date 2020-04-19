@@ -30,10 +30,10 @@ export default class Grid {
    * @param {number} size    The width and height of grid
    */
   constructor(size) {
-    const cells = [];
+    const activeCells = [];
 
     this.size = size;
-    this.cells = cells;
+    this.cells = activeCells;
   }
 
   /**
@@ -41,81 +41,98 @@ export default class Grid {
    * turnMoves format is [move], where move.x is x and move.y is y
    */
   next(turnMoves = []) {
-    /////////////////////////Apply Player Commands///////////////////////////////
-    for (let move_ in turnMoves){
-      const move = new Cell(move_.x, move_.y);
-      move.owner = move_.owner;
+    /*
+     * Apply Player Commands
+     */
+    for (const move of turnMoves) {
+      const filp = new Cell(move.x, move.y);
+      filp.owner = move.owner;
 
-      if (this.cells.filter(cell => move.equals(cell))){
-        this.cells = this.cells.filter(cell => !move.equals(cell));
+      if (this.cells.filter(cell => filp.equals(cell))) {
+        this.cells = this.cells.filter(cell => !filp.equals(cell));
       } else {
-        this.cells.push(move):
+        this.cells.push(move);
       }
+    }
+
+    /*
+     * Step Game of Life
+     */
+    const isAlive = cell => {
+      return this.cells.filter(c => c.equals(cell)).length !== 0;
     };
 
+    const getNeighboursOf = cell => {
+      const neighbours = [];
+      for (const i of [-1, 0, 1]) {
+        for (const j of [-1, 0, 1]) {
+          const newCell = new Cell(cell.x + i, cell.y + j);
+          const gridCell = this.cells.filter(oldCell => oldCell.equals(newCell));
 
-    /////////////////////////Step Game of Life///////////////////////////////////
-    const isAlive = cell => {
-      return this.cells.includes(cell);
+          if (gridCell.length !== 0) neighbours.push(...gridCell);
+          else neighbours.push(newCell);
+        }
+      }
+
+      return neighbours;
     };
 
     const getEmptyNeighboursOf = cell => {
-      return [for (x of [-1, 0, 1]) for (y of [-1, 0, 1]) new Cell(x, y)].filter(cell => !isAlive(cell));
+      return getNeighboursOf(cell).filter(cell => !isAlive(cell));
     };
 
     const getAliveNeighboursOf = cell => {
-      return [for (x of [-1, 0, 1]) for (y of [-1, 0, 1]) new Cell(x, y)].filter(isAlive);
+      return getNeighboursOf(cell).filter(isAlive);
     };
 
     const isBorn = cell => {
       const numAliveNeighbours = getAliveNeighboursOf(cell).length;
-      if (numAliveNeighbours == 3){
-        return true ;
-      } else {
-        return false ;
-      }
+      return numAliveNeighbours === 3;
+    };
+
+    const most = aliveNeighbours => {
+      const playersCount = {};
+      aliveNeighbours.forEach(neighbour => {
+        const { owner } = neighbour;
+        if (owner !== -1) playersCount[owner] = playersCount[owner] ? playersCount[owner] + 1 : 1;
+      });
+
+      // The game rules is such that players that join later have a priority
+      // in gaining new cells, hence we need to reverse the array of keys
+      return Object.keys(playersCount)
+        .reverse()
+        .reduce((a, b) => {
+          return playersCount[a] > playersCount[b] ? a : b;
+        });
     };
 
     const setOwner = cell => {
       const aliveNeighbours = getAliveNeighboursOf(cell);
-      // most should return the pid that occures most in aliveNeighbours
-      // if there is a tie, pick the highest pid
       cell.owner = most(aliveNeighbours);
-      return cell
+      return cell;
     };
 
     const isHealthy = cell => {
       const numAliveNeighbours = getAliveNeighboursOf(cell).length;
-      if ( [2,3].includes(numAliveNeighbours) ){
-        return true ;
-      } else {
-        return false ;
-      }
+      return [2, 3].includes(numAliveNeighbours);
     };
 
-
     //                unique            ( neighbours                             )
-    const emptyNeighbours = Array.from(new Set( this.cells.map(getEmptyNeighboursOf).flat()));
+    const emptyNeighbours = Array.from(new Set(this.cells.map(getEmptyNeighboursOf).flat()));
 
     const newCells = emptyNeighbours.filter(isBorn).map(setOwner);
 
-
-    const stillAliveCells = this.cells.filter(isHealthy)
+    const stillAliveCells = this.cells.filter(isHealthy);
 
     // step turn
     this.cells = [...newCells, ...stillAliveCells];
   }
 
-
   mountSnapshot = snapshot => {
     snapshot.cells.forEach(cell => {
-      this.cells.forEach((gridCell, i) => {
-        if (gridCell.equals(cell)) {
-          this.cells[i].owner = cell.playerid;
-          this.cells[i].isAlive = true;
-          this.cells[i].nextState = true;
-        }
-      });
+      const newCell = new Cell(cell.x, cell.y);
+      newCell.owner = cell.playerid;
+      this.cells.push(newCell);
     });
   };
 }

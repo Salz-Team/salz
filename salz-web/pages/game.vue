@@ -149,9 +149,7 @@ export default {
     await this.grid.mountSnapshot(this.snapshots[0]);
 
     this.grid.cells.forEach(cell => {
-      if (cell.isAlive) {
-        this.viewport.addChild(new Cell(cell.owner, cell.x, cell.y, this.cellcolors[0]));
-      }
+      this.viewport.addChild(new Cell(cell.owner, cell.x, cell.y, this.cellcolors[0]));
     });
     this.turn = this.snapshots[0].turnid;
 
@@ -172,18 +170,16 @@ export default {
   },
   methods: {
     iterate() {
-      const nextMove = this.moves.filter(move => move.turnid === this.turn);
-      if (nextMove) {
-        this.grid.next(nextMove[0]);
+      const nextMoves = this.moves.filter(moves => moves.turnid === this.turn);
+      if (nextMoves) {
+        this.grid.next(nextMoves[0].moves);
         this.updateCanvas();
       }
     },
     updateCanvas() {
       this.viewport.removeChildren();
       this.grid.cells.forEach(cell => {
-        if (cell.isAlive) {
-          this.viewport.addChild(new Cell(cell.owner, cell.x, cell.y, this.cellcolors[0]));
-        }
+        this.viewport.addChild(new Cell(cell.owner, cell.x, cell.y, this.cellcolors[0]));
       });
     },
   },
