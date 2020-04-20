@@ -171,6 +171,7 @@ export default {
   methods: {
     iterate() {
       const nextMoves = this.moves.filter(moves => moves.turnid === this.turn);
+      this.turn += 1;
       if (nextMoves) {
         this.grid.next(nextMoves[0].moves);
         this.updateCanvas();

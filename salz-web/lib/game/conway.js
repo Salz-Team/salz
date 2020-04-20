@@ -45,13 +45,13 @@ export default class Grid {
      * Apply Player Commands
      */
     for (const move of turnMoves) {
-      const filp = new Cell(move.x, move.y);
-      filp.owner = move.owner;
+      const flip = new Cell(move.x, move.y);
+      flip.owner = move.playerid;
 
-      if (this.cells.filter(cell => filp.equals(cell))) {
-        this.cells = this.cells.filter(cell => !filp.equals(cell));
+      if (this.cells.filter(cell => flip.equals(cell)).length !== 0) {
+        this.cells = this.cells.filter(cell => !flip.equals(cell));
       } else {
-        this.cells.push(move);
+        this.cells.push(flip);
       }
     }
 
@@ -82,12 +82,9 @@ export default class Grid {
     };
 
     const getAliveNeighboursOf = cell => {
-      return getNeighboursOf(cell).filter(isAlive);
-    };
-
-    const isBorn = cell => {
-      const numAliveNeighbours = getAliveNeighboursOf(cell).length;
-      return numAliveNeighbours === 3;
+      return getNeighboursOf(cell)
+        .filter(isAlive)
+        .filter(c => !c.equals(cell));
     };
 
     const most = aliveNeighbours => {
@@ -99,11 +96,14 @@ export default class Grid {
 
       // The game rules is such that players that join later have a priority
       // in gaining new cells, hence we need to reverse the array of keys
-      return Object.keys(playersCount)
-        .reverse()
-        .reduce((a, b) => {
-          return playersCount[a] > playersCount[b] ? a : b;
-        });
+      return parseInt(
+        Object.keys(playersCount)
+          .reverse()
+          .reduce((a, b) => {
+            return playersCount[a] > playersCount[b] ? a : b;
+          }),
+        10,
+      );
     };
 
     const setOwner = cell => {
@@ -112,19 +112,30 @@ export default class Grid {
       return cell;
     };
 
+    const isBorn = cell => {
+      const numAliveNeighbours = getAliveNeighboursOf(cell).length;
+      return numAliveNeighbours === 3;
+    };
+
     const isHealthy = cell => {
       const numAliveNeighbours = getAliveNeighboursOf(cell).length;
       return [2, 3].includes(numAliveNeighbours);
     };
 
-    //                unique            ( neighbours                             )
-    const emptyNeighbours = Array.from(new Set(this.cells.map(getEmptyNeighboursOf).flat()));
+    // The filter function filters out duplicates
+    const potentiallyBornNeighbours = this.cells
+      .map(getEmptyNeighboursOf)
+      .flat()
+      .filter((value, index, self) => {
+        const i = self.findIndex(v => v.equals(value));
+        return i === index;
+      });
 
-    const newCells = emptyNeighbours.filter(isBorn).map(setOwner);
+    const newCells = potentiallyBornNeighbours.filter(isBorn).map(setOwner);
 
     const stillAliveCells = this.cells.filter(isHealthy);
 
-    // step turn
+    // step the turn
     this.cells = [...newCells, ...stillAliveCells];
   }
 
