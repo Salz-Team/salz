@@ -1,17 +1,20 @@
 #!/bin/bash
 
-if [ ! $# -eq 1 ]; then
+if [ ! $# -ge 1 ]; then
   echo "Usage:"
-  echo $0 "botdir"
+  echo $0 "[botdir]"
   echo "Where botdir contains a directory \"bot\" which contains a bash script called"
   echo "\"run.sh\"."
   exit 1
 fi
 
-if [ ! -d ${1}/bot ]; then
-  echo "Can't find the bot"
-  exit 1
-fi
+for argument
+do
+  if [ ! -d ${argument}/bot ]; then
+    echo "Can't find the bot at ${argument}"
+    exit 1
+  fi
+done
 
 if [ -e game.db ]; then
   echo "Can't run game as there is already a \"game.db\" database"
@@ -20,14 +23,16 @@ fi
 
 echo "Setting up game"
 
-pushd $1 > /dev/null
-tar cvf bot.tar.gz bot > /dev/null
-botdir=$(pwd)
-popd > /dev/null
-
+for argument
+do
+  pushd $argument > /dev/null
+  tar cvf bot.tar.gz bot > /dev/null
+  botdirs+=" -p $(pwd)/bot.tar.gz "
+  popd > /dev/null
+done
 
 echo "Running game..."
-stack exec salz-engine -- -d "$(pwd)/game.db" -p ${botdir}/bot.tar.gz -t 200 > /dev/null &
+stack exec salz-engine -- -d "$(pwd)/game.db" ${botdirs[@]} -t 70
 enginepid=$!
 
 spin='-\|/'
