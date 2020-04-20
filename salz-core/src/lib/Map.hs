@@ -2,6 +2,8 @@ module Map ( MInt(..)
            , Coord(..)
            , Map(..)
            , rotateCoordsAround
+           , getPlayerSize
+           , getAlivePlayers
            , toCoord
            , getRegion
            , dist
@@ -127,3 +129,12 @@ getUniqueEmptyNeighbours (M mlst) = filter isEmpty $ nub $ concat $ map (getNeig
 
 getCellAt :: Map -> Coord -> Maybe Int
 getCellAt (M mlst) x = snd <$> find (\(c,_) -> c == x ) mlst
+
+getAlivePlayers :: Map -> [Int]
+getAlivePlayers (M mlst) = nub $ map snd mlst
+
+getPlayerSize :: Map -> Int -> Float
+getPlayerSize (M mlst) pid = (toEnum numPlayerCells) / (toEnum numCells)
+  where
+    numPlayerCells = length $ filter (\(_, pid') -> pid == pid') mlst
+    numCells = length mlst

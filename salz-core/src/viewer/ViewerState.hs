@@ -12,4 +12,3 @@ data ViewerState = ViewerState
   , moves :: [(Int, Int, Int, Int)]
   , errlogs :: Maybe [(Int, String, String, String)]
   }
-

@@ -15,11 +15,12 @@ import qualified Data.Maybe as M
 import qualified Data.List as L
 
 drawUI :: VS.ViewerState -> [Widget ()]
-drawUI state = [ C.center $ hBox $ [drawBoard state, vBox [drawStats state, drawMoves state, drawErrorLog state]] ]
+drawUI state = [ C.center $ hBox $ [drawBoard state, vBox [drawStats state, drawLeaderBoard state, drawMoves state, drawErrorLog state]] ]
 
 drawBoard :: VS.ViewerState -> Widget ()
 drawBoard state = withBorderStyle BS.unicodeBold
   $ B.borderWithLabel (str ("salz"))
+  $ hLimitPercent 80
   $ vBox rows
   where
     map_ = VS.board state
@@ -43,6 +44,21 @@ drawStats state = withBorderStyle BS.unicodeBold
  $ vBox [ str ("Location: " ++ (show (VS.location state)))
         , str ("Turn: " ++ (show (VS.turn state)))
         ]
+
+drawLeaderBoard :: VS.ViewerState -> Widget ()
+drawLeaderBoard state = withBorderStyle BS.unicodeBold
+ $ B.borderWithLabel (str ("leader board"))
+ $ hLimit 40
+ $ vLimit 40
+ $ vBox $ map drawPlayerBar players
+  where
+    players = L.sort $ Map.getAlivePlayers $ VS.board state
+
+    drawPlayerBar :: Int -> Widget ()
+    drawPlayerBar pid = withAttr (attrName $ fullAttr ++ (show (mod pid 6)))
+                                 (str
+                                  $ take (fromEnum $ (Map.getPlayerSize (VS.board state) pid) * 40)
+                                  $ repeat ' ')
 
 drawMoves :: VS.ViewerState -> Widget ()
 drawMoves state = withBorderStyle BS.unicodeBold
