@@ -54,7 +54,7 @@ getSnapshot cs turn = do
     readMap cl = Map.M $ map readCell $  M.catMaybes $ map liftList cl
 
     readCell :: (Int, Int, Int) -> (Map.Coord, Int)
-    readCell (x, y, pid) = (Map.C (toEnum x) (toEnum y), pid)
+    readCell (x, y, pid) = (Map.Coord (toEnum x) (toEnum y), pid)
 
     liftList :: (Maybe Int, Maybe Int, Maybe Int) -> Maybe (Int, Int, Int)
     liftList (Just a, Just b, Just c) = Just (a, b, c)
@@ -152,7 +152,7 @@ saveSnapshot cs turn (Map.M mapLst) = do
 
   let mquery = "INSERT INTO snapshots (turnid, x, y, playerid, generated_at) Values (?,?,?,?,?);"
   time <- getCurrentTime
-  let rows = map (\(Map.C x y, pid) -> (turn, fromEnum x, fromEnum y, pid, time)) mapLst
+  let rows = map (\(Map.Coord x y, pid) -> (turn, fromEnum x, fromEnum y, pid, time)) mapLst
   aExecuteMany conn mquery rows
   aClose conn
   return ()
@@ -172,7 +172,7 @@ saveMoves cs turn moves = do
   return ()
   where
     formatMoves :: Int -> UTCTime -> [(Map.Coord, Int)] -> [(Int, Int, Int, Int, UTCTime)]
-    formatMoves turn time = map (\(Map.C x y, pid) -> (turn, fromEnum x, fromEnum y, pid, time))
+    formatMoves turn time = map (\(Map.Coord x y, pid) -> (turn, fromEnum x, fromEnum y, pid, time))
   
   
 

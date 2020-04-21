@@ -51,7 +51,7 @@ loadGame fp = do
   return VS.ViewerState
     { VS.turn = firstTurn
     , VS.play = False
-    , VS.location = Map.C 0 0
+    , VS.location = Map.Coord 0 0
     , VS.dbfilepath = fp
     , VS.board = snap
     , VS.moves = moves
