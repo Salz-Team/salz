@@ -16,7 +16,11 @@ export class Cell {
   }
 
   equals = cell => {
-    return cell.x === this.x && cell.y === this.y;
+    if (cell.x === this.x) {
+      if (cell.y === this.y) return true;
+      return false;
+    }
+    return false;
   };
 }
 
@@ -41,6 +45,7 @@ export default class Grid {
    * turnMoves format is [move], where move.x is x and move.y is y
    */
   next(turnMoves = []) {
+    // const s = performance.now();
     /*
      * Apply Player Commands
      */
@@ -66,11 +71,18 @@ export default class Grid {
       const neighbours = [];
       for (const i of [-1, 0, 1]) {
         for (const j of [-1, 0, 1]) {
-          const newCell = new Cell(cell.x + i, cell.y + j);
-          const gridCell = this.cells.filter(oldCell => oldCell.equals(newCell));
+          const { x, y } = cell;
+          const xShift = x + i;
+          const yShift = y + j;
+          const xMod = xShift < 0 ? xShift + this.size : xShift % this.size;
+          const yMod = yShift < 0 ? yShift + this.size : yShift % this.size;
+          const neighbourCell = new Cell(xMod, yMod);
+          const gridCell = this.cells.filter(oldCell => oldCell.equals(neighbourCell));
 
+          // We push an existing cell if there is any, as that passes the playerid info.
+          // Otherwise, push the new neighbour who has -1 as playerid.
           if (gridCell.length !== 0) neighbours.push(...gridCell);
-          else neighbours.push(newCell);
+          else neighbours.push(neighbourCell);
         }
       }
 
@@ -137,10 +149,13 @@ export default class Grid {
 
     // step the turn
     this.cells = [...newCells, ...stillAliveCells];
+
+    // const e = performance.now();
+    // console.log(`grid.next on ${this.cells.length}:`, e - s);
   }
 
   mountSnapshot = snapshot => {
-    snapshot.cells.forEach(cell => {
+    snapshot.forEach(cell => {
       const newCell = new Cell(cell.x, cell.y);
       newCell.owner = cell.playerid;
       this.cells.push(newCell);
