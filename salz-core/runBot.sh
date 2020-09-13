@@ -1,10 +1,10 @@
 #!/bin/bash
 
-if [ ! $# -eq 1 ]; then
+if [ ! $# -eq 2 ]; then
   echo "Usage:"
-  echo $0 "botdir"
+  echo $0 "botdir" "nturn"
   echo "Where botdir contains a directory \"bot\" which contains a bash script called"
-  echo "\"run.sh\"."
+  echo "\"run.sh\", and nturn is the number of turns to run."
   exit 1
 fi
 
@@ -27,7 +27,7 @@ popd > /dev/null
 
 
 echo "Running game..."
-stack exec salz-engine -- -d "$(pwd)/game.db" -p ${botdir}/bot.tar.gz -t 200 > /dev/null &
+stack exec salz-engine -- -d "$(pwd)/game.db" -p ${botdir}/bot.tar.gz -t $2 > /dev/null &
 enginepid=$!
 
 spin='-\|/'
