@@ -26,12 +26,12 @@ startGameEngine arg = case arg of
   ServerArgs -> do
     dbstring <- connectionString
     SO.hSetBuffering SO.stdout SO.LineBuffering
-    serverGameLoop (Map.M []) (-1) [] dbstring
+    serverGameLoop (Map.Map []) (-1) [] dbstring
   LocalArgs dbFilePath turnMax buildPaths -> do
     let bots = map (\(pid, tarPath) -> BH.UnBuilt pid tarPath) $ zip [1..] buildPaths
     bots' <- CA.mapConcurrently BB.buildBot bots
   
-    localGameLoop (Map.M []) (-1) turnMax bots' dbFilePath
+    localGameLoop (Map.Map []) (-1) turnMax bots' dbFilePath
 
 
 serverGameLoop :: Map.Map -> Int -> [BH.Bot] -> T.Text -> IO ()
@@ -98,9 +98,9 @@ localGameLoop map_ pturn turnMax bots dbFilePath = do
 
 
 createSpawns :: Map.Map -> [BH.Bot] -> Map.Map
-createSpawns (Map.M mlst) bots = Map.M $ foldl fillStartingLocation mlst nBots
+createSpawns (Map.Map mlst) bots = Map.Map $ foldl fillStartingLocation mlst nBots
   where
-    nBots = filter (\bot -> 0 == length (P.getPlayerCells (Map.M mlst) (BH.playerId bot))) bots
+    nBots = filter (\bot -> 0 == length (P.getPlayerCells (Map.Map mlst) (BH.playerId bot))) bots
 
     fillStartingLocation :: [(Map.Coord, Int)] -> BH.Bot -> [(Map.Coord, Int)]
     fillStartingLocation mlst' bot

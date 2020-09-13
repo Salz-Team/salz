@@ -68,13 +68,13 @@ instance Read Coord where
 -- Map
 --------------------------------------------------------------------------------
 
-data Map = M [(Coord, Int)]
+data Map = Map [(Coord, Int)]
 
 instance Show Map where
-  show (M lst) = intercalate " " $ map (\(c, i) -> show c ++ " " ++ show i) lst
+  show (Map lst) = intercalate " " $ map (\(c, i) -> show c ++ " " ++ show i) lst
 
 instance Read Map where
-  readPrec = M <$> (lift $ many (readPrec_to_P readCoordInt 0))
+  readPrec = Map <$> (lift $ many (readPrec_to_P readCoordInt 0))
     where
       readCoordInt :: ReadPrec (Coord, Int)
       readCoordInt = do
@@ -105,19 +105,19 @@ dist (Coord ax ay) (Coord bx by) = max (min (fromEnum mapSize - fromEnum (ax - b
                                (min (fromEnum mapSize - fromEnum (ay - by)) (fromEnum (ay - by)))
 
 getRegion :: Map -> ((Int, Int), Int) -> Map
-getRegion (M mlst) ((x, y), radius) = M $ filter (inRegion (Coord (toEnum x) (toEnum y)) radius) mlst
+getRegion (Map mlst) ((x, y), radius) = Map $ filter (inRegion (Coord (toEnum x) (toEnum y)) radius) mlst
   where
     inRegion :: Coord -> Int -> (Coord, Int) -> Bool
     inRegion orig radius (x, _) = dist orig x <= radius
 
 getNeighbours :: Map -> Coord -> [(Coord, Int)]
-getNeighbours (M mlst) c = filter isNeighbour mlst
+getNeighbours (Map mlst) c = filter isNeighbour mlst
   where
     isNeighbour :: (Coord, Int) -> Bool
     isNeighbour (x, _) = dist c x == 1
 
 getUniqueEmptyNeighbours :: Map -> [Coord]
-getUniqueEmptyNeighbours (M mlst) = filter isEmpty $ nub $ concat $ map (getNeighbourCoords . fst) mlst
+getUniqueEmptyNeighbours (Map mlst) = filter isEmpty $ nub $ concat $ map (getNeighbourCoords . fst) mlst
   where
     getNeighbourCoords :: Coord -> [Coord]
     getNeighbourCoords x = [x + disp | disp <- [toCoord (x, y) | x <- [-1..1], y <- [-1..1], (x, y) /= (0, 0)]  ]
@@ -126,4 +126,4 @@ getUniqueEmptyNeighbours (M mlst) = filter isEmpty $ nub $ concat $ map (getNeig
     isEmpty x = [] == (filter ((x ==) . fst) mlst)
 
 getCellAt :: Map -> Coord -> Maybe Int
-getCellAt (M mlst) x = snd <$> find (\(c,_) -> c == x ) mlst
+getCellAt (Map mlst) x = snd <$> find (\(c,_) -> c == x ) mlst

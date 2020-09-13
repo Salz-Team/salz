@@ -6,14 +6,14 @@ import Data.List
 
 
 step :: Map.Map -> Map.Map
-step (Map.M oldlst) = Map.M $ (filterLiveCells oldlst) ++ (produceNewCells (Map.M oldlst))
+step (Map.Map oldlst) = Map.Map $ (filterLiveCells oldlst) ++ (produceNewCells (Map.Map oldlst))
 
 
 filterLiveCells :: [(Map.Coord, Int)] -> [(Map.Coord, Int)]
 filterLiveCells oldm = filter isHealthy oldm
   where
     isHealthy :: (Map.Coord, Int) -> Bool
-    isHealthy c = elem (length $ Map.getNeighbours (Map.M oldm) (fst c)) [2, 3]
+    isHealthy c = elem (length $ Map.getNeighbours (Map.Map oldm) (fst c)) [2, 3]
 
 produceNewCells :: Map.Map -> [(Map.Coord, Int)]
 produceNewCells oldm = catMaybes $ potentialNewCells

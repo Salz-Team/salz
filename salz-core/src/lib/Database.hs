@@ -51,7 +51,7 @@ getSnapshot cs turn = do
   return $ readMap result
   where
     readMap ::[(Maybe Int, Maybe Int, Maybe Int)] -> Map.Map
-    readMap cl = Map.M $ map readCell $  M.catMaybes $ map liftList cl
+    readMap cl = Map.Map $ map readCell $  M.catMaybes $ map liftList cl
 
     readCell :: (Int, Int, Int) -> (Map.Coord, Int)
     readCell (x, y, pid) = (Map.Coord (toEnum x) (toEnum y), pid)
@@ -145,7 +145,7 @@ savePlayersStatus cs bots = do
 
 
 saveSnapshot :: ConString -> Int -> Map.Map -> IO ()
-saveSnapshot cs turn (Map.M mapLst) = do
+saveSnapshot cs turn (Map.Map mapLst) = do
   conn <- aConnectRepeat cs
 
   aExecute conn "CREATE TABLE IF NOT EXISTS snapshots (id SERIAL PRIMARY KEY, turnid INTEGER, x INTEGER, y INTEGER, playerid INTEGER, generated_at TIMESTAMP);"()
