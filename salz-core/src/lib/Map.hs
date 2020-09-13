@@ -23,16 +23,16 @@ mapSize = 100
 -- MInt
 --------------------------------------------------------------------------------
 
-data MInt = I Integer deriving Eq
+data MInt = MInt Integer deriving Eq
 
 instance Show MInt where
-  show (I a) = show $ a `mod` mapSize
+  show (MInt a) = show $ a `mod` mapSize
 
 instance Num MInt where
-  fromInteger n = I (n `mod` mapSize)
-  (I a) + (I b) = I ((a + b) `mod` mapSize)
-  (I a) - (I b) = I ((a - b) `mod` mapSize)
-  (I a) * (I b) = I ((a * b) `mod` mapSize)
+  fromInteger n = MInt (n `mod` mapSize)
+  (MInt a) + (MInt b) = MInt ((a + b) `mod` mapSize)
+  (MInt a) - (MInt b) = MInt ((a - b) `mod` mapSize)
+  (MInt a) * (MInt b) = MInt ((a * b) `mod` mapSize)
   abs    = undefined  -- make the warnings stop
   signum = undefined
 
@@ -40,23 +40,23 @@ instance Read MInt where
   readPrec = fmap fromInteger readPrec
 
 instance Enum MInt where
-  toEnum i = I $ toEnum i
-  fromEnum (I a) = fromInteger $ a `mod` mapSize
+  toEnum i = MInt $ (toEnum i) `mod` mapSize
+  fromEnum (MInt a) = fromInteger $ a `mod` mapSize
 
 --------------------------------------------------------------------------------
 -- Coord
 --------------------------------------------------------------------------------
 
-data Coord = C { getX :: MInt, getY :: MInt }  deriving Eq
+data Coord = Coord { getX :: MInt, getY :: MInt }  deriving Eq
 
 instance Show Coord where
-  show (C x y) = show x ++ " " ++ show y
+  show (Coord x y) = show x ++ " " ++ show y
 
 instance Num Coord where
-  (C ax ay) + (C bx by) = C (ax + bx) (ay + by)
-  (C ax ay) - (C bx by) = C (ax - bx) (ay - by)
-  (C ax ay) * (C bx by) = C (ax * bx) (ay * by)
-  fromInteger n = C (I n) (I n)
+  (Coord ax ay) + (Coord bx by) = Coord (ax + bx) (ay + by)
+  (Coord ax ay) - (Coord bx by) = Coord (ax - bx) (ay - by)
+  (Coord ax ay) * (Coord bx by) = Coord (ax * bx) (ay * by)
+  fromInteger n = Coord (MInt n) (MInt n)
   abs    = undefined  -- make the warnings stop
   signum = undefined
 
@@ -64,7 +64,7 @@ instance Read Coord where
   readPrec = do
       x <- readPrec
       y <- readPrec
-      return $ C x y
+      return $ Coord x y
 
 --------------------------------------------------------------------------------
 -- Map
@@ -93,21 +93,21 @@ rotateCoordsAround pivot times = map (((+) pivot). rotateCoord . ((-) pivot))
   where
     degrees :: Float
     degrees = pi*(toEnum times)/2.0
-    rotateCoord (C x y) = C (I $ round ((toEnum $ fromEnum x) * (cos degrees) - (toEnum $ fromEnum y) * (sin degrees)))
-                            (I $ round ((toEnum $ fromEnum x) * (sin degrees) + (toEnum $ fromEnum y) * (cos degrees)))
+    rotateCoord (Coord x y) = Coord (MInt $ round ((toEnum $ fromEnum x) * (cos degrees) - (toEnum $ fromEnum y) * (sin degrees)))
+                            (MInt $ round ((toEnum $ fromEnum x) * (sin degrees) + (toEnum $ fromEnum y) * (cos degrees)))
 
 toCoord :: (Int, Int) -> Coord
-toCoord (x, y) = C (toEnum x) (toEnum y)
+toCoord (x, y) = Coord (toEnum x) (toEnum y)
 
 fromCoord :: Coord -> (Int, Int)
-fromCoord (C x y) = (fromEnum x, fromEnum y)
+fromCoord (Coord x y) = (fromEnum x, fromEnum y)
 
 dist :: Coord -> Coord -> Int
-dist (C ax ay) (C bx by) = max (min (fromEnum mapSize - fromEnum (ax - bx)) (fromEnum (ax - bx)))
+dist (Coord ax ay) (Coord bx by) = max (min (fromEnum mapSize - fromEnum (ax - bx)) (fromEnum (ax - bx)))
                                (min (fromEnum mapSize - fromEnum (ay - by)) (fromEnum (ay - by)))
 
 getRegion :: Map -> ((Int, Int), Int) -> Map
-getRegion (M mlst) ((x, y), radius) = M $ filter (inRegion (C (toEnum x) (toEnum y)) radius) mlst
+getRegion (M mlst) ((x, y), radius) = M $ filter (inRegion (Coord (toEnum x) (toEnum y)) radius) mlst
   where
     inRegion :: Coord -> Int -> (Coord, Int) -> Bool
     inRegion orig radius (x, _) = dist orig x <= radius

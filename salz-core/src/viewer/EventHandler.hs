@@ -8,7 +8,6 @@ import qualified Database as DB
 
 import qualified Graphics.Vty as V
 import Brick
-import Data.List
 
 type Name = ()
 data Tick = Tick
@@ -56,10 +55,11 @@ stepTurn vs = vs { VS.turn = (VS.turn vs)+1
 
 
 move :: Char -> VS.ViewerState -> VS.ViewerState
-move 'w' state = state {VS.location = (fst (VS.location state), (snd (VS.location state)) + 5 )}
-move 's' state = state {VS.location = (fst (VS.location state), (snd (VS.location state)) - 5 )}
-move 'a' state = state {VS.location = ((fst (VS.location state)) - 5, snd (VS.location state))}
-move 'd' state = state {VS.location = ((fst (VS.location state)) + 5, snd (VS.location state))}
+move 'w' state = state { VS.location = (VS.location state) + (Map.toCoord (0, 5))}
+move 's' state = state {VS.location = (VS.location state) + (Map.toCoord (0, -5))}
+move 'a' state = state {VS.location = (VS.location state) + (Map.toCoord (-5, 0))}
+move 'd' state = state {VS.location = (VS.location state) + (Map.toCoord (5, 0))}
+move _ state = state
 
 
 appTick :: VS.ViewerState -> VS.ViewerState
