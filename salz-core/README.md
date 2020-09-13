@@ -1,14 +1,22 @@
-# Quickstart
-Getting the docker container up and running takes a long time and right now needs
-to redo itself everytime there is a change in a file.
-## Via Docker
-Run `docker build .` within this folder to just build salz-engine.
-Run `docker-compose up` to build and run this in conjunction with the rest of the project.
-## Via Stack
-In order to run the game engine you need to run the database (it is how you interface
-with the game engine).
-To do this you build and run the docker file in the `salz-db` folder (there are
-scripts in that folder to build, run, and connect to the database).
-You then build this project using `stack build` in this folder.
-Finally you can start the game engine and connect it to the database in the ghci which you
-start with `stack ghci` by running the command the command in the `./app/Main.hs` file.
+# The Game Engine
+## Running the Game Engine
+
+The game engine can run in two modes: 
+1. server mode: the engine writes to a postgresql database and reads playerinfo
+     through the same database.
+2. local mode: the engine writes to a file(sqlite database) and reads 
+     playerinfo in through the command line.
+
+## Server Mode
+The game engine and database is wrapped in a docker container that you can setup
+and run using `docker build .` followed by `docker-compose up`.
+
+Note that getting the docker container up and running takes a long time and right
+now it is not properly cached so it needs to rebuild most of itself on every
+change.
+
+For development we recommend using the local mode or if you need to test the 
+postgresql library, run it using stack. To do this you need to:
+1. run the database: run the docker file in `../salz-db`
+2. build the project: `stack build`
+3. run the game-engine: `stack ghci` then run the command in `./app/Main.hs` 

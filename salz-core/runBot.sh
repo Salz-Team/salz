@@ -1,17 +1,22 @@
 #!/bin/bash
 
-if [ ! $# -ge 1 ]; then
+
+
+if [ ! $# -ge 2 ]; then
   echo "Usage:"
-  echo $0 "[botdir]"
+  echo $0 "[botdir]" "nturn"
   echo "Where botdir contains a directory \"bot\" which contains a bash script called"
-  echo "\"run.sh\"."
+  echo "\"run.sh\", and nturn is the number of turns to run."
   exit 1
 fi
 
-for argument
+BOTS=${@:1:$#-1}
+NTURNS=${@:$#:$#}
+
+for bot in $BOTS
 do
-  if [ ! -d ${argument}/bot ]; then
-    echo "Can't find the bot at ${argument}"
+  if [ ! -d ${bot}/bot ]; then
+    echo "Can't find the bot at ${bot}"
     exit 1
   fi
 done
@@ -23,16 +28,16 @@ fi
 
 echo "Setting up game"
 
-for argument
+for bot in $BOTS
 do
-  pushd $argument > /dev/null
+  pushd $bot > /dev/null
   tar cvf bot.tar.gz bot > /dev/null
   botdirs+=" -p $(pwd)/bot.tar.gz "
   popd > /dev/null
 done
-
+ 
 echo "Running game..."
-stack exec salz-engine -- -d "$(pwd)/game.db" ${botdirs[@]} -t 70
+stack exec salz-engine -- -d "$(pwd)/game.db" ${botdirs[@]} -t $NTURNS > /dev/null &
 enginepid=$!
 
 spin='-\|/'

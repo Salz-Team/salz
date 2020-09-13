@@ -7,6 +7,7 @@ import qualified EventHandler  as EH
 import qualified ViewerState as VS
 import qualified ViewerDraw as VD
 import qualified Database as DB
+import qualified Map as Map
 
 import Brick
 import Brick.BChan
@@ -50,7 +51,7 @@ loadGame fp = do
   return VS.ViewerState
     { VS.turn = firstTurn
     , VS.play = False
-    , VS.location = (0, 0)
+    , VS.location = Map.Coord 0 0
     , VS.dbfilepath = fp
     , VS.board = snap
     , VS.moves = moves
