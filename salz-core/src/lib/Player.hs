@@ -3,8 +3,10 @@ module Player ( applyCommands
               , filterLegalCommands
               ) where
 
-import qualified Map as Map
+import qualified Map
 import Data.List
+
+-- This module needs to be renamed/reorganized with the step function
 
 applyCommands :: Map.Map -> [(Map.Coord, Int)] -> Map.Map
 applyCommands map cmds = foldl applyCommand map $ filterLegalCommands map cmds
