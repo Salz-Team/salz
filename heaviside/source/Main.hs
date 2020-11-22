@@ -16,7 +16,7 @@ import Step (step)
 import HandleBotCmds (getBotCmds, filterCmds, applyCmds)
 import UpdateFrameChannel  (updateFrameChannel)
 
-envVariableNames = ["RMQUSER" ,"RMQPWD" ,"RMQPORT" ,"PSQLUSER" ,"PSQLPWD" ,"PSQLDB" ,"PSQLPORT"]
+envVariableNames = ["RMQUSER" ,"RMQPWD" ,"RMQPORT" ,"PSQLUSER" ,"PSQLPWD" ,"PSQLDB" ,"PSQLPORT", "PSQLHOST", "RMQHOST"]
 rmqCmdChannelName = "botcmds"
 rmqFrameChannelName = "frames"
 
@@ -26,7 +26,9 @@ main :: IO ()
 main = do
   envVars <- mapM getEnv envVariableNames
 
-  dbConn <- DB.connectPostgreSQL $ BN.pack $ "host=localhost port="
+  dbConn <- DB.connectPostgreSQL $ BN.pack $ "host="
+                             ++ (envVars!!7)
+                             ++ " port="
                              ++ (envVars!!6)
                              ++ " dbname="
                              ++ (envVars!!5)
@@ -35,7 +37,7 @@ main = do
                              ++ " user="
                              ++ (envVars!!3)
 
-  rmqConn <- RMQ.openConnection "127.0.0.1" "/" (T.pack $ envVars!!0) (T.pack $ envVars!!1)
+  rmqConn <- RMQ.openConnection (envVars!!8) "/" (T.pack $ envVars!!0) (T.pack $ envVars!!1)
   rmqCmdChan   <- RMQ.openChannel rmqConn
   rmqFrameChan   <- RMQ.openChannel rmqConn
 

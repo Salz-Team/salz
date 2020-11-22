@@ -10,7 +10,7 @@ import qualified Data.Text as T
 import Data.Aeson
 import GHC.Generics
 
-envVariableNames = ["RMQUSER" ,"RMQPWD" ,"RMQPORT" ,"PSQLUSER" ,"PSQLPWD" ,"PSQLDB" ,"PSQLPORT"]
+envVariableNames = ["RMQUSER" ,"RMQPWD" ,"RMQPORT" , "RMQHOST"]
 rmqChannelName = "botcmds"
 
 data BotCmd = BotCmd
@@ -25,7 +25,7 @@ main :: IO ()
 main = do
   envVars <- mapM getEnv envVariableNames
 
-  conn <- openConnection "127.0.0.1" "/" (T.pack $ envVars!!0) (T.pack $ envVars!!1)
+  conn <- openConnection (envVars!!3) "/" (T.pack $ envVars!!0) (T.pack $ envVars!!1)
   ch   <- openChannel conn
 
   declareQueue ch newQueue {queueName       = rmqChannelName,

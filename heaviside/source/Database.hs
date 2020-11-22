@@ -15,7 +15,7 @@ getMostRecentTurn :: DB.Connection -> IO Int
 getMostRecentTurn conn = do
   let mquery = "SELECT MAX(turnid) FROM game;"
   result <- DB.query_ conn mquery
-  return $ M.fromJust $ head $ head result
+  return $ M.fromMaybe 0 $ head $ head result
 
 getFrame :: DB.Connection -> Int -> IO [(Int, Int, Int)]
 getFrame conn turn = do
