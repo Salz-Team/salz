@@ -54,7 +54,7 @@ main = do
 gameLoop :: RMQ.Channel -> RMQ.Channel -> DB.Connection -> IO ()
 gameLoop rmqCmdChan rmqFrameChan dbConn = do
   -- get, filter, then apply bot cmds
-  cmds <- getBotCmds rmqCmdChan
+  cmds <- getBotCmds rmqCmdChan rmqCmdChannelName
   filteredCmds <- filterCmds dbConn cmds
   applyCmds dbConn filteredCmds
 
@@ -62,7 +62,7 @@ gameLoop rmqCmdChan rmqFrameChan dbConn = do
   step dbConn
 
   -- send new frame to bots
-  updateFrameChannel rmqFrameChan
+  updateFrameChannel dbConn rmqFrameChan rmqFrameChannelName
 
   -- wait 2 seconds and then go to next turn
   threadDelay 2000000
