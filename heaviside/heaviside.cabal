@@ -22,12 +22,12 @@ executable heaviside
   -- other-extensions:
   build-depends:
     base >=4.13 && <4.14,
-    turtle,
     amqp,
     bytestring,
     containers,
     text,
     aeson,
-    postgresql-simple
+    postgresql-simple,
+    time
   hs-source-dirs: source
   default-language:    Haskell2010
