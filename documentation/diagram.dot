@@ -1,0 +1,21 @@
+digraph ServiceInteraction {
+    graph[rankdir=LR]
+    node[shape = record] 
+
+    api [label="API"]
+    frontend [label="Front End"]
+    db [label="Database"]
+    s3 [label="Object Storage"]
+    game [label="Game Engine"]
+    mm [label="Match Maker"]
+    bh [label="Bot Handler"]
+
+    frontend -> api
+    api -> db
+    api -> s3
+    
+    mm -> db
+    mm -> s3
+    mm -> game
+    mm -> bh
+}
