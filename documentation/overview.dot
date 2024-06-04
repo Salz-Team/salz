@@ -1,0 +1,14 @@
+digraph ServiceInteraction {
+    graph[rankdir=LR]
+    node[shape = record]
+
+    server [label="Server"]
+    data [label="Data"]
+    matchmaker [label="Match Maker"]
+
+    server -> data
+    data -> server
+
+    data -> matchmaker
+    matchmaker -> data
+}

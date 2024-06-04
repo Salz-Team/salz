@@ -1,44 +1,52 @@
 # Architecture Overview
 
-![](../build/diagram.svg)
+![](build/overview.svg)
 
-A sketch of the functionality provided by each service:
+The architecture of our game can be split up into 3 collections of services.
+There is the data collection consisting of object storage and a database.
+There is the server which provides functionality to the end user via a frontend, an api, and a game visualizer.
+And finally, there is a match runner which runs games between bots.
 
-- Database
-  - player: id, rank, botid
-  - match: matchid, playerid, match-s3-location
-- Object Storage
-  - match
-  - bot
-- API
-  - new player
-  - upload bot
-  - leaderboard
-  - get match
-  - match history
-- Frontend
-  - new player
-  - upload bot
-  - leaderboard
-  - match history
-  - match visualizer
-- Game Engine
-  - game logic
-  - local mode with visualizer
-- Match Maker
-  - rank players
-  - run matches
-- Bot Handler
-  - execute user code safely
+Here is a sketch of the functionality provided by each service:
 
-A Minimum Viable Use Case:
+- Data
+  - Database
+    - player: id, rank, botid
+    - match: matchid, playerid, match-s3-location
+  - Object Storage
+    - match
+    - bot
+- Server
+  - API
+    - new player
+    - upload bot
+    - leaderboard
+    - get match
+    - match history
+  - Frontend
+    - new player
+    - upload bot
+    - leaderboard
+    - match history
+    - match visualizer
+- Match Runner
+  - Game Engine
+    - game logic
+    - local mode with visualizer
+  - Match Maker
+    - rank players
+    - run matches
+  - Match Handler
+    - safely executes user code
+    - coordinates user code and game engine
 
-1. The player signs up. Authentication
-2. The player uploads their bot. Bot Upload
-3. The player's bot plays against other players bots to get ranked. Bot ranking, bot matches
-4. The player views their ranking.
-5. The player views matches. Visualization
+![](build/run_game.svg)
 
+The above diagram gives an example of how we run matches.
+First, the match maker reads the database to determine which pair of users should be in the next match.
+Then the match handler pulls the code of each user, and safely executes it alongside the game engine.
+After the game is done, the match handler saves the resulting gamefile to object storage and gives the ranker the result of the match.
+The ranker will compute the new rankings of all of the players and update the database.
 
 ## API Endpoints:
 

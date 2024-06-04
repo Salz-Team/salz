@@ -1,4 +1,4 @@
-all: build/diagram.svg
+all: build/run_game.svg build/overview.svg
 
 build:
 	mkdir $@
