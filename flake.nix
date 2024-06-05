@@ -14,6 +14,7 @@
         devShells.default = pkgs.mkShell {
           packages = [
             pkgs.graphviz
+            pkgs.devenv
           ];
         };
       }
