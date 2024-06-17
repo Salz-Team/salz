@@ -22,7 +22,12 @@
   '';
 
   # https://devenv.sh/services/
-  services.postgres.enable = true;
+  services.postgres = {
+    enable = true;
+    initialDatabases = [{ name = "salz"; schema = ./db/db.sql; }];
+    listen_addresses = "127.0.0.1";
+  };
+
   services.minio.enable = true;
   services.caddy.enable = true;
  
