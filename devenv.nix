@@ -28,7 +28,11 @@
     listen_addresses = "127.0.0.1";
   };
 
-  services.minio.enable = true;
+  services.minio = {
+    enable = true;
+    consoleAddress = "127.0.0.1:9111";
+    listenAddress = "127.0.0.1:9110";
+  };
   services.caddy.enable = true;
  
   # https://devenv.sh/languages/
