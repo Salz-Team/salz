@@ -56,17 +56,17 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1716977621,
-        "owner": "cachix",
-        "repo": "devenv-nixpkgs",
-        "rev": "4267e705586473d3e5c8d50299e71503f16a6fb6",
-        "treeHash": "6d9f1f7ca0faf1bc2eeb397c78a49623260d3412",
+        "lastModified": 1718437845,
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "752c634c09ceb50c45e751f8791cb45cb3d46c9e",
+        "treeHash": "dd18be9927cdb29c6234d5587684c5cc9fb1138b",
         "type": "github"
       },
       "original": {
-        "owner": "cachix",
-        "ref": "rolling",
-        "repo": "devenv-nixpkgs",
+        "owner": "NixOS",
+        "ref": "nixos-24.05",
+        "repo": "nixpkgs",
         "type": "github"
       }
     },
