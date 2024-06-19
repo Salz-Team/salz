@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-23.11";
+    nixpkgs.url = "nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -14,7 +14,17 @@
         devShells.default = pkgs.mkShell {
           packages = [
             pkgs.graphviz
+
+            # API stuff
+            pkgs.go
+            pkgs.age
+
           ];
+          shellHook = ''
+            export GOPATH="$(pwd)/.go"
+            export GOCACHE=""
+            export GO111MODULE='on'
+         '';
         };
       }
     );
