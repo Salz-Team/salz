@@ -7,6 +7,8 @@
     pkgs.git
     pkgs.graphviz
     pkgs.devenv
+
+    pkgs.age
   ];
 
   services.postgres = {
@@ -22,4 +24,5 @@
   };
   services.caddy.enable = true;
 
+  languages.go.enable = true;
 }
