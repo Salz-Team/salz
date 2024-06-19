@@ -5,3 +5,11 @@ build:
 
 build/%.svg: documentation/%.dot build
 	dot -Tsvg $< > $@
+
+run:
+	devenv processes up -d
+
+clean:
+	devenv processes down || true
+	rm -r .devenv/state/minio
+	rm -r .devenv/state/postgres
