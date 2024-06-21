@@ -6,4 +6,6 @@ type User struct {
   UserName string `json:"username"`
   IconPath string `json:"iconpath"`
   IdentityProvider string `json:"identityprovider"`
+  IdentityProviderId string `json:"identityproviderid"`
+  Elo float32 `json:"elo"`
 }

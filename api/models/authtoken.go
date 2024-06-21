@@ -8,9 +8,9 @@ import (
 )
 
 type AuthToken struct {
-  UserId    int `json:"userid"`
+  UserId    int `json:"user_id"`
   Token     string `json:"token"`
-  ExpiresAt int64  `json:"expiresat"`
+  ExpiresAt time.Time  `json:"expires_at"`
 }
 
 func NewAuthTokenForUser(userId int) *AuthToken {
@@ -24,7 +24,7 @@ func NewAuthTokenForUser(userId int) *AuthToken {
   b64Token := b64.StdEncoding.EncodeToString(b)
 
   // Expires in 1 day
-  expiresAt := time.Now().Add(24 * time.Hour).Unix()
+  expiresAt := time.Now().Add(24 * time.Hour)
 
   return &AuthToken{
     UserId:    userId,

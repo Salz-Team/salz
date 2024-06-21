@@ -13,7 +13,11 @@
 
   services.postgres = {
     enable = true;
-    initialDatabases = [{ name = "salz"; schema = ./db/db.sql; }];
+    initialDatabases = [{ name = "salz"; schema = ./db/init.sql; }];
+    initialScript = ''
+      CREATE ROLE salz WITH LOGIN PASSWORD 'superdupersecret';
+      ALTER ROLE salz WITH SUPERUSER; -- TODO CHANGE THIS IN PROD LOL
+    '';
     listen_addresses = "127.0.0.1";
   };
 

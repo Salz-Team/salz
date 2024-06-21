@@ -24,12 +24,14 @@ func AuthMiddleware(authDb db.AuthDBHandler) gin.HandlerFunc {
 
         authToken := strings.TrimSpace(strings.Replace(authTokenHeader, "Bearer", "", 1))
 
-        // Check if the token is valid
         token, err := authDb.GetToken(authToken)
         if err == sql.ErrNoRows {
-            log.Debug("Token not found")
-            c.Redirect(http.StatusTemporaryRedirect, "/login")
-            c.Abort()
+            log.Debug("Token not found (err no rows)")
+            c.AbortWithStatus(http.StatusUnauthorized)
+            return
+        } else if err == db.ErrTokenNotFound {
+            log.Debug("Token not found (err token not found)")
+            c.AbortWithStatus(http.StatusUnauthorized)
             return
         } else if err != nil {
             log.Error("Unable to get token", "error", err)
@@ -37,7 +39,8 @@ func AuthMiddleware(authDb db.AuthDBHandler) gin.HandlerFunc {
             return
         }
 
-        if token.ExpiresAt < time.Now().Unix() {
+        // Is this the right behaviour?
+        if token.ExpiresAt.Before(time.Now()) {
             log.Debug("Token expired")
             c.Redirect(http.StatusTemporaryRedirect, "/login")
             c.Abort()

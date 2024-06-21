@@ -27,6 +27,22 @@ func getEnvOrDie(key string, defaultValue string) string {
   return value
 }
 
+func NewLocalConfig() *Config {
+  oauthConfig := &oauth2.Config{
+      ClientID:     getEnvOrDie("OAUTH_CLIENT_KEY", ""),
+      ClientSecret: getEnvOrDie("OAUTH_CLIENT_SECRET", ""),
+      RedirectURL:  "", // Dynamically constructed in /login controller
+      Scopes:       []string{"read-user", "user-email"},
+      Endpoint:     github.Endpoint,
+  }
+  return &Config{
+    ApiDBHandler: db.NewPostgresHandler(),
+    AuthDBHandler: db.NewPostgresHandler(),
+    LogLevel: log.DebugLevel,
+    OAuth2Config: oauthConfig,
+  }
+}
+
 func NewDevelopmentConfig() *Config {
   // Development uses SQLite for the database (although maybe it shouldn't? lol)
   // Actually, both databases
@@ -38,8 +54,8 @@ func NewDevelopmentConfig() *Config {
       Endpoint:     github.Endpoint,
   }
   return &Config{
-    ApiDBHandler: db.NewSqliteHandler(),
-    AuthDBHandler: db.NewSqliteHandler(),
+    ApiDBHandler: db.NewPostgresHandler(),
+    AuthDBHandler: db.NewPostgresHandler(),
     LogLevel: log.DebugLevel,
     OAuth2Config: oauthConfig,
   }
@@ -75,8 +91,8 @@ func NewProductionConfig() *Config {
       Endpoint:     github.Endpoint,
   }
   return &Config{
-    ApiDBHandler: db.NewSqliteHandler(),
-    AuthDBHandler: db.NewSqliteHandler(),
+    ApiDBHandler: db.NewPostgresHandler(),
+    AuthDBHandler: db.NewPostgresHandler(),
     LogLevel: logLevel,
     OAuth2Config: oauthConfig,
   }
@@ -86,6 +102,8 @@ func NewConfig() *Config {
   env := getEnvOrDie("ENV", "development")
   log.Info("Environment configuration", "env", env)
   switch env {
+  case "local":
+    return NewLocalConfig()
   case "development":
     return NewDevelopmentConfig()
   case "production":

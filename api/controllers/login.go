@@ -5,8 +5,14 @@ import (
   "github.com/gin-gonic/gin"
   "github.com/charmbracelet/log"
   "github.com/Salz-Team/salz/api/models"
+  "strconv"
 
   ghlib "github.com/google/go-github/v62/github"
+)
+
+// TODO find a good place for this
+const (
+  DEFAULT_ELO = 1000.0
 )
 
 func (ctrl *Controller) OAuthLoginHandler(c *gin.Context) {
@@ -39,14 +45,18 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
   // We also need to associate the static ID along with the identity provider.
 
   // Check the db for the user. If it doesn't exist, create it.
-  u, err := ctrl.cfg.ApiDBHandler.GetUserByLogin(*user.Login)
+  userId := strconv.FormatInt(*user.ID, 10)
+  idp := "github"
+  u, err := ctrl.cfg.ApiDBHandler.GetUserByIdentity(idp, userId)
   if err != nil {
-    log.Warn("Unable to get user by login", "error", err)
+    log.Warn("Unable to get user by identity", "error", err)
     // Create the user
     u = models.User{
       UserName: *user.Login,
       IconPath: *user.AvatarURL,
-      IdentityProvider: "github",
+      IdentityProvider: idp,
+      IdentityProviderId: userId,
+      Elo: DEFAULT_ELO,
     }
     u, err = ctrl.cfg.ApiDBHandler.CreateUser(u)
     if err != nil {
@@ -56,6 +66,9 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
     }
     log.Info("User created", "user", u)
   }
+
+  // Attempt to delete any existing sessions for the user
+  _ = ctrl.cfg.AuthDBHandler.DeleteTokenByUserId(u.Id)
 
   // Create a token for the user
   userAuthToken := models.NewAuthTokenForUser(u.Id)
