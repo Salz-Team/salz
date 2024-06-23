@@ -3,12 +3,13 @@ package db
 import (
   "database/sql" 
   "github.com/Salz-Team/salz/api/models"
-  _ "github.com/glebarez/go-sqlite"
   "github.com/charmbracelet/log"
   _ "github.com/lib/pq"
   "os"
   "errors"
 )
+
+// TODO: refactor so that we can optionally run database ops in a transaction
 
 // Specific error type for when token is not found
 var ErrTokenNotFound = errors.New("Token not found")
@@ -38,7 +39,7 @@ func (p *PostgresHandler) GetDB() *sql.DB {
 func (p *PostgresHandler) GetUser(id int) (models.User, error) {
   user := models.User{}
   row := p.DB.QueryRow("SELECT * FROM salz.users WHERE id = $1", id)
-  err := row.Scan(&user.Id, &user.UserName, &user.IconPath, &user.IdentityProvider, &user.IdentityProviderId, &user.Elo)
+  err := row.Scan(&user.Id, &user.UserName, &user.CreatedAt, &user.UpdatedAt, &user.IconPath, &user.IdentityProvider, &user.IdentityProviderId, &user.Elo)
   if err != nil {
     log.Error("Unable to get user by id", "error", err)
     return models.User{}, err
@@ -49,7 +50,7 @@ func (p *PostgresHandler) GetUser(id int) (models.User, error) {
 func (p *PostgresHandler) GetUserByLogin (username string) (models.User, error) {
   user := models.User{}
   row := p.DB.QueryRow("SELECT * FROM salz.users WHERE username = $1", username)
-  err := row.Scan(&user.Id, &user.UserName, &user.IconPath, &user.IdentityProvider, &user.IdentityProviderId, &user.Elo)
+  err := row.Scan(&user.Id, &user.UserName, &user.CreatedAt, &user.UpdatedAt, &user.IconPath, &user.IdentityProvider, &user.IdentityProviderId, &user.Elo)
   if err != nil {
     log.Error("Unable to get user by username", "error", err)
     return models.User{}, err
@@ -63,7 +64,7 @@ func (p *PostgresHandler) GetUserByLogin (username string) (models.User, error) 
 func (p *PostgresHandler) GetUserByIdentity (identityProvider, identityProviderId string) (models.User, error) {
   user := models.User{}
   row := p.DB.QueryRow("SELECT * FROM salz.users WHERE identity_provider = $1 and identity_provider_id = $2", identityProvider, identityProviderId)
-  err := row.Scan(&user.Id, &user.UserName, &user.IconPath, &user.IdentityProvider, &user.IdentityProviderId, &user.Elo)
+  err := row.Scan(&user.Id, &user.UserName, &user.CreatedAt, &user.UpdatedAt, &user.IconPath, &user.IdentityProvider, &user.IdentityProviderId, &user.Elo)
   if err != nil {
     log.Error("Unable to get user by idp", "error", err)
     return models.User{}, err
@@ -79,6 +80,32 @@ func (p *PostgresHandler) CreateUser (user models.User) (models.User, error) {
   }
   // Maybe we should just do a ... returning Id? idk
   return p.GetUserByLogin(user.UserName)
+}
+
+func (p *PostgresHandler) CreateBotFile (botFile models.BotFile) (models.BotFile, error) {
+  r := p.DB.QueryRow(
+    `
+      INSERT INTO salz.bots (user_id, status) VALUES ($1, $2)
+      RETURNING id, created_at, updated_at, user_id, status
+    `,
+    botFile.UserId,
+    models.BOT_STATUS_PENDING,
+  )
+  err := r.Scan(&botFile.BotId, &botFile.CreatedAt, &botFile.UpdatedAt, &botFile.UserId, &botFile.Status)
+  if err != nil {
+    log.Error("Unable to create bot file", "error", err)
+    return models.BotFile{}, err
+  }
+  return botFile, nil
+}
+
+func (p *PostgresHandler) ConfirmBotFile (bot models.BotFile) error {
+  _, err := p.DB.Exec("UPDATE salz.bots SET status = $1, upload_path = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3", models.BOT_STATUS_UPLOADED, bot.UploadPath, bot.BotId)
+  if err != nil {
+    log.Error("Unable to confirm bot file", "error", err)
+    return err
+  }
+  return nil
 }
 
 func (p *PostgresHandler) GetToken (token string) (models.AuthToken, error) {
@@ -111,7 +138,7 @@ func (p *PostgresHandler) DeleteTokenByUserId (userId int) error {
 }
 
 func (p *PostgresHandler) CreateToken (authToken models.AuthToken) error {
-  _, err := p.DB.Exec("INSERT INTO auth.sessions (user_id, token, expires_at) VALUES ($1, $2, $3)", authToken.UserId, authToken.Token, authToken.ExpiresAt)
+  _, err := p.DB.Exec("INSERT INTO auth.sessions (user_id, token, expires_at) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET token=excluded.token, created_at=CURRENT_TIMESTAMP, expires_at=excluded.expires_at", authToken.UserId, authToken.Token, authToken.ExpiresAt)
   if err != nil {
     log.Error("Unable to create token", "error", err)
     return err

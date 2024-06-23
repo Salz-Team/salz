@@ -3,6 +3,7 @@ package config
 import (
   "github.com/charmbracelet/log"
   "github.com/Salz-Team/salz/api/db"
+  "github.com/Salz-Team/salz/api/objectstore"
   "golang.org/x/oauth2"
   "golang.org/x/oauth2/github"
   "os"
@@ -12,6 +13,7 @@ import (
 type Config struct {
   ApiDBHandler db.ApiDBHandler
   AuthDBHandler db.AuthDBHandler
+  ObjectStoreHandler objectstore.ObjectStoreHandler
   LogLevel log.Level
   OAuth2Config *oauth2.Config
 }
@@ -38,6 +40,7 @@ func NewLocalConfig() *Config {
   return &Config{
     ApiDBHandler: db.NewPostgresHandler(),
     AuthDBHandler: db.NewPostgresHandler(),
+    ObjectStoreHandler: objectstore.NewMinIOHandler(),
     LogLevel: log.DebugLevel,
     OAuth2Config: oauthConfig,
   }
@@ -56,17 +59,13 @@ func NewDevelopmentConfig() *Config {
   return &Config{
     ApiDBHandler: db.NewPostgresHandler(),
     AuthDBHandler: db.NewPostgresHandler(),
+    ObjectStoreHandler: objectstore.NewMinIOHandler(),
     LogLevel: log.DebugLevel,
     OAuth2Config: oauthConfig,
   }
 }
 
 func NewProductionConfig() *Config {
-  // Development uses SQLite for the database (although maybe it shouldn't? lol)
-  // Actually, both databases
-
-  // TODO: Real databases for production
-
   var logLevel log.Level
   logLevelStr := getEnvOrDie("LOG_LEVEL", "Info")
   switch logLevelStr {
@@ -93,6 +92,7 @@ func NewProductionConfig() *Config {
   return &Config{
     ApiDBHandler: db.NewPostgresHandler(),
     AuthDBHandler: db.NewPostgresHandler(),
+    ObjectStoreHandler: objectstore.NewMinIOHandler(),
     LogLevel: logLevel,
     OAuth2Config: oauthConfig,
   }

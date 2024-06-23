@@ -12,6 +12,8 @@ type ApiDBHandler interface {
   GetUserByLogin(string) (models.User, error)
   GetUserByIdentity(string, string) (models.User, error)
   CreateUser(models.User) (models.User, error)
+  CreateBotFile(models.BotFile) (models.BotFile, error)
+  ConfirmBotFile(models.BotFile) error
 }
 
 type AuthDBHandler interface {

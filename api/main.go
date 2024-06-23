@@ -31,6 +31,9 @@ func main() {
     protectedRoutes.GET("/user/me", func (c *gin.Context) {
       controllers.GetUser(c, cfg.ApiDBHandler, cfg.AuthDBHandler)
     })
+    protectedRoutes.POST("/bot/upload", func (c *gin.Context) {
+      ctrl.BotUploadHandler(c)
+    })
   }
 
   r.Run()

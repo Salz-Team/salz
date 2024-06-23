@@ -41,9 +41,6 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
     return
   }
 
-  // TODO: use the static github user ID instead of the username since that can change.
-  // We also need to associate the static ID along with the identity provider.
-
   // Check the db for the user. If it doesn't exist, create it.
   userId := strconv.FormatInt(*user.ID, 10)
   idp := "github"
@@ -66,9 +63,6 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
     }
     log.Info("User created", "user", u)
   }
-
-  // Attempt to delete any existing sessions for the user
-  _ = ctrl.cfg.AuthDBHandler.DeleteTokenByUserId(u.Id)
 
   // Create a token for the user
   userAuthToken := models.NewAuthTokenForUser(u.Id)

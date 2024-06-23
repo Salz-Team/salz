@@ -25,6 +25,7 @@
     enable = true;
     consoleAddress = "127.0.0.1:9111";
     listenAddress = "127.0.0.1:9110";
+    buckets = ["salz"];
   };
   services.caddy.enable = true;
 

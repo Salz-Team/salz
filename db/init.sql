@@ -3,6 +3,8 @@ CREATE SCHEMA IF NOT EXISTS salz;
 CREATE TABLE IF NOT EXISTS salz.users (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     username TEXT NOT NULL, -- no username length limit?
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     icon_path TEXT NOT NULL,
     identity_provider TEXT NOT NULL, -- could be an enum: 'Github', 'Google', 'Facebook', etc.
     identity_provider_id TEXT NOT NULL, -- Github internal IDs are numeric, but maybe not other providers?,
@@ -11,17 +13,20 @@ CREATE TABLE IF NOT EXISTS salz.users (
 
 CREATE TABLE IF NOT EXISTS salz.bots (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    uploaded_at TIMESTAMP NOT NULL,
-    upload_path TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    upload_path TEXT, -- Null when status is pending
     user_id BIGINT NOT NULL,
     status TEXT NOT NULL, -- could be an enum: 'No Status', 'Healthy', 'Unhealthy'
     FOREIGN KEY (user_id) REFERENCES salz.users (id)
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS uq_bots_upload_path ON salz.bots (upload_path); -- Prevent name collisions in s3?
+
 CREATE TABLE IF NOT EXISTS salz.games (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ended_at TIMESTAMP,
     status TEXT NOT NULL, -- could be an enum: 'Pending', 'Running', 'Finished', 'Crashed'
     winner_id BIGINT,
@@ -50,6 +55,6 @@ CREATE TABLE IF NOT EXISTS auth.sessions (
     expires_at TIMESTAMP NOT NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_user_id_token ON auth.sessions (user_id, token); -- only one active session token per user.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_user_id_token ON auth.sessions (user_id); -- only one active session token per user.
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON auth.sessions (token); -- Index to speed up session lookup by token
 CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON auth.sessions (expires_at); -- Index to speed up session cleanup
