@@ -16,6 +16,7 @@ type Config struct {
   ObjectStoreHandler objectstore.ObjectStoreHandler
   LogLevel log.Level
   OAuth2Config *oauth2.Config
+  MAX_FILE_SIZE_BYTES int64
 }
 
 func getEnvOrDie(key string, defaultValue string) string {
@@ -43,6 +44,7 @@ func NewLocalConfig() *Config {
     ObjectStoreHandler: objectstore.NewMinIOHandler(),
     LogLevel: log.DebugLevel,
     OAuth2Config: oauthConfig,
+    MAX_FILE_SIZE_BYTES: 25 << 20, // 25 MB
   }
 }
 
@@ -62,6 +64,7 @@ func NewDevelopmentConfig() *Config {
     ObjectStoreHandler: objectstore.NewMinIOHandler(),
     LogLevel: log.DebugLevel,
     OAuth2Config: oauthConfig,
+    MAX_FILE_SIZE_BYTES: 25 << 20, // 25 MB
   }
 }
 

@@ -8,11 +8,6 @@ import (
   "strings"
 )
 
-// TODO find a nice home for this
-const (
-  MAX_FILE_SIZE_BYTES = 25 << 20 // ~ 25 MB
-)
-
 func (ctrl *Controller) BotUploadHandler(c *gin.Context) {
   // TODO get user ID in middleware and pass it around via gin context?
   authTokenHeader := c.GetHeader("Authorization")
