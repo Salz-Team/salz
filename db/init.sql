@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS salz;
 
 CREATE TABLE IF NOT EXISTS salz.users (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    username TEXT NOT NULL, -- no username length limit?
+    username TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     icon_path TEXT NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS salz.bots (
     status TEXT NOT NULL, -- could be an enum: 'No Status', 'Healthy', 'Unhealthy'
     FOREIGN KEY (user_id) REFERENCES salz.users (id)
 );
-
+CREATE INDEX IF NOT EXISTS idx_bots_user_id ON salz.bots (user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS uq_bots_upload_path ON salz.bots (upload_path); -- Prevent name collisions in s3?
 
 CREATE TABLE IF NOT EXISTS salz.games (
@@ -29,16 +29,15 @@ CREATE TABLE IF NOT EXISTS salz.games (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ended_at TIMESTAMP,
     status TEXT NOT NULL, -- could be an enum: 'Pending', 'Running', 'Finished', 'Crashed'
-    winner_id BIGINT,
-    loser_id BIGINT,
-    FOREIGN KEY (winner_id) REFERENCES salz.users (id),
-    FOREIGN KEY (loser_id) REFERENCES salz.users (id)
+    upload_path TEXT
 );
 
 CREATE TABLE IF NOT EXISTS salz.game_participants (
     game_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     bot_id BIGINT NOT NULL,
+    score, -- Winner of game determined by score amongst other participants. Null until game finishes successfully.
+    updated_at TIMESTAMP NOT NULL,
     FOREIGN KEY (game_id) REFERENCES salz.games (id),
     FOREIGN KEY (user_id) REFERENCES salz.users (id),
     FOREIGN KEY (bot_id) REFERENCES salz.bots (id),
