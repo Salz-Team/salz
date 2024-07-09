@@ -8,8 +8,6 @@ import (
 )
 
 func main() {
-  // TODO Dependency injection?
-  // TODO config stuff
   cfg := config.NewConfig()
   ctrl := controllers.NewController(cfg)
 
@@ -20,20 +18,14 @@ func main() {
   // Public routes
   r.GET("/health", controllers.Ping)
   r.GET("/login", ctrl.OAuthLoginHandler)
-  r.GET("/login/callback", func (c *gin.Context) {
-    ctrl.OAuthCallbackHandler(c)
-  })
+  r.GET("/login/callback", ctrl.OAuthCallbackHandler)
 
   // Protected routes
   protectedRoutes := r.Group("")
   protectedRoutes.Use(middlewares.AuthMiddleware(cfg.AuthDBHandler))
   {
-    protectedRoutes.GET("/user/me", func (c *gin.Context) {
-      controllers.GetUser(c, cfg.ApiDBHandler, cfg.AuthDBHandler)
-    })
-    protectedRoutes.POST("/bot/upload", func (c *gin.Context) {
-      ctrl.BotUploadHandler(c)
-    })
+    protectedRoutes.GET("/user/me", ctrl.GetUser)
+    protectedRoutes.POST("/bot/upload", ctrl.BotUploadHandler)
   }
 
   r.Run()

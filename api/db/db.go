@@ -3,7 +3,6 @@ package db
 import (
   "database/sql" 
   "github.com/Salz-Team/salz/api/models"
-  _ "github.com/glebarez/go-sqlite"
 )
 
 type ApiDBHandler interface {
