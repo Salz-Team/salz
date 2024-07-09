@@ -5,27 +5,25 @@ import (
   "strings"
   "github.com/gin-gonic/gin"
   "github.com/charmbracelet/log"
-
-  "github.com/Salz-Team/salz/api/db"
 )
 
-func GetUser(c *gin.Context, dbHandler db.ApiDBHandler, authHandler db.AuthDBHandler) {
+func (ctrl *Controller) GetUser(c *gin.Context) {
   // Get the user from the database
   
   authTokenHeader := c.GetHeader("Authorization")
   authToken := strings.TrimSpace(strings.Replace(authTokenHeader, "Bearer", "", 1))
 
-  token, err := authHandler.GetToken(authToken)
+  token, err := ctrl.cfg.AuthDBHandler.GetToken(authToken)
   if err != nil {
     log.Error("Unable to get token", "error", err)
     c.AbortWithStatus(http.StatusInternalServerError)
     return
   }
 
-  user, err := dbHandler.GetUser(token.UserId)
+  user, err := ctrl.cfg.ApiDBHandler.GetUser(token.UserId)
   if err != nil {
-    log.Error("Unable to get user", "error", err)
-    c.AbortWithStatus(http.StatusInternalServerError)
+    log.Error("Unable to get user by id even though token was valid", "error", err)
+    c.AbortWithStatus(http.StatusUnauthorized)
     return
   }
 
