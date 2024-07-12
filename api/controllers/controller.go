@@ -1,15 +1,15 @@
 package controllers
 
 import (
-  "github.com/Salz-Team/salz/api/config"
+	"github.com/Salz-Team/salz/api/config"
 )
 
 type Controller struct {
-  cfg *config.Config
+	cfg *config.Config
 }
 
 func NewController(cfg *config.Config) *Controller {
-  return &Controller{
-    cfg: cfg,
-  }
+	return &Controller{
+		cfg: cfg,
+	}
 }
