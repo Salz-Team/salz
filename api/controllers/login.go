@@ -65,7 +65,7 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
   }
 
   // Create a token for the user
-  userAuthToken := models.NewAuthTokenForUser(u.Id)
+  userAuthToken := models.NewAuthTokenForUser(u.Id, ctrl.cfg.AuthTokenValidDuration)
   err = ctrl.cfg.AuthDBHandler.CreateToken(*userAuthToken)
   if err != nil {
     log.Error("Unable to create token", "error", err)

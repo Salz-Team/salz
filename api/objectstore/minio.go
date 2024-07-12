@@ -66,7 +66,7 @@ func NewMinIOHandler() *MinIOHandler {
   }
 
   // Check if the bucket exists -- throw if not
-  exists, err := MinIOBucketExists(context.Background(), minioClient, salzBucket)
+  exists, err := minioClient.BucketExists(context.Background(), salzBucket)
   if err != nil {
     log.Fatal("Error checking if bucket exists", "bucket", salzBucket, "error", err)
   }

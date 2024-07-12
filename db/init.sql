@@ -27,9 +27,8 @@ CREATE TABLE IF NOT EXISTS salz.games (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    ended_at TIMESTAMP,
     status TEXT NOT NULL, -- could be an enum: 'Pending', 'Running', 'Finished', 'Crashed'
-    upload_path TEXT
+    upload_path TEXT -- Where to upload game logs to
 );
 
 CREATE TABLE IF NOT EXISTS salz.game_participants (

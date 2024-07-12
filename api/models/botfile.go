@@ -24,7 +24,12 @@ type BotFile struct {
 }
 
 func (b BotFile) BotPathBuilder(extension string) string {
-  return path.Join("bots", strconv.Itoa(b.UserId), strconv.Itoa(b.BotId)) + extension
+  // For handling if the extension doesn't include the dot for whatever reason
+  needDot := ""
+  if extension[0] != '.' {
+    needDot = "."
+  }
+  return path.Join("bots", strconv.Itoa(b.UserId), strconv.Itoa(b.BotId)) + needDot + extension
 }
 
 func NewBotFile(userId int, extension string) BotFile {

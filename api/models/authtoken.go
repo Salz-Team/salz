@@ -13,7 +13,7 @@ type AuthToken struct {
   ExpiresAt time.Time  `json:"expires_at"`
 }
 
-func NewAuthTokenForUser(userId int) *AuthToken {
+func NewAuthTokenForUser(userId int, validDuration time.Duration) *AuthToken {
   // Generate a random token
   b := make([]byte, 32)
   _, err := rand.Read(b)
@@ -24,7 +24,7 @@ func NewAuthTokenForUser(userId int) *AuthToken {
   b64Token := b64.StdEncoding.EncodeToString(b)
 
   // Expires in 1 day
-  expiresAt := time.Now().Add(24 * time.Hour)
+  expiresAt := time.Now().Add(validDuration)
 
   return &AuthToken{
     UserId:    userId,

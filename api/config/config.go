@@ -7,6 +7,7 @@ import (
   "golang.org/x/oauth2"
   "golang.org/x/oauth2/github"
   "os"
+  "time"
 )
 
 // Config is a struct that holds the configuration for the application
@@ -16,6 +17,7 @@ type Config struct {
   ObjectStoreHandler objectstore.ObjectStoreHandler
   LogLevel log.Level
   OAuth2Config *oauth2.Config
+  AuthTokenValidDuration time.Duration
   MAX_FILE_SIZE_BYTES int64
 }
 
@@ -45,6 +47,7 @@ func NewLocalConfig() *Config {
     LogLevel: log.DebugLevel,
     OAuth2Config: oauthConfig,
     MAX_FILE_SIZE_BYTES: 25 << 20, // 25 MB
+    AuthTokenValidDuration: time.Hour * 24,
   }
 }
 
@@ -65,6 +68,7 @@ func NewDevelopmentConfig() *Config {
     LogLevel: log.DebugLevel,
     OAuth2Config: oauthConfig,
     MAX_FILE_SIZE_BYTES: 25 << 20, // 25 MB
+    AuthTokenValidDuration: time.Hour * 24,
   }
 }
 
@@ -98,6 +102,8 @@ func NewProductionConfig() *Config {
     ObjectStoreHandler: objectstore.NewMinIOHandler(),
     LogLevel: logLevel,
     OAuth2Config: oauthConfig,
+    MAX_FILE_SIZE_BYTES: 25 << 20, // 25 MB
+    AuthTokenValidDuration: time.Hour * 24,
   }
 }
 

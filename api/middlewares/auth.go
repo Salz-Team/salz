@@ -18,7 +18,6 @@ func AuthMiddleware(authDb db.AuthDBHandler) gin.HandlerFunc {
         if authTokenHeader == "" {
             log.Info("No token found")
             c.Redirect(http.StatusTemporaryRedirect, "/login")
-            c.Abort()
             return
         }
 
@@ -43,7 +42,6 @@ func AuthMiddleware(authDb db.AuthDBHandler) gin.HandlerFunc {
         if token.ExpiresAt.Before(time.Now()) {
             log.Debug("Token expired")
             c.Redirect(http.StatusTemporaryRedirect, "/login")
-            c.Abort()
             return
         }
 
