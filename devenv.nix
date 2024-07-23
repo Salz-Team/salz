@@ -6,6 +6,12 @@
   env.VAULT_PROJECT_ID = "3196ec06-6d59-4fc4-affa-fa3fdd12cd1c";
   env.VAULT_APP_NAME = "salz";
 
+  # PGHOST, PGPORT already set (probably by devenv?)
+  env.PGUSER = "salz";
+  env.PGPASSWORD = "superdupersecret";
+  env.PGDATABASE = "salz";
+  env.PGREQUIREAUTH = "false";
+
   packages = [
     pkgs.git
     pkgs.graphviz
