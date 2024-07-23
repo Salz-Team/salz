@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS salz.game_participants (
     game_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     bot_id BIGINT NOT NULL,
-    score, -- Winner of game determined by score amongst other participants. Null until game finishes successfully.
+    score FLOAT, -- Winner of game determined by score amongst other participants. Null until game finishes successfully.
     updated_at TIMESTAMP NOT NULL,
     FOREIGN KEY (game_id) REFERENCES salz.games (id),
     FOREIGN KEY (user_id) REFERENCES salz.users (id),
