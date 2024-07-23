@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-SALZ_SECRET_LOCATION="../../salz-secrets"
-SALZ_SECRETS=$($SALZ_SECRET_LOCATION/decrypt.sh $SALZ_SECRET_LOCATION/dev-secrets.json.age)
+# Check that the `hcp` command is available
+command -v hcp >/dev/null 2>&1 || { echo >&2 "The hcp command is required but it's not installed. Aborting."; exit 1; }
 
 export ENV="local"
 
-export OAUTH_CLIENT_KEY=$(echo $SALZ_SECRETS | jq -r '.oauth_client_id')
-export OAUTH_CLIENT_SECRET=$(echo $SALZ_SECRETS | jq -r '.oauth_client_secret')
+export OAUTH_CLIENT_KEY=$(hcp vault-secrets secrets open github_oauth_client_id --format json | jq -r '.static_version.value')
+export OAUTH_CLIENT_SECRET=$(hcp vault-secrets secrets open github_oauth_client_secret --format json | jq -r '.static_version.value')
 
 # Local environment variables
 export PG_URI="postgres://salz:superdupersecret@localhost:5432/salz?sslmode=disable"

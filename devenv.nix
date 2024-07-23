@@ -2,13 +2,14 @@
 
 {
   env.GREET = "devenv";
+  env.VAULT_ORG_ID = "25ee0d1b-4e14-42f8-bf34-d3191ff704b7";
+  env.VAULT_PROJECT_ID = "3196ec06-6d59-4fc4-affa-fa3fdd12cd1c";
+  env.VAULT_APP_NAME = "salz";
 
   packages = [
     pkgs.git
     pkgs.graphviz
     pkgs.devenv
-
-    pkgs.age
   ];
 
   services.postgres = {
