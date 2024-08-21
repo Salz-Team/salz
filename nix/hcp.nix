@@ -11,9 +11,9 @@ let
       url = "https://releases.hashicorp.com/${pname}/${version}/${pname}_${version}_linux_amd64.zip";
       hash = "sha256-9g7ZO1fXPT1fom31mwncOxb5tO4urf72tasha2KRM1I=";
     };
-    "arm_64-darwin" = {
-      url = "https://releases.hashicorp.com/${pname}/${version}/${pname}_${version}_linux_arm64.zip";
-      hash = "";
+    "aarch64-darwin" = {
+      url = "https://releases.hashicorp.com/${pname}/${version}/${pname}_${version}_darwin_arm64.zip";
+      hash = "sha256-JWrkJfio795WNnJawqPlkIK3mvlVQZqPtXlayLZrVxw=";
     };
   };
 in stdenv.mkDerivation rec {
@@ -33,6 +33,6 @@ in stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    platforms = with platforms; [ "x86_64-linux" "arm_64-darwin" ];
+    platforms = with platforms; [ "x86_64-linux" "aarch64-darwin" ];
   };
 }
