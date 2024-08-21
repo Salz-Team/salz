@@ -12,11 +12,18 @@
   env.PGDATABASE = "salz";
   env.PGREQUIREAUTH = "false";
 
+  languages.javascript.enable = true;
+  languages.typescript.enable = true;
+
   packages = [
     pkgs.git
     pkgs.graphviz
     pkgs.devenv
     (pkgs.callPackage ./nix/hcp.nix {})
+
+    pkgs.nodePackages.npm
+    pkgs.nodePackages.typescript-language-server
+    pkgs.nodePackages.svelte-language-server
   ];
 
   services.postgres = {
