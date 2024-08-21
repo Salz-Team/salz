@@ -24,8 +24,8 @@ func main() {
 	protectedRoutes := r.Group("")
 	protectedRoutes.Use(middlewares.AuthMiddleware(cfg.AuthDBHandler))
 	{
-		protectedRoutes.GET("/user/me", ctrl.GetUser)
-		protectedRoutes.POST("/bot/upload", ctrl.BotUploadHandler)
+		protectedRoutes.GET("/users/me", ctrl.GetUser)
+		protectedRoutes.POST("/bots/upload", ctrl.BotUploadHandler)
 	}
 
 	r.Run()
