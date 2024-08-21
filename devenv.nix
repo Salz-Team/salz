@@ -16,6 +16,7 @@
     pkgs.git
     pkgs.graphviz
     pkgs.devenv
+    (pkgs.callPackage ./nix/hcp.nix {})
   ];
 
   services.postgres = {
