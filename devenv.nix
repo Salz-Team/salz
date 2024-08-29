@@ -10,6 +10,7 @@
     pkgs.git
     pkgs.graphviz
     pkgs.devenv
+    pkgs.sqlfluff
   ];
 
   services.postgres = {
