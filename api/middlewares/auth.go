@@ -47,6 +47,9 @@ func AuthMiddleware(authDb db.AuthDBHandler) gin.HandlerFunc {
 
 		log.Debug("Token for user is valid", "userid", token.UserId)
 
+		// Set the user id in the context
+		c.Set("userid", token.UserId)
+
 		c.Next()
 	}
 }

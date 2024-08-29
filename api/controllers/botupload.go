@@ -9,18 +9,7 @@ import (
 )
 
 func (ctrl *Controller) BotUploadHandler(c *gin.Context) {
-	// TODO get user ID in middleware and pass it around via gin context?
-	authTokenHeader := c.GetHeader("Authorization")
-	authToken := strings.TrimSpace(strings.Replace(authTokenHeader, "Bearer", "", 1))
-
-	// Get the user id from the auth token
-	userToken, err := ctrl.cfg.AuthDBHandler.GetToken(authToken)
-	if err != nil {
-		log.Error("Error getting user id from token", "error", err)
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-	userId := userToken.UserId
+	userId := c.GetInt("userid")
 
 	// Note that file is a multipart.File which implements io.Reader
 	file, fileHeader, err := c.Request.FormFile("data")
