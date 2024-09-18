@@ -1,15 +1,6 @@
 <script lang="ts">
-	enum ColorChoice {
-		Red = 'red',
-		Blue = 'blue',
-		Green = 'green',
-		Yellow = 'yellow',
-		Gold = 'gold',
-		Colorful = 'colorful',
-		Custom = 'custom',
-	}
-
-	export let color: ColorChoice | string = ColorChoice.Red;
+	import { ColorChoice } from '$lib/components/types/CheckeredPattern';
+	export let color: ColorChoice = ColorChoice.Red;
 </script>
 
 <svg

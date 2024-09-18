@@ -4,6 +4,7 @@
 	import CheckeredPattern from './CheckeredPattern.svelte';
 	import RoundInitial from './RoundInitial.svelte';
 	import Robot from './icons/Robot.svelte';
+	import { ColorChoice } from './types/CheckeredPattern';
 
 	export let matchResult: MatchResultModel;
 	export let datetimeDisplay: string;
@@ -17,7 +18,7 @@
 	<div class="match-result-summary">
 		<figure class="bot-wrapper">
 			{#if matchResult.winner === 'bot1'}
-				<CheckeredPattern color="colorful" />
+				<CheckeredPattern color={ColorChoice.Colorful} />
 			{/if}
 			<Robot hasCrown={matchResult.winner === 'bot1'} />
 			<RoundInitial name={matchResult.bot1.owner?.username} />
@@ -25,7 +26,7 @@
 		vs
 		<figure class="bot-wrapper">
 			{#if matchResult.winner === 'bot2'}
-				<CheckeredPattern color="colorful" />
+				<CheckeredPattern color={ColorChoice.Colorful} />
 			{/if}
 			<Robot hasCrown={matchResult.winner === 'bot2'} />
 			<RoundInitial name={matchResult.bot2.owner?.username} />
