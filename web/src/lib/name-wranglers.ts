@@ -1,5 +1,5 @@
 export const getInitials = (name: string): string =>
 	name
 		.split(' ')
-		.slice(0, 2)
+		.filter((_, i, a) => i == 0 || (i == a.length - 1))
 		.reduce((acc, cur) => `${acc}${cur.charAt(0)}`, '');
