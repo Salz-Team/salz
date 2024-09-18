@@ -62,13 +62,13 @@
 	main {
 		max-width: 40vw;
 		text-align: center;
-		border: 1px solid gray;
+		border: 0.1rem solid gray;
 		padding: 3em 3em 2em 3em;
 		position: relative;
 	}
 
 	main .logo-container {
-		--slant-px: 30px;
+		--slant-px: 1rem;
 		padding: 0.7em 2.3em 0.2em 2em;
 		position: absolute;
 		top: -3em;
@@ -96,7 +96,7 @@
 	}
 
 	aside {
-		border: 1px solid gray;
+		border: 0.1rem solid gray;
 		padding: 0.3em 1.5em 1em 0em;
 	}
 

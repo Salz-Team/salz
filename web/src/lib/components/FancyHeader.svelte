@@ -13,9 +13,10 @@
 
 <style>
 	.fancy-header {
-		--slant-px: 30px;
+		--slant-px: 4rem;
 		background: lightgray;
 		padding: 0.6em 2.5em 0.6em 1em;
+    /* Should hold the negative of the horizontal size of the fold */
 		margin-left: -10px;
 		position: relative;
 		display: flex;

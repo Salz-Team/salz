@@ -60,6 +60,6 @@
 	}
 
 	nav ul > :global(li + li) {
-		margin-left: -10px;
+		margin-left: -1rem;
 	}
 </style>

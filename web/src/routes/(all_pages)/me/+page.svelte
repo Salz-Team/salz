@@ -117,7 +117,7 @@
 
 <style>
 	main {
-		border: 1px solid gray;
+		border: 0.1rem solid gray;
 		padding: 0.3em 1.5em 1em 0em;
 		border-radius: 5px 5px 10px 10px;
 		min-height: 30vh;
@@ -155,7 +155,7 @@
 		top: 50%;
 		left: 0;
 		width: 100%;
-		height: 3px;
+		height: 0.3rem;
 		background: black;
 	}
 

@@ -24,7 +24,7 @@
 	}
 
 	a:link {
-		--slant-px: 10px;
+		--slant-px: 1rem;
 		padding: 0.6em 1em;
 		display: inline-flex;
 		align-items: center;

@@ -55,7 +55,7 @@
 	.match-result + :global(.match-result::before) {
 		content: '';
 		width: 70%;
-		height: 1px;
+		height: 0.1em;
 		background: linear-gradient(
 			0.25turn,
 			transparent,
@@ -102,6 +102,6 @@
 		position: absolute;
 		z-index: 2;
 		top: 65%;
-		right: 10px;
+		right: 0.7rem;
 	}
 </style>

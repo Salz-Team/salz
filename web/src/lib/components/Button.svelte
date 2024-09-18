@@ -12,7 +12,7 @@
 
 <style>
 	button {
-		--slant-px: 10px;
+		--slant-px: 1rem;
 		padding: 0.5em 1.5em;
 		border: none;
 		background: lightgray;
