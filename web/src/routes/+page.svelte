@@ -8,7 +8,7 @@
 	let leaders: { username: string; score: number }[] = [
 		{ username: 'John Smith', score: 1234 },
 		{ username: 'Adam Scott', score: 1233 },
-		{ username: 'Bill Willy', score: 1232 }
+		{ username: 'Bill Willy', score: 1232 },
 	];
 </script>
 

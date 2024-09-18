@@ -82,10 +82,10 @@
 
 <style>
 	:global(nav.paginator) {
-    margin: 1.5em auto;
-    width: 80%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+		margin: 1.5em auto;
+		width: 80%;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 	}
 </style>

@@ -19,7 +19,7 @@ export const login = async (apiBaseurl: string): Promise<string | null> => {
 };
 
 export const getMe = (apiBaseurl: string) =>
-  get(new URL("/users/me", apiBaseurl), None(), {}, { mode: 'cors' });
+	get(new URL('/users/me', apiBaseurl), None(), {}, { mode: 'cors' });
 
 export const getUsers = (apiBaseurl: string) =>
-  get(new URL("/users", apiBaseurl), None(), {}, { mode: 'cors' });
+	get(new URL('/users', apiBaseurl), None(), {}, { mode: 'cors' });

@@ -6,7 +6,7 @@
 <div class="content-container"><slot></slot></div>
 
 <style>
-  .content-container {
-    padding: 0 2em;
-  }
+	.content-container {
+		padding: 0 2em;
+	}
 </style>

@@ -2,7 +2,7 @@
 	export let onClick: () => void = () => {};
 	export let type: 'button' | 'reset' | 'submit' = 'button';
 	export let isDisabled: boolean = false;
-	let className: string = "";
+	let className: string = '';
 	export { className as class };
 </script>
 

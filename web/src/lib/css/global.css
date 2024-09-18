@@ -1,29 +1,44 @@
 :root {
-  --accent-color: linear-gradient(45deg,
-    #F17C58, #E94584, #24AADB, #27DBB1, #FFDC18, #FF3706,
-    #F17C58, #E94584, #24AADB, #27DBB1, #FFDC18, #FF3706
-  );
+	--accent-color: linear-gradient(
+		45deg,
+		#f17c58,
+		#e94584,
+		#24aadb,
+		#27dbb1,
+		#ffdc18,
+		#ff3706,
+		#f17c58,
+		#e94584,
+		#24aadb,
+		#27dbb1,
+		#ffdc18,
+		#ff3706
+	);
 }
 
 body {
-  min-height: 100vh;
-  line-height: 1.5;
-  font-size: 24px;
-  font-family: sans-serif;
+	min-height: 100vh;
+	line-height: 1.5;
+	font-size: 24px;
+	font-family: sans-serif;
 }
 
 a:link,
 a:visited {
-  color: darkgray;
-  transition: color 0.2s ease-in-out;
+	color: darkgray;
+	transition: color 0.2s ease-in-out;
 }
 
 a:hover,
 a:focus {
-  color: black;
+	color: black;
 }
 
 @keyframes background-scroll {
-  0% { background-position: 0%; }
-  100% { background-position: 100%; }
+	0% {
+		background-position: 0%;
+	}
+	100% {
+		background-position: 100%;
+	}
 }

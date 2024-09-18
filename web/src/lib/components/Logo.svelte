@@ -15,7 +15,7 @@
 <style>
 	.logo {
 		fill: black;
-    width: 1.2em;
+		width: 1.2em;
 	}
 
 	.logo rect {

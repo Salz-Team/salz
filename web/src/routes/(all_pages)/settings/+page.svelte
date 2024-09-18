@@ -160,9 +160,9 @@
 		padding-left: 1.5em;
 	}
 
-  fieldset {
-    padding: 0 1rem 1rem 1rem;
-  }
+	fieldset {
+		padding: 0 1rem 1rem 1rem;
+	}
 
 	fieldset + fieldset {
 		margin-top: 1.5rem;

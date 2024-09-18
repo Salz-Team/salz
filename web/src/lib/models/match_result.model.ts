@@ -1,5 +1,5 @@
-import { Temporal } from "temporal-polyfill";
-import type { Bot } from "./bot.model";
+import { Temporal } from 'temporal-polyfill';
+import type { Bot } from './bot.model';
 
 export type MatchResult = {
 	id: string;

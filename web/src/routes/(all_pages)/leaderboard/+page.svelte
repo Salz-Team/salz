@@ -61,10 +61,9 @@
 		align-items: center;
 	}
 
-  main :global(.leaderboard-paginator) {
-    justify-content: space-between;
-    width: 100%;
-    margin-top: 1em;
-  }
+	main :global(.leaderboard-paginator) {
+		justify-content: space-between;
+		width: 100%;
+		margin-top: 1em;
+	}
 </style>
-

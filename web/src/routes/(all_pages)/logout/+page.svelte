@@ -4,5 +4,5 @@
 
 	$userStore = initialValue;
 
-  goto('/');
+	goto('/');
 </script>
