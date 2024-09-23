@@ -5,7 +5,6 @@ export interface Settings {
 }
 
 export const settingsStore = localWritable('settings')<Settings>({
-	// apiBaseurl: 'https://api.salz.life',
 	apiBaseurl: 'https://api.salz.life',
 });
 
