@@ -52,7 +52,6 @@ func (p *PostgresHandler) GetUserByLogin(username string) (models.User, error) {
 	row := p.DB.QueryRow("SELECT * FROM salz.users WHERE username = $1", username)
 	err := row.Scan(&user.Id, &user.UserName, &user.CreatedAt, &user.UpdatedAt, &user.IconPath, &user.IdentityProvider, &user.IdentityProviderId, &user.Elo)
 	if err != nil {
-		log.Error("Unable to get user by username", "error", err)
 		return models.User{}, err
 	}
 	return user, nil
@@ -144,4 +143,24 @@ func (p *PostgresHandler) CreateToken(authToken models.AuthToken) error {
 		return err
 	}
 	return nil
+}
+
+func (p *PostgresHandler) CreatePassword(userId int, password string) error {
+	_, err := p.DB.Exec("INSERT INTO auth.basic_auth_logins (user_id, pw_hash) VALUES ($1, crypt($2, gen_salt('bf'))) ON CONFLICT (user_id) DO UPDATE SET pw_hash=excluded.pw_hash", userId, password)
+	if err != nil {
+		log.Error("Unable to create password", "error", err)
+		return err
+	}
+	return nil
+}
+
+func (p *PostgresHandler) CheckPassword(userId int, password string) (bool, error) {
+	row := p.DB.QueryRow("SELECT pw_hash = crypt($2, pw_hash) FROM auth.basic_auth_logins WHERE user_id = $1", userId, password)
+	var match bool
+	err := row.Scan(&match)
+	if err != nil {
+		log.Error("Unable to check password", "error", err)
+		return false, err
+	}
+	return match, nil
 }
