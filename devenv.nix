@@ -42,7 +42,8 @@
     listenAddress = "127.0.0.1:9110";
     buckets = ["salz"];
   };
-  services.caddy.enable = true;
 
+  services.caddy.enable = true;
   languages.go.enable = true;
+  languages.haskell.enable = true;
 }
