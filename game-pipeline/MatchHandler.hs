@@ -7,6 +7,44 @@ import System.IO
 import System.Exit
 import Data.Maybe
 import Data.List
+import Data.Aeson
+import GHC.Generics
+import qualified Data.ByteString.Lazy as LB
+
+-- Utils
+
+data Process = Process
+  { processHandle = ProcessHandle
+  , stdIn = Maybe Handle
+  , stdOut = Maybe Handle
+  , stdErr = Maybe Handle
+  } deriving Show
+
+spawn :: String -> Process
+spawn path = Process ph stdin stdout stderr
+  where
+    (stdin, stdout, stderr, ph) = createProcess
+      (shell path){
+        std_in = CreatePipe,
+        std_out = CreatePipe,
+        std_err = CreatePipe
+      }
+
+logLine line = do
+  return ()
+
+dGetStrLn handle = do
+  logLine "getting a line"
+  line <- hGetLine handle
+  logLine $ "got: " ++ line
+  return line
+
+dPutStrLn handle line = do
+  logLine $ "putting a line: " ++ line
+  hPutStrLn handle line
+  hFlush handle
+
+-- Args
 
 data Args = Args
   { _gameEngine :: String
@@ -26,71 +64,71 @@ opts = info (argparser <**> helper)
          ( fullDesc
         <> progDesc "Run a match")
 
-spawn path =
-  createProcess
-    (shell path){
-      std_in = CreatePipe,
-      std_out = CreatePipe
-    }
+-- Types
 
-getStdIn (x, _, _, _) = fromJust x
-getStdOut (_, x, _, _) = fromJust x
+data PlayerAction = PlayerAction
+  { player :: Int
+  , action :: String
+  } deriving (Show, Generic, ToJSON, FromJSON)
 
-logLine line = do
-  return ()
+data GameTurn = GameTurn
+  { turn_number :: Int
+  , actions :: [ PlayerAction ]
+  } deriving (Show, Generic, ToJSON, FromJSON)
 
--- spawn game engine
--- spawn bots
--- game eng interface:
---  handler -> game eng: <# players>
---  game eng -> handler: <player #> + <timeout>
---  game eng -> handler: <player # stdin>
---  handler -> bot #: <player # stdin>
---  bot # -> handler: <player # stdout>
---  hanlder -> game eng: <player # stdout>
+data GameInfo = GameInfo
+  { botPaths :: [String]
+  , gameEnginePath :: String
+  } deriving (Show, Generic, ToJSON, FromJSON)
 
-dGetStrLn handle = do
-  logLine "getting a line"
-  line <- hGetLine handle
-  logLine $ "got: " ++ line
-  return line
+data GameEngineCommand = Done [Float] | PlayerActions [Int] [LB.ByteString] | Error LB.ByteString deriving (Show)
 
-dPutStrLn handle line = do
-  logLine $ "putting a line: " ++ line
-  hPutStrLn handle line
-  hFlush handle
+data GameHistoryLine = GameEngineError LB.ByteString | GameEngineResults [Float] | PlayerActions [(Int, LB.ByteString)] deriving (Show)
 
-data Command = Done [Float] | Player Int Int | Error String deriving (Show)
+instance ToJSON GameHistoryLine where
+  toJSON (GameEngineError str) =
+    object [ "type" .= "game_error"
+           , "error" .= str
+           ]
+  toJSON (GameEngineResults scores) =
+    object [ "type" .= "scores"
+           , "scores" .= scores
+           ]
+  toJSON (PlayerActions actions) =
+    object [ "type" .= "player_actions"
+           , "turn_number" .= 1
+           , "actions" .= actions
+           ]
 
-commandParser command
-  | "Finished" `isPrefixOf` command = Done (map read $ tail $ words command)
-  | "Player" `isPrefixOf` command = Player (read ((words command)!!1)) (read (last (words command)))
-  | "Error" `isPrefixOf` command = Error command
+--
 
-handleCommand :: (Maybe Handle, Maybe Handle, Maybe Handle, ProcessHandle) -> [(Maybe Handle, Maybe Handle, Maybe Handle, ProcessHandle)] -> Command -> IO ()
+botInteract :: Process -> LB.ByteString -> IO LB.ByteString
+botInteract bot botin = do
+  dPutStrLn (stdIn bot) command
+  dGetStrLn (stdOut bot)
+
+
+handleCommand :: Process -> [Process] -> Command -> IO ()
 handleCommand gameEngine bots (Error error) = do
-  putStrLn error
+  putStrLn $ encode (GameEngineError error)
   exitWith (ExitFailure 1)
-
 handleCommand gameEngine bots (Done positions) = do
-  putStrLn (intercalate " " (map show positions))
+  putStrLn $ encode (GameEngineResults positions)
+  exitWith ExitSuccess
+handleCommand gameEngine bots (PlayerActions players commands) = do
+  botOuts <- mapM (\(p, c) -> botInteract (bots!!p) c) playercmds
+  putStrLn $ encode (PlayerActions botOuts)
+  mapM (dPutStrLn (stdIn gameEngine)) botOut --todo
+  where
+    playercmds = zip players commands
 
-handleCommand gameEngine bots (Player player len) = do
-  gameOut <- replicateM len (dGetStrLn (getStdOut gameEngine))
-  mapM (dPutStrLn (getStdIn (bots!!player))) gameOut
-  mapM (\x -> putStrLn ("Game->Bot:" ++ x)) gameOut
-  botLen <- dGetStrLn (getStdOut (bots!!player))
-  botOut <- replicateM (read botLen) (dGetStrLn (getStdOut (bots!!player)))
-  mapM (\x -> putStrLn ("Bot->Game:" ++ x)) botOut
-  mapM (dPutStrLn (getStdIn gameEngine)) botOut
-  gameLoop gameEngine bots
-
-gameLoop :: (Maybe Handle, Maybe Handle, Maybe Handle, ProcessHandle) -> [(Maybe Handle, Maybe Handle, Maybe Handle, ProcessHandle)] -> IO ()
+gameLoop :: Process -> [Process] -> IO ()
 gameLoop gameEngine bots = do
-  command_ <- dGetStrLn (getStdOut gameEngine)
+  command_ <- dGetStrLn (stdOut gameEngine)
   let command = commandParser command_
   putStrLn $ "Game:" ++ (show command)
   handleCommand gameEngine bots command
+  gameLoop gameEngine bots
 
 main :: IO ()
 main = do

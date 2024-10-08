@@ -62,13 +62,17 @@ executable game-engine
     -- other-modules:
 
     -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+    other-extensions:
+        DeriveGeneric,
+        DeriveAnyClass,
 
     -- Other library packages from which modules are imported.
     build-depends:
         base ^>=4.18.2.1,
         optparse-applicative,
-        process
+        process,
+        aeson,
+        parsec,
 
     -- Directories containing source files.
 
@@ -86,13 +90,17 @@ executable match-handler
     -- other-modules:
 
     -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+    other-extensions:
+        DeriveGeneric,
+        DeriveAnyClass,
 
     -- Other library packages from which modules are imported.
     build-depends:
         base ^>=4.18.2.1,
         optparse-applicative,
-        process
+        process,
+        aeson,
+        parsec,
 
     -- Directories containing source files.
 
@@ -110,13 +118,17 @@ executable simple-bot
     -- other-modules:
 
     -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+    other-extensions:
+        DeriveGeneric,
+        DeriveAnyClass,
 
     -- Other library packages from which modules are imported.
     build-depends:
         base ^>=4.18.2.1,
         optparse-applicative,
-        process
+        process,
+        aeson,
+        parsec,
 
     -- Directories containing source files.
 
