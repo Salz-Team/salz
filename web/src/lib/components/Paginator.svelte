@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
-	import Icon from '@iconify/svelte';
 	import range from 'lodash/range';
 
 	interface Props {
@@ -15,7 +14,7 @@
 		class: className = '',
 		totalPages,
 		currentPage = $bindable(1),
-		maxPagesShown = 5,
+		maxPagesShown = 7,
 		noEdgeJumpers = false,
 	}: Props = $props();
 
@@ -32,53 +31,38 @@
 </script>
 
 <nav class={className} class:hidden={totalPages === 1}>
-	<div>
-		{#if !noEdgeJumpers}
-			<Button onClick={() => (currentPage = 1)} isDisabled={currentPage === 1}>
-				<Icon icon="tabler:arrow-big-left-line" />
-			</Button>
-		{/if}
-		<Button
-			onClick={() => (rangeStart > 1 ? (rangeStart -= 1) : null)}
-			isDisabled={rangeStart <= 1}
-		>
-			<Icon icon="tabler:arrow-left" />
-		</Button>
-	</div>
+	<Button class={currentPage === 1 ? 'active' : ''} type="button" onClick={() => (currentPage = 1)}>
+		1
+	</Button>
 
-	<div>
-		{#each range(rangeStart, rangeEnd) as i (i)}
-			<Button
-				class={currentPage === i ? 'active' : ''}
-				type="button"
-				onClick={() => (currentPage = i)}
-			>
-				{i}
-			</Button>
-		{/each}
-	</div>
+	{#if currentPage - halfMaxPagesShown >= 1}
+		<span>...</span>
+	{/if}
 
-	<div>
+	{#each range(rangeStart + 1, rangeEnd - 1) as i (i)}
 		<Button
-			onClick={() => (rangeEnd - 1 < totalPages ? (rangeStart += 1) : null)}
-			isDisabled={rangeEnd - 1 >= totalPages}
+			class={currentPage === i ? 'active' : ''}
+			type="button"
+			onClick={() => (currentPage = i)}
 		>
-			<Icon icon="tabler:arrow-right" />
+			{i}
 		</Button>
-		{#if !noEdgeJumpers}
-			<Button onClick={() => (currentPage = totalPages)} isDisabled={currentPage === totalPages}>
-				<Icon icon="tabler:arrow-big-right-line" />
-			</Button>
-		{/if}
-	</div>
+	{/each}
+
+	{#if currentPage + halfMaxPagesShown <= totalPages}
+		<span>...</span>
+	{/if}
+
+	<Button
+		class={currentPage === totalPages ? 'active' : ''}
+		type="button"
+		onClick={() => (currentPage = totalPages)}
+	>
+		{totalPages}
+	</Button>
 </nav>
 
 <style>
-	nav,
-	nav > div {
-		display: flex;
-	}
-
 	nav.hidden {
 		display: none;
 	}
