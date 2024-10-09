@@ -86,7 +86,7 @@
 		margin: 1.5em auto;
 		width: 80%;
 		display: flex;
-		justify-content: space-between;
+		justify-content: center;
 		align-items: center;
 	}
 </style>
