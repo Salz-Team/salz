@@ -19,6 +19,8 @@ type Config struct {
 	OAuth2Config           *oauth2.Config
 	AuthTokenValidDuration time.Duration
 	MAX_FILE_SIZE_BYTES    int64
+	EnableBasicAuth 	   bool
+
 }
 
 func getEnvOrDie(key string, defaultValue string) string {
@@ -48,6 +50,7 @@ func NewLocalConfig() *Config {
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
+		EnableBasicAuth:        true,
 	}
 }
 
@@ -69,6 +72,7 @@ func NewDevelopmentConfig() *Config {
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
+		EnableBasicAuth:        true,
 	}
 }
 
@@ -104,6 +108,7 @@ func NewProductionConfig() *Config {
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
+		EnableBasicAuth:        false,
 	}
 }
 

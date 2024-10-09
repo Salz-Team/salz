@@ -21,4 +21,6 @@ type AuthDBHandler interface {
 	DeleteTokenByUserId(int) error
 	DeleteTokenByToken(string) error
 	CreateToken(models.AuthToken) error
+	CreatePassword(int, string) error
+	CheckPassword(int, string) (bool, error)
 }
