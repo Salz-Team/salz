@@ -45,4 +45,8 @@
   services.caddy.enable = true;
 
   languages.go.enable = true;
+
+  processes = {
+    web.exec = "pushd ./web > /dev/null && npm install && npm run dev";
+  };
 }
