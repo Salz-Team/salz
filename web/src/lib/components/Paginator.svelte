@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
 	import range from 'lodash/range';
+	import PaginatorJumper from './PaginatorJumper.svelte';
 
 	let className: string = '';
 	export let totalPages: number;
@@ -18,6 +19,10 @@
 				? totalPages - maxPagesShown + 1
 				: currentPage - halfMaxPagesShown + 1;
 	$: rangeEnd = Math.min(totalPages + 1, rangeStart + maxPagesShown);
+
+  let jumpToPage = (min: number, max: number) => (n: number) => {
+		currentPage = Math.min(Math.max(min, n), max);
+	};
 </script>
 
 <nav class={className} class:hidden={totalPages === 1}>
@@ -26,7 +31,7 @@
 	</Button>
 
 	{#if currentPage - halfMaxPagesShown >= 1}
-		<span>...</span>
+		<PaginatorJumper min={1} max={totalPages} onConfirm={jumpToPage(1, totalPages)} />
 	{/if}
 
 	{#each range(rangeStart + 1, rangeEnd - 1) as i (i)}
@@ -40,7 +45,7 @@
 	{/each}
 
 	{#if currentPage + halfMaxPagesShown <= totalPages}
-		<span>...</span>
+		<PaginatorJumper min={1} max={totalPages} onConfirm={jumpToPage(1, totalPages)} />
 	{/if}
 
 	<Button
