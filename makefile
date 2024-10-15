@@ -13,3 +13,27 @@ clean:
 	devenv processes down || true
 	rm -r .devenv/state/minio
 	rm -r .devenv/state/postgres
+
+
+################################################################################
+# Test
+################################################################################
+
+test: test/contracts/examples
+
+#########################################
+# JSON Contracts
+#########################################
+
+# Creates a makefile target for validating json contract examples
+test/contracts/examples/%: documentation/contracts/examples/%
+	jv $(subst /examples/,/,$(subst -example.json,.json,$<)) $<
+
+CONTRACTS_EXAMPLES := $(subst documentation,test,$(wildcard documentation/contracts/examples/*.json))
+
+#.PHONY: $(CONTRACTS_EXAMPLES) # idk why including this line doesn't work
+
+# Tests all json contract examples are valid by their contracts
+.PHONY: test/contracts/examples
+test/contracts/examples: $(CONTRACTS_EXAMPLES)
+

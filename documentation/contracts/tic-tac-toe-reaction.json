@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salz.life/tic-tac-toe-reaction.schema.json",
+  "title": "TicTacToePrompt",
+  "description": "The Tic-Tac-Toe game reaction.",
+  "type": "object",
+
+  "properties": {
+    "move": {
+      "description": "This array represents next tic-tac-toe move.",
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    }
+  },
+  "required": [ "move" ]
+}

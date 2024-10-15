@@ -1,0 +1,12 @@
+{
+  "messageType": "playerResponses",
+  "responses": [
+    {
+      "player": 2,
+      "isValid": true,
+      "response": {
+        "place":[0, 1]
+      }
+    }
+  ]
+}

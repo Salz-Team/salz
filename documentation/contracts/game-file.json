@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salz.life/game-file.schema.json",
+  "title": "GameFileMessage",
+  "description": "A line in the game jsonl file.",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "messageType": { "const": "gameStart" },
+        "numberOfPlayers": { "type": "integer" }
+      }
+    },
+    {
+      "properties": {
+        "messageType": { "const": "gameEnd" },
+        "scores": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "player": { "type": "integer"},
+              "score": { "type": "number"}
+            },
+            "required": ["player", "score"]
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "messageType": { "const": "playerResponses" },
+        "responses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "player": { "type": "integer"},
+              "response": { "type": "object"},
+              "isValid": { "type": "boolean"}
+            },
+            "required": ["player", "response", "isValid" ]
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "messageType": { "const": "debugMessage" },
+        "body": { "type": "string"}
+      }
+    }
+  ]
+}

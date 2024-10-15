@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salz.life/bot-out.schema.json",
+  "title": "BotOutMessage",
+  "description": "A message from the bot to the match handler.",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "messageType": { "const": "debugMessage" },
+        "body": { "type": "string"}
+      }
+    },
+    {
+      "properties": {
+        "messageType": { "const": "errorMessage" },
+        "body": { "type": "string"}
+      }
+    },
+    {
+      "properties": {
+        "messageType": { "const": "gameAction" },
+        "body": { "type": "object"}
+      }
+    }
+  ]
+}

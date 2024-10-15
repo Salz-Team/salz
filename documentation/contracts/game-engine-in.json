@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salz.life/game-engine-in.schema.json",
+  "title": "GameEngineInMessage",
+  "description": "A message to the game-engine from the match handler.",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "messageType": { "const": "gameStart" },
+        "numberOfPlayers": { "type": "integer" }
+      }
+    },
+    {
+      "properties": {
+        "messageType": { "const": "playerResponses" },
+        "responses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "player": { "type": "integer"},
+              "response": { "type": "object"},
+              "isValid": { "type": "boolean"}
+            },
+            "required": ["player", "response", "isValid" ]
+          }
+        }
+      }
+    }
+  ]
+}

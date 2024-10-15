@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salz.life/game-engine-out.schema.json",
+  "title": "GameEngineOutMessage",
+  "description": "A message from the game-engine to the match handler.",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "messageType": { "const": "gameEnd" },
+        "scores": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "player": { "type": "integer"},
+              "score": { "type": "number"}
+            },
+            "required": ["player", "score"]
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "messageType": { "const": "playerTurn" },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "player": { "type": "integer"},
+              "input": { "type": "object"}
+            },
+            "required": ["player", "input"]
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "messageType": { "const": "debugMessage" },
+        "body": { "type": "string"}
+      }
+    }
+  ]
+}

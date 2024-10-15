@@ -1,0 +1,4 @@
+{
+  "messageType": "playerResponses",
+  "responeses": [ { "player": 2, "isValid": true, "response":{ "place": [0, 1]}}]
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salz.life/tic-tac-toe-prompt.schema.json",
+  "title": "TicTacToePrompt",
+  "description": "The Tic-Tac-Toe game prompt.",
+  "type": "object",
+
+  "properties": {
+    "board": {
+      "description": "This array represents the tic-tac-toe board.",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "enum": [" ", "X", "O"]
+        },
+        "minItems": 3,
+        "maxItems": 3
+      },
+      "minItems": 3,
+      "maxItems": 3
+    }
+  },
+  "required": [ "board" ]
+}

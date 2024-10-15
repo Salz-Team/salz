@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salz.life/bot-in.schema.json",
+  "title": "BotInMessage",
+  "description": "A message from the match handler to the bot.",
+  "type": "object",
+  "properties": {
+    "body": {
+      "description": "The message the the game engine wants to send to the bot.",
+      "type": "object"
+    }
+  },
+  "required": [ "body" ]
+}
