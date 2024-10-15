@@ -1,0 +1,11 @@
+{
+  "messageType": "playerTurn",
+  "inputs": [
+    {
+      "player": 2,
+      "input": {
+        "board": [[ "", "X", "" ], [ "", "", "" ], [ "", "", "O" ]]
+      }
+    }
+  ]
+}
