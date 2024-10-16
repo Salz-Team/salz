@@ -15,11 +15,11 @@
 
 <style>
 	button {
-    border: none;
-    background: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
+		border: none;
+		background: none;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
 	}
 </style>

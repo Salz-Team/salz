@@ -20,7 +20,7 @@
 				: currentPage - halfMaxPagesShown + 1;
 	$: rangeEnd = Math.min(totalPages + 1, rangeStart + maxPagesShown);
 
-  let jumpToPage = (min: number, max: number) => (n: number) => {
+	let jumpToPage = (min: number, max: number) => (n: number) => {
 		currentPage = Math.min(Math.max(min, n), max);
 	};
 </script>
