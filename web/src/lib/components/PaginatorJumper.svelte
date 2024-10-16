@@ -46,7 +46,7 @@
 			{min}
 			{max}
 			{maxlength}
-      style={`width: ${maxlength + 1}em;`}
+			style={`width: ${maxlength + 1}em;`}
 		/>
 		<IconButton icon="tabler:check" onClick={confirm} />
 	</Tooltip>

@@ -14,8 +14,8 @@ the following trick.
 
 ```svelte
 <script lang="ts">
-  let className: string = "";
-  export { className as class };
+	let className: string = '';
+	export { className as class };
 </script>
 ```
 
@@ -24,10 +24,10 @@ attahced to your component, create a computed value. For example,
 
 ```svelte
 <script lang="ts">
-  let className: string = "";
-  export { className as class };
-  export let brightness: "bright" | "normal" | "dark" = "dark";
+	let className: string = '';
+	export { className as class };
+	export let brightness: 'bright' | 'normal' | 'dark' = 'dark';
 
-  $: computedClass = [className, brightness].join(" ");
+	$: computedClass = [className, brightness].join(' ');
 </script>
 ```
