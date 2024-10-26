@@ -1,4 +1,5 @@
 {
-  "messageType": "debugMessage",
-  "body": "This is a sample debug message."
+  "messageType": "gameAction",
+  "body": { "arbitrary": 1, "json": "cool"},
+  "debugMessage": "This is a sample debug message."
 }

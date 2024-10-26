@@ -8,7 +8,8 @@
     {
       "properties": {
         "messageType": { "const": "gameStart" },
-        "numberOfPlayers": { "type": "integer" }
+        "numberOfPlayers": { "type": "integer" },
+        "gameType": { "type": "string" }
       }
     },
     {
@@ -37,7 +38,9 @@
             "properties": {
               "player": { "type": "integer"},
               "response": { "type": "object"},
-              "isValid": { "type": "boolean"}
+              "isValid": { "type": "boolean"},
+              "errorType": { "type": "string"},
+              "errorMessage": { "type": "string"}
             },
             "required": ["player", "response", "isValid" ]
           }
