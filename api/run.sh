@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -Eeuo pipefail
+
 # Check that the `hcp` command is available
 command -v hcp >/dev/null 2>&1 || { echo >&2 "The hcp command is required but it's not installed. Aborting."; exit 1; }
 
