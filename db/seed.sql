@@ -20,12 +20,22 @@ select
 from created_at;
 
 -- Create a bot for each user
-INSERT INTO salz.bots (user_id, upload_path, status)
-SELECT
-    id,
-    'bots/' || id || '.zip' AS upload_path,
-    'healthy' AS status
-FROM salz.users;
+INSERT INTO salz.bots (user_id, upload_path, status, created_at, updated_at)
+with created as (
+    SELECT
+        id,
+        'bots/' || id || '.zip' AS upload_path,
+        'healthy' AS status,
+        updated_at + (random() * interval '14 days') as created_at
+    FROM salz.users
+)
+select
+    id as user_id,
+    upload_path,
+    status,
+    created_at,
+    created_at + interval '15 minutes' as updated_at -- time it takes to upload and validate healthy?
+from created;
 
 -- Create a bunch of games for each user
 -- Start dates are random between 1 and 90 days ago
