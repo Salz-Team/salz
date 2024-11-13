@@ -8,6 +8,8 @@ import (
 	"golang.org/x/oauth2/github"
 	"os"
 	"time"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 // Config is a struct that holds the configuration for the application
@@ -19,6 +21,8 @@ type Config struct {
 	OAuth2Config           *oauth2.Config
 	AuthTokenValidDuration time.Duration
 	MAX_FILE_SIZE_BYTES    int64
+	CorsConfig             gin.HandlerFunc
+	GinReleaseMode		   string
 }
 
 func getEnvOrDie(key string, defaultValue string) string {
@@ -48,6 +52,8 @@ func NewLocalConfig() *Config {
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
+		CorsConfig: 			cors.Default(),
+		GinReleaseMode: 		gin.DebugMode,
 	}
 }
 
@@ -69,6 +75,8 @@ func NewDevelopmentConfig() *Config {
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
+		CorsConfig: 			cors.Default(),
+		GinReleaseMode: 		gin.DebugMode,
 	}
 }
 
@@ -104,6 +112,8 @@ func NewProductionConfig() *Config {
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
+		CorsConfig: 			cors.Default(),
+		GinReleaseMode: 		gin.ReleaseMode,
 	}
 }
 

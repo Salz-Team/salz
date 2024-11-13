@@ -48,5 +48,6 @@
 
   processes = {
     web.exec = "pushd ./web > /dev/null && npm install && npm run dev";
+    api.exec = "pushd ./api > /dev/null && ./run.sh";
   };
 }
