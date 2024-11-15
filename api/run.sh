@@ -12,6 +12,7 @@ export OAUTH_CLIENT_SECRET=$(hcp vault-secrets secrets open github_oauth_client_
 
 # Local environment variables
 export PG_URI="postgres://salz:superdupersecret@localhost:5432/salz?sslmode=disable"
+export WEB_BASEURL="http://localhost:5173"
 export MINIO_ENDPOINT="localhost:9110"
 export MINIO_ACCESS_KEY="minioadmin"
 export MINIO_SECRET_KEY="minioadmin"

@@ -1,4 +1,3 @@
-import type { HttpMethod } from '@sveltejs/kit';
 import { Err, Ok, type Option, type Result } from 'rust-optionals';
 
 export type Resp<T extends Record<string, unknown>> = {
@@ -7,7 +6,7 @@ export type Resp<T extends Record<string, unknown>> = {
 };
 
 export const req = async <T extends Record<string, unknown>>(
-	method: HttpMethod,
+	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTION',
 	uri: string | URL,
 	body: Option<BodyInit>,
 	headers: Record<string, unknown> = {},
@@ -23,7 +22,7 @@ export const req = async <T extends Record<string, unknown>>(
 			},
 			...fetchOptions,
 		});
-		const respBody = await resp.json();
+		const respBody = resp.body ? await resp.json() : {};
 		const respStatusClass = (resp.status / 100).toPrecision(1);
 		switch (respStatusClass) {
 			case '4':

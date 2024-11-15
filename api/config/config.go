@@ -16,6 +16,7 @@ import (
 type Config struct {
 	ApiDBHandler           db.ApiDBHandler
 	AuthDBHandler          db.AuthDBHandler
+	WebBaseUrl             string
 	ObjectStoreHandler     objectstore.ObjectStoreHandler
 	LogLevel               log.Level
 	OAuth2Config           *oauth2.Config
@@ -47,6 +48,7 @@ func NewLocalConfig() *Config {
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
+		WebBaseUrl:             getEnvOrDie("WEB_BASEURL", ""),
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               log.DebugLevel,
 		OAuth2Config:           oauthConfig,
@@ -70,6 +72,7 @@ func NewDevelopmentConfig() *Config {
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
+		WebBaseUrl:             getEnvOrDie("WEB_BASEURL", ""),
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               log.DebugLevel,
 		OAuth2Config:           oauthConfig,
@@ -107,6 +110,7 @@ func NewProductionConfig() *Config {
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
+		WebBaseUrl:             getEnvOrDie("WEB_BASEURL", ""),
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               logLevel,
 		OAuth2Config:           oauthConfig,
