@@ -36,7 +36,9 @@
 	<aside>
 		<a href="/leaderboard">
 			<FancyHeader headerLevel="3">
-				<Icon slot="icon" icon="tabler:align-box-bottom-center" />
+				{#snippet icon()}
+					<Icon icon="tabler:align-box-bottom-center" />
+				{/snippet}
 				Leaderboard
 			</FancyHeader>
 		</a>

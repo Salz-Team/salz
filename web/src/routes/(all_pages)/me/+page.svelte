@@ -8,7 +8,7 @@
 	import MatchResult from '$lib/components/MatchResult.svelte';
 
 	// Mocked bot results
-	$: botResults = [
+	let botResults = $derived([
 		{
 			id: 'match111',
 			timestamp: Temporal.Instant.from('2024-07-19T00:31:19Z'),
@@ -66,29 +66,33 @@
 			},
 			winner: 'bot1',
 		},
-	] as MatchResultModel[];
+	] as MatchResultModel[]);
 
 	const localTimezoneId = Temporal.Now.timeZoneId();
 
-	$: buckets = botResults.reduce(
-		(acc, cur) => {
-			const zonedDt = cur.timestamp.toZonedDateTimeISO(localTimezoneId);
-			const localizedDate = zonedDt.toPlainDate().toLocaleString();
-			if (Object.hasOwn(acc, localizedDate)) {
-				acc[localizedDate] = [...acc[localizedDate], cur];
-			} else {
-				acc[localizedDate] = [cur];
-			}
+	let buckets = $derived(
+		botResults.reduce(
+			(acc, cur) => {
+				const zonedDt = cur.timestamp.toZonedDateTimeISO(localTimezoneId);
+				const localizedDate = zonedDt.toPlainDate().toLocaleString();
+				if (Object.hasOwn(acc, localizedDate)) {
+					acc[localizedDate] = [...acc[localizedDate], cur];
+				} else {
+					acc[localizedDate] = [cur];
+				}
 
-			return acc;
-		},
-		{} as { [key: string]: MatchResultModel[] },
+				return acc;
+			},
+			{} as { [key: string]: MatchResultModel[] },
+		),
 	);
 </script>
 
 <main>
 	<FancyHeader headerLevel="1">
-		<RoundInitial slot="icon" name={$userStore?.username} />
+		{#snippet icon()}
+			<RoundInitial name={$userStore?.username} />
+		{/snippet}
 		{$userStore?.username}
 	</FancyHeader>
 

@@ -1,5 +1,9 @@
 <script lang="ts">
-	export let hasCrown = false;
+	interface Props {
+		hasCrown?: boolean;
+	}
+
+	let { hasCrown = false }: Props = $props();
 
 	const crownCenter = [20, 105];
 	const crownSize = 4;

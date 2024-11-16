@@ -3,23 +3,32 @@
 	import Icon from '@iconify/svelte';
 	import range from 'lodash/range';
 
-	let className: string = '';
-	export let totalPages: number;
-	export let currentPage: number = 1;
-	export let maxPagesShown: number = 5;
-	export let noEdgeJumpers: boolean = false;
+	interface Props {
+		class?: string;
+		totalPages: number;
+		currentPage?: number;
+		maxPagesShown?: number;
+		noEdgeJumpers?: boolean;
+	}
 
-	export { className as class };
+	let {
+		class: className = '',
+		totalPages,
+		currentPage = $bindable(1),
+		maxPagesShown = 5,
+		noEdgeJumpers = false,
+	}: Props = $props();
 
 	let halfMaxPagesShown = maxPagesShown % 2 === 0 ? maxPagesShown / 2 : (maxPagesShown + 1) / 2;
 
-	$: rangeStart =
+	let rangeStart = $state(
 		currentPage <= halfMaxPagesShown
 			? 1
 			: totalPages - currentPage < halfMaxPagesShown
 				? totalPages - maxPagesShown + 1
-				: currentPage - halfMaxPagesShown + 1;
-	$: rangeEnd = Math.min(totalPages + 1, rangeStart + maxPagesShown);
+				: currentPage - halfMaxPagesShown + 1,
+	);
+	let rangeEnd = $derived(Math.min(totalPages + 1, rangeStart + maxPagesShown));
 </script>
 
 <nav class={className} class:hidden={totalPages === 1}>

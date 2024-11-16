@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { ColorChoice } from '$lib/components/types/CheckeredPattern';
-	export let color: ColorChoice = ColorChoice.Red;
+	interface Props {
+		color?: ColorChoice;
+	}
+
+	let { color = ColorChoice.Red }: Props = $props();
 </script>
 
 <svg

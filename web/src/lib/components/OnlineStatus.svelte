@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { type OnlineState } from '$lib/components/types/OnlineStatus';
 	import Icon from '@iconify/svelte';
-	export let onlineState: OnlineState = 'unknown';
+	interface Props {
+		onlineState?: OnlineState;
+	}
+
+	let { onlineState = 'unknown' }: Props = $props();
 </script>
 
 <aside

@@ -4,15 +4,14 @@
 	import RoundInitial from '$lib/components/RoundInitial.svelte';
 	import type { Player } from '$lib/models/player.model';
 
-	let peopleScores: { person: Player; score: number }[];
-	$: peopleScores = [
+	let peopleScores: { person: Player; score: number }[] = $derived([
 		{ person: { id: '1', username: 'h4ck0r1' }, score: 4320 },
 		{ person: { id: '2', username: 'h4ck0r2' }, score: 4120 },
 		{ person: { id: '3', username: 'h4ck0r3' }, score: 3710 },
-	];
+	]);
 
-	$: totalPages = 3;
-	$: currentPage = 1;
+	let totalPages = $derived(3);
+	let currentPage = $derived(1);
 	const maxPagesShown = 1;
 </script>
 

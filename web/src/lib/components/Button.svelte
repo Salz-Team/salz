@@ -1,13 +1,23 @@
 <script lang="ts">
-	export let onClick: () => void = () => {};
-	export let type: 'button' | 'reset' | 'submit' = 'button';
-	export let isDisabled: boolean = false;
-	let className: string = '';
-	export { className as class };
+	interface Props {
+		onClick?: () => void;
+		type?: 'button' | 'reset' | 'submit';
+		isDisabled?: boolean;
+		class?: string;
+		children?: import('svelte').Snippet;
+	}
+
+	let {
+		onClick = () => {},
+		type = 'button',
+		isDisabled = false,
+		class: className = '',
+		children,
+	}: Props = $props();
 </script>
 
-<button class={className} {type} on:click={onClick} disabled={isDisabled}>
-	<slot></slot>
+<button class={className} {type} onclick={onClick} disabled={isDisabled}>
+	{@render children?.()}
 </button>
 
 <style>

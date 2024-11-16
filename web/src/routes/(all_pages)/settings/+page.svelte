@@ -1,7 +1,5 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import { onDestroy, onMount } from 'svelte';
-	import debounce from 'lodash/debounce';
 	import cloneDeep from 'lodash/cloneDeep';
 
 	import FancyHeader from '$lib/components/FancyHeader.svelte';
@@ -12,31 +10,28 @@
 	import { getHealth } from '$lib/api/api';
 	import OnlineStatus from '$lib/components/OnlineStatus.svelte';
 
-	const settingsClone = cloneDeep($settingsStore);
+	const settingsClone = $state(cloneDeep($settingsStore));
 
-	const errorMessages = {
-		otherApiUrl: '',
-	};
-
-	let apiUrlChoice =
+	let apiUrlChoice = $state(
 		settingsClone.apiBaseurl === 'https://api.salz.life'
 			? 'https://api.salz.life'
 			: settingsClone.apiBaseurl.startsWith('http://localhost')
 				? 'http://localhost'
-				: '';
-	let localhostPort = settingsClone.apiBaseurl.startsWith('http://localhost')
-		? settingsClone.apiBaseurl.substring(settingsClone.apiBaseurl.lastIndexOf(':') + 1)
-		: 8080;
-	let otherApiUrl = apiUrlChoice === '' ? settingsClone.apiBaseurl : '';
-	let isApiOnline: OnlineState = 'offline';
-	let apiHealthCheckInterval: number;
-	let apiHealthCheckIntervalTimeout: number;
-	$: updateApiOnlineStatus = () => {
+				: '',
+	);
+	let localhostPort = $state(
+		settingsClone.apiBaseurl.startsWith('http://localhost')
+			? settingsClone.apiBaseurl.substring(settingsClone.apiBaseurl.lastIndexOf(':') + 1)
+			: 8080,
+	);
+	let otherApiUrl = $state((() => (apiUrlChoice === '' ? settingsClone.apiBaseurl : ''))());
+	let isApiOnline: OnlineState = $state('offline');
+	let updateApiOnlineStatus = $derived(() => {
 		if (isApiOnline !== 'online') isApiOnline = 'unknown';
 		if (settingsClone.apiBaseurl !== '') {
 			try {
-        // We'll do this to verify that the given url is valid, before we start
-        // peppering it with API calls
+				// We'll do this to verify that the given url is valid, before we start
+				// peppering it with API calls
 				new URL(settingsClone.apiBaseurl);
 			} catch {
 				return;
@@ -47,16 +42,13 @@
 		} else {
 			isApiOnline = 'unknown';
 		}
-	};
+	});
 
-	$: hasErrors = Object.values(errorMessages).some((v) => v !== '');
-	$: {
-		if (apiUrlChoice === '' && otherApiUrl === '') {
-			errorMessages.otherApiUrl = 'Must not be empty';
-		}
-	}
+	const errorMessages = $state<Record<'otherApiUrl', string>>({ otherApiUrl: '' });
+	let hasErrors = $derived(Object.values(errorMessages).some((v) => v !== ''));
+	let hasSaved = $state(false);
 
-	$: {
+	$effect(() => {
 		switch (apiUrlChoice) {
 			case 'https://api.salz.life':
 				settingsClone.apiBaseurl = 'https://api.salz.life';
@@ -68,57 +60,29 @@
 				break;
 			case '':
 				settingsClone.apiBaseurl = otherApiUrl;
+				if (otherApiUrl === '') errorMessages.otherApiUrl = 'Must not be empty';
 				break;
 		}
 		isApiOnline = 'unknown';
-	}
+		hasSaved = false;
+	});
 
 	function saveSettings() {
 		updateSettings(settingsClone);
+		hasSaved = true;
 	}
-
-	onMount(() => {
-		const apiUrlInputBlurHandler = () => {
-			try {
-				if (otherApiUrl !== '') new URL(otherApiUrl);
-				errorMessages.otherApiUrl = '';
-			} catch {
-				errorMessages.otherApiUrl = 'Not a valid URL';
-			}
-		};
-		const debouncedApiUrlInputBlurHandler = debounce(apiUrlInputBlurHandler);
-
-		const otherApiUrlInput = document.getElementById('custom-api-url');
-		otherApiUrlInput?.addEventListener('blur', debouncedApiUrlInputBlurHandler);
-		window.addEventListener('unload', () => {
-			otherApiUrlInput?.removeEventListener('blur', debouncedApiUrlInputBlurHandler);
-		});
-
-		updateApiOnlineStatus();
-		apiHealthCheckInterval = setInterval(updateApiOnlineStatus, 5000);
-		apiHealthCheckIntervalTimeout = setTimeout(
-			() => {
-				clearInterval(apiHealthCheckInterval);
-			},
-			// Stop the server checking interval after 15 minutes
-			1000 * 60 * 15,
-		);
-	});
-
-	onDestroy(() => {
-		clearTimeout(apiHealthCheckIntervalTimeout);
-		clearInterval(apiHealthCheckInterval);
-	});
 </script>
 
 <main>
 	<FancyHeader headerLevel="1">
-		<Icon slot="icon" icon="tabler:settings" />
+		{#snippet icon()}
+			<Icon icon="tabler:settings" />
+		{/snippet}
 		Settings
 	</FancyHeader>
 
 	<form>
-		<fieldset>
+		<fieldset class="api-url">
 			<legend>API URL</legend>
 
 			<div>
@@ -131,9 +95,6 @@
 					checked={apiUrlChoice === 'https://api.salz.life'}
 				/>
 				<label for="salz-life">https://api.salz.life</label>
-				{#if apiUrlChoice === 'https://api.salz.life'}
-					<OnlineStatus bind:onlineState={isApiOnline} />
-				{/if}
 			</div>
 
 			<div>
@@ -153,9 +114,6 @@
 					bind:value={localhostPort}
 					disabled={apiUrlChoice !== 'http://localhost'}
 				/>
-				{#if apiUrlChoice === 'http://localhost'}
-					<OnlineStatus bind:onlineState={isApiOnline} />
-				{/if}
 			</div>
 
 			<div>
@@ -176,7 +134,6 @@
 					disabled={apiUrlChoice !== ''}
 				/>
 				{#if apiUrlChoice === ''}
-					<OnlineStatus bind:onlineState={isApiOnline} />
 					<span role="alert" class="error-msg">
 						{errorMessages.otherApiUrl}
 					</span>
@@ -184,10 +141,18 @@
 			</div>
 		</fieldset>
 
+		<div class="api-status">
+			API Status: <Button onClick={updateApiOnlineStatus}><Icon icon="tabler:reload" /></Button>
+			<OnlineStatus onlineState={isApiOnline} />
+		</div>
+
 		<fieldset class="form-controls">
 			<Button onClick={saveSettings} isDisabled={hasErrors}>Save</Button>
 			{#if hasErrors}
 				<span role="alert" class="error-msg">There are errors in the form.</span>
+			{/if}
+			{#if hasSaved}
+				<span role="alert" class="success-msg">Saved!</span>
 			{/if}
 		</fieldset>
 	</form>
@@ -213,18 +178,28 @@
 		padding: 0 1rem 1rem 1rem;
 	}
 
-	fieldset + fieldset {
+	form > * + * {
 		margin-top: 1.5rem;
 	}
 
-  form > fieldset:first-child > div {
-    display: flex;
-    align-items: center;
-  }
+	fieldset.api-url > div {
+		display: flex;
+		align-items: center;
+	}
 
-  form > fieldset:first-child > div > * + :global(*) {
-    margin-left: 0.5em;
-  }
+	fieldset.api-url > div > * + :global(*) {
+		margin-left: 0.5em;
+	}
+
+	.api-status {
+		display: flex;
+		align-items: center;
+	}
+
+	.api-status :global(button) {
+		height: 1em;
+		padding: 0em 1em;
+	}
 
 	.form-controls {
 		border: 0;
@@ -232,5 +207,9 @@
 
 	.error-msg {
 		color: red;
+	}
+
+	.success-msg {
+		color: green;
 	}
 </style>

@@ -1,26 +1,39 @@
 <script lang="ts">
 	let id = '';
-	let className = '';
-	export { className as class };
-	export let ariaLabel;
 
-	export let onDrop: (event: DragEvent) => void = () => {};
-	export let onDragOver: (event: DragEvent) => void = () => {};
-	export let onDragExit: (event: DragEvent) => void = () => {};
-	export let onDragEnter: (event: DragEvent) => void = () => {};
-	export let onDragLeave: (event: DragEvent) => void = () => {};
+	interface Props {
+		class?: string;
+		ariaLabel: string;
+		ondrop?: (event: DragEvent) => void;
+		ondragover?: (event: DragEvent) => void;
+		ondragexit?: (event: DragEvent) => void;
+		ondragenter?: (event: DragEvent) => void;
+		ondragleave?: (event: DragEvent) => void;
+		children?: import('svelte').Snippet;
+	}
+
+	let {
+		class: className = '',
+		ariaLabel,
+		ondrop = () => {},
+		ondragover = () => {},
+		ondragexit = () => {},
+		ondragenter = () => {},
+		ondragleave = () => {},
+		children,
+	}: Props = $props();
 </script>
 
 <div
 	{id}
 	role="region"
 	class={'drag-and-drop ' + className}
-	on:drop|preventDefault={onDrop}
-	on:dragover|preventDefault={onDragOver}
-	on:dragexit|preventDefault={onDragExit}
-	on:dragenter|preventDefault={onDragEnter}
-	on:dragleave|preventDefault={onDragLeave}
+	{ondrop}
+	{ondragover}
+	{ondragexit}
+	{ondragenter}
+	{ondragleave}
 	aria-label={ariaLabel}
 >
-	<slot></slot>
+	{@render children?.()}
 </div>

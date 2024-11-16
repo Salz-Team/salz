@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getInitials } from '$lib/name-wranglers';
 
-	export let name;
+	let { name } = $props();
 </script>
 
 <svg
