@@ -45,6 +45,11 @@ func NewLocalConfig() *Config {
 		Scopes:       []string{"read-user", "user-email"},
 		Endpoint:     github.Endpoint,
 	}
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:5173"}
+	corsConfig.AllowCredentials = true
+
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
@@ -54,7 +59,7 @@ func NewLocalConfig() *Config {
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
-		CorsConfig:             cors.Default(),
+		CorsConfig:             cors.New(corsConfig),
 		GinReleaseMode:         gin.DebugMode,
 	}
 }
@@ -69,6 +74,7 @@ func NewDevelopmentConfig() *Config {
 		Scopes:       []string{"read-user", "user-email"},
 		Endpoint:     github.Endpoint,
 	}
+
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
