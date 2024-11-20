@@ -46,14 +46,16 @@ func NewLocalConfig() *Config {
 		Endpoint:     github.Endpoint,
 	}
 
+	webBaseUrl := getEnvOrDie("WEB_BASEURL", "")
+
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:5173"}
+	corsConfig.AllowOrigins = []string{webBaseUrl}
 	corsConfig.AllowCredentials = true
 
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
-		WebBaseUrl:             getEnvOrDie("WEB_BASEURL", ""),
+		WebBaseUrl:             webBaseUrl,
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               log.DebugLevel,
 		OAuth2Config:           oauthConfig,
@@ -75,10 +77,16 @@ func NewDevelopmentConfig() *Config {
 		Endpoint:     github.Endpoint,
 	}
 
+	webBaseUrl := getEnvOrDie("WEB_BASEURL", "")
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{webBaseUrl}
+	corsConfig.AllowCredentials = true
+
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
-		WebBaseUrl:             getEnvOrDie("WEB_BASEURL", ""),
+		WebBaseUrl:             webBaseUrl,
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               log.DebugLevel,
 		OAuth2Config:           oauthConfig,
@@ -113,10 +121,17 @@ func NewProductionConfig() *Config {
 		Scopes:       []string{"read-user", "user-email"},
 		Endpoint:     github.Endpoint,
 	}
+
+	webBaseUrl := getEnvOrDie("WEB_BASEURL", "")
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{webBaseUrl}
+	corsConfig.AllowCredentials = true
 	return &Config{
+
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
-		WebBaseUrl:             getEnvOrDie("WEB_BASEURL", ""),
+		WebBaseUrl:             webBaseUrl,
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               logLevel,
 		OAuth2Config:           oauthConfig,
