@@ -12,7 +12,7 @@
       "items": {
         "type": "array",
         "items": {
-          "enum": [" ", "X", "O"]
+          "enum": [null, "X", "O"]
         },
         "minItems": 3,
         "maxItems": 3
