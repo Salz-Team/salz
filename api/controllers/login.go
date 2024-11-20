@@ -106,7 +106,7 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
 	if state.RedirectUri == "" {
 		c.JSON(http.StatusOK, gin.H{
 			"access_token": userAuthToken.Token,
-			"expires_at":  userAuthToken.ExpiresAt,
+			"expires_at":   userAuthToken.ExpiresAt,
 		})
 		return
 	}
