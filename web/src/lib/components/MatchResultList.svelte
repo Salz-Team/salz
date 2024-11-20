@@ -3,9 +3,13 @@
 	import { Temporal } from 'temporal-polyfill';
 	import MatchResult from './MatchResult.svelte';
 
-	export let matchResults: MatchResultModel[];
+	interface Props {
+		matchResults: MatchResultModel[];
+	}
 
-	$: localTimezoneId = Temporal.Now.timeZoneId();
+	let { matchResults }: Props = $props();
+
+	let localTimezoneId = $derived(Temporal.Now.timeZoneId());
 </script>
 
 {#each matchResults as matchResult}

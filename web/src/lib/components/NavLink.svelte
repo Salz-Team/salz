@@ -1,18 +1,24 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 
-	export let href: string;
-	export let canBeActivated: boolean = true;
-	export let useExactPath: boolean = false;
+	interface Props {
+		href: string;
+		canBeActivated?: boolean;
+		useExactPath?: boolean;
+		children?: import('svelte').Snippet;
+	}
 
-	$: shouldBeActive =
+	let { href, canBeActivated = true, useExactPath = false, children }: Props = $props();
+
+	let shouldBeActive = $derived(
 		canBeActivated &&
-		(!useExactPath ? $page.url.pathname.startsWith(href) : $page.url.pathname === href);
+			(!useExactPath ? $page.url.pathname.startsWith(href) : $page.url.pathname === href),
+	);
 </script>
 
 <li class="navlink" class:active={shouldBeActive}>
 	<a {href}>
-		<slot></slot>
+		{@render children?.()}
 	</a>
 </li>
 

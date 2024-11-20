@@ -5,9 +5,10 @@
 	import type { MatchResult } from '$lib/models';
 	import { Temporal } from 'temporal-polyfill';
 
-	$: currentPage = 1;
-	$: matchId = $page.url.searchParams.get('id');
-	$: botResults = [
+	let currentPage = $state(1);
+
+	let matchId = $derived($page.url.searchParams.get('id'));
+	let botResults = $derived([
 		{
 			id: 'match111',
 			timestamp: Temporal.Instant.from('2024-07-19T00:31:19Z'),
@@ -65,7 +66,7 @@
 			},
 			winner: 'bot1',
 		},
-	] as MatchResult[];
+	] as MatchResult[]);
 </script>
 
 {#if matchId === null}

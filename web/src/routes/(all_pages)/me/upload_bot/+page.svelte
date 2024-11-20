@@ -3,12 +3,13 @@
 	import DragAndDrop from '$lib/components/DragAndDrop.svelte';
 	import Button from '$lib/components/Button.svelte';
 
-	$: dragState = '';
-	let fileInput: HTMLInputElement;
-	let file: File | null;
-	$: file = null;
+	let dragState = $state('');
+
+	let fileInput = $state<HTMLInputElement>();
+	let file: File | null = $state(null);
 
 	function handleDrop(event: DragEvent) {
+		event.preventDefault();
 		dragState = 'dropped';
 		console.log(event.dataTransfer?.files);
 		file = event.dataTransfer?.files.item(0) ?? null;
@@ -16,10 +17,12 @@
 	}
 
 	function handleDragOver(event: DragEvent) {
+		event.preventDefault();
 		dragState = 'dragover';
 	}
 
 	function handleDragExit(event: DragEvent) {
+		event.preventDefault();
 		dragState = '';
 	}
 
@@ -33,9 +36,9 @@
 	<form action="#">
 		<DragAndDrop
 			class={dragState}
-			onDrop={handleDrop}
-			onDragOver={handleDragOver}
-			onDragExit={handleDragExit}
+			ondrop={handleDrop}
+			ondragover={handleDragOver}
+			ondragexit={handleDragExit}
 			ariaLabel="Drag and drop a file into this area"
 		>
 			<input

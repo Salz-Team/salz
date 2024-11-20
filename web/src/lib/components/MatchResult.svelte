@@ -6,8 +6,12 @@
 	import Robot from './icons/Robot.svelte';
 	import { ColorChoice } from './types/CheckeredPattern';
 
-	export let matchResult: MatchResultModel;
-	export let datetimeDisplay: string;
+	interface Props {
+		matchResult: MatchResultModel;
+		datetimeDisplay: string;
+	}
+
+	let { matchResult, datetimeDisplay }: Props = $props();
 </script>
 
 <article class="match-result">

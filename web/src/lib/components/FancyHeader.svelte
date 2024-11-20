@@ -1,13 +1,19 @@
 <script lang="ts">
-	export let headerLevel = '1';
+	interface Props {
+		headerLevel?: string;
+		icon?: import('svelte').Snippet;
+		children?: import('svelte').Snippet;
+	}
+
+	let { headerLevel = '1', icon, children }: Props = $props();
 </script>
 
 <div class="fancy-header">
 	<div class={`icon icon-level-${headerLevel}`}>
-		<slot name="icon"></slot>
+		{@render icon?.()}
 	</div>
 	<svelte:element this={`h${headerLevel}`}>
-		<slot></slot>
+		{@render children?.()}
 	</svelte:element>
 </div>
 
@@ -16,7 +22,7 @@
 		--slant-px: 4rem;
 		background: lightgray;
 		padding: 0.6em 2.5em 0.6em 1em;
-    /* Should hold the negative of the horizontal size of the fold */
+		/* Should hold the negative of the horizontal size of the fold */
 		margin-left: -10px;
 		position: relative;
 		display: flex;
