@@ -24,7 +24,9 @@
 			<NavLink href="/matches"><Icon icon="tabler:video" /> Watch Games</NavLink>
 			<NavLink href="/docs"><Icon icon="tabler:book-2" /> How to play</NavLink>
 			{#if !$isLoggedIn}
-				<NavLink href="/login"><Icon icon="tabler:login" /> Login / Sign up</NavLink>
+				<NavLink href={`/login?redirect_uri=/`}
+					><Icon icon="tabler:login" /> Login / Sign up</NavLink
+				>
 			{/if}
 			{#if $isLoggedIn}
 				<NavLink href="/me"><Icon icon="tabler:user" /> Go to profile</NavLink>

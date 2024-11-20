@@ -13,15 +13,21 @@ import (
 func AuthMiddleware(authDb db.AuthDBHandler) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.Debug("Auth middleware")
+		// Check `Authorization` header first. If not, check `Cookie`.
 		authTokenHeader := c.GetHeader("Authorization")
 
+		var authToken string
+		var err error
 		if authTokenHeader == "" {
-			log.Info("No token found")
-			c.Redirect(http.StatusTemporaryRedirect, "/login")
-			return
+			authToken, err = c.Cookie("Access-Token")
+			if err != nil {
+				log.Info("No token found")
+				c.Redirect(http.StatusTemporaryRedirect, "/login")
+				return
+			}
+		} else {
+			authToken = strings.TrimSpace(strings.Replace(authTokenHeader, "Bearer", "", 1))
 		}
-
-		authToken := strings.TrimSpace(strings.Replace(authTokenHeader, "Bearer", "", 1))
 
 		token, err := authDb.GetToken(authToken)
 		if err == sql.ErrNoRows {

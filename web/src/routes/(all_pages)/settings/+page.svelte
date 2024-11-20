@@ -1,13 +1,16 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import debounce from 'lodash/debounce';
 	import cloneDeep from 'lodash/cloneDeep';
 
 	import FancyHeader from '$lib/components/FancyHeader.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import { type OnlineState } from '$lib/components/types/OnlineStatus';
 
 	import { updateSettings, settingsStore } from '$lib/stores/settings';
+	import { getHealth } from '$lib/api/api';
+	import OnlineStatus from '$lib/components/OnlineStatus.svelte';
 
 	const settingsClone = cloneDeep($settingsStore);
 
@@ -25,6 +28,27 @@
 		? settingsClone.apiBaseurl.substring(settingsClone.apiBaseurl.lastIndexOf(':') + 1)
 		: 8080;
 	let otherApiUrl = apiUrlChoice === '' ? settingsClone.apiBaseurl : '';
+	let isApiOnline: OnlineState = 'offline';
+	let apiHealthCheckInterval: number;
+	let apiHealthCheckIntervalTimeout: number;
+	$: updateApiOnlineStatus = () => {
+		if (isApiOnline !== 'online') isApiOnline = 'unknown';
+		if (settingsClone.apiBaseurl !== '') {
+			try {
+        // We'll do this to verify that the given url is valid, before we start
+        // peppering it with API calls
+				new URL(settingsClone.apiBaseurl);
+			} catch {
+				return;
+			}
+			getHealth(settingsClone.apiBaseurl).then((resp) => {
+				isApiOnline = resp.isOk() ? 'online' : 'offline';
+			});
+		} else {
+			isApiOnline = 'unknown';
+		}
+	};
+
 	$: hasErrors = Object.values(errorMessages).some((v) => v !== '');
 	$: {
 		if (apiUrlChoice === '' && otherApiUrl === '') {
@@ -36,14 +60,17 @@
 		switch (apiUrlChoice) {
 			case 'https://api.salz.life':
 				settingsClone.apiBaseurl = 'https://api.salz.life';
+				errorMessages.otherApiUrl = '';
 				break;
 			case 'http://localhost':
 				settingsClone.apiBaseurl = `http://localhost:${localhostPort}`;
+				errorMessages.otherApiUrl = '';
 				break;
 			case '':
 				settingsClone.apiBaseurl = otherApiUrl;
 				break;
 		}
+		isApiOnline = 'unknown';
 	}
 
 	function saveSettings() {
@@ -66,6 +93,21 @@
 		window.addEventListener('unload', () => {
 			otherApiUrlInput?.removeEventListener('blur', debouncedApiUrlInputBlurHandler);
 		});
+
+		updateApiOnlineStatus();
+		apiHealthCheckInterval = setInterval(updateApiOnlineStatus, 5000);
+		apiHealthCheckIntervalTimeout = setTimeout(
+			() => {
+				clearInterval(apiHealthCheckInterval);
+			},
+			// Stop the server checking interval after 15 minutes
+			1000 * 60 * 15,
+		);
+	});
+
+	onDestroy(() => {
+		clearTimeout(apiHealthCheckIntervalTimeout);
+		clearInterval(apiHealthCheckInterval);
 	});
 </script>
 
@@ -89,6 +131,9 @@
 					checked={apiUrlChoice === 'https://api.salz.life'}
 				/>
 				<label for="salz-life">https://api.salz.life</label>
+				{#if apiUrlChoice === 'https://api.salz.life'}
+					<OnlineStatus bind:onlineState={isApiOnline} />
+				{/if}
 			</div>
 
 			<div>
@@ -108,6 +153,9 @@
 					bind:value={localhostPort}
 					disabled={apiUrlChoice !== 'http://localhost'}
 				/>
+				{#if apiUrlChoice === 'http://localhost'}
+					<OnlineStatus bind:onlineState={isApiOnline} />
+				{/if}
 			</div>
 
 			<div>
@@ -128,6 +176,7 @@
 					disabled={apiUrlChoice !== ''}
 				/>
 				{#if apiUrlChoice === ''}
+					<OnlineStatus bind:onlineState={isApiOnline} />
 					<span role="alert" class="error-msg">
 						{errorMessages.otherApiUrl}
 					</span>
@@ -167,6 +216,15 @@
 	fieldset + fieldset {
 		margin-top: 1.5rem;
 	}
+
+  form > fieldset:first-child > div {
+    display: flex;
+    align-items: center;
+  }
+
+  form > fieldset:first-child > div > * + :global(*) {
+    margin-left: 0.5em;
+  }
 
 	.form-controls {
 		border: 0;

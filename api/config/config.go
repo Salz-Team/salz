@@ -16,6 +16,7 @@ import (
 type Config struct {
 	ApiDBHandler           db.ApiDBHandler
 	AuthDBHandler          db.AuthDBHandler
+	WebBaseUrl             string
 	ObjectStoreHandler     objectstore.ObjectStoreHandler
 	LogLevel               log.Level
 	OAuth2Config           *oauth2.Config
@@ -44,15 +45,23 @@ func NewLocalConfig() *Config {
 		Scopes:       []string{"read-user", "user-email"},
 		Endpoint:     github.Endpoint,
 	}
+
+	webBaseUrl := getEnvOrDie("WEB_BASEURL", "")
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{webBaseUrl}
+	corsConfig.AllowCredentials = true
+
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
+		WebBaseUrl:             webBaseUrl,
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               log.DebugLevel,
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
-		CorsConfig:             cors.Default(),
+		CorsConfig:             cors.New(corsConfig),
 		GinReleaseMode:         gin.DebugMode,
 	}
 }
@@ -67,9 +76,17 @@ func NewDevelopmentConfig() *Config {
 		Scopes:       []string{"read-user", "user-email"},
 		Endpoint:     github.Endpoint,
 	}
+
+	webBaseUrl := getEnvOrDie("WEB_BASEURL", "")
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{webBaseUrl}
+	corsConfig.AllowCredentials = true
+
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
+		WebBaseUrl:             webBaseUrl,
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               log.DebugLevel,
 		OAuth2Config:           oauthConfig,
@@ -104,9 +121,17 @@ func NewProductionConfig() *Config {
 		Scopes:       []string{"read-user", "user-email"},
 		Endpoint:     github.Endpoint,
 	}
+
+	webBaseUrl := getEnvOrDie("WEB_BASEURL", "")
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{webBaseUrl}
+	corsConfig.AllowCredentials = true
 	return &Config{
+
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
+		WebBaseUrl:             webBaseUrl,
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               logLevel,
 		OAuth2Config:           oauthConfig,
