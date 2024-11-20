@@ -103,6 +103,15 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
 
 	c.Header("Set-Cookie", fmt.Sprintf("Access-Token=%s; Expires=%s; HttpOnly; Secure; SameSite=Lax; Path=/", userAuthToken.Token, userAuthToken.ExpiresAt.Format(http.TimeFormat)))
 
+	// If the redirect uri is empty, send the access token back to the client
+	if state.RedirectUri == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"access_token": userAuthToken.Token,
+			"expires_at":  userAuthToken.ExpiresAt,
+		})
+		return
+	}
+
 	webUrl, err := url.JoinPath(ctrl.cfg.WebBaseUrl, "/login/callback")
 	if err != nil {
 		log.Error("Unable to generate web redirect url", "error", err)
@@ -116,6 +125,7 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+
 	redirectUrl.URL.RawQuery = url.Values{
 		"redirect_uri": {state.RedirectUri},
 	}.Encode()
