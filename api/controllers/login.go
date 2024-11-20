@@ -49,7 +49,6 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-	log.Info("Print state", "state", state)
 
 	code := c.Query("code")
 	token, err := ctrl.cfg.OAuth2Config.Exchange(c, code)
