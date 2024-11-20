@@ -20,6 +20,7 @@
     pkgs.graphviz
     pkgs.devenv
     (pkgs.callPackage ./nix/hcp.nix {})
+    pkgs.jsonschema
 
     pkgs.nodePackages.npm
     pkgs.nodePackages.typescript-language-server

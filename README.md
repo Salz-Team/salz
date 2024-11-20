@@ -33,3 +33,7 @@ hcp auth login
 Initialize a profile with `hcp profile init --vault-secrets`. It should set things up for the organization an dproject. I don't think we need to configure service related configs.
 
 Now you can use secrets via `hcp vault-secrets secrets`.
+
+## Testing
+
+So far, the only testing we do is for our [json schema examples](documentation/contracts.md) which can be run via `make test`.
