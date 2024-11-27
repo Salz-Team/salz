@@ -1,15 +1,24 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 
-	export let onClick: () => void = () => {};
-	export let type: 'button' | 'reset' | 'submit' = 'button';
-	export let isDisabled: boolean = false;
-	let className: string = '';
-	export { className as class };
-	export let icon: string;
+	interface Props {
+		onClick?: () => void;
+		type?: 'button' | 'reset' | 'submit';
+		isDisabled?: boolean;
+		class?: string;
+		icon: string;
+	}
+
+	let {
+		onClick = () => {},
+		type = 'button',
+		isDisabled = false,
+		class: className = '',
+		icon
+	}: Props = $props();
 </script>
 
-<button class={className} {type} on:click={onClick} disabled={isDisabled}>
+<button class={className} {type} onclick={onClick} disabled={isDisabled}>
 	<Icon {icon} />
 </button>
 

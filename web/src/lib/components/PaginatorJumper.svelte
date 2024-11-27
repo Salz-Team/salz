@@ -3,29 +3,36 @@
 	import IconButton from './IconButton.svelte';
 	import Tooltip from './Tooltip.svelte';
 	import { Position } from './types/Tooltip';
+	import lo from 'lodash';
 
-	export let onConfirm: (n: number) => void = (_) => {};
-	export let min: number = Number.MIN_VALUE;
-	export let max: number = Number.MAX_VALUE;
+	interface Props {
+		onConfirm?: (n: number) => void;
+		min?: number;
+		max?: number;
+	}
 
-	let isActive: boolean = false;
-	let value: string = '';
-	$: confirm = () => {
+	let { onConfirm = (_) => {}, min = Number.MIN_VALUE, max = Number.MAX_VALUE }: Props = $props();
+
+	let isActive: boolean = $state(false);
+	let value: string = $state('');
+	let confirm = $derived(() => {
+		if (value === null || value === '') return;
+
 		isActive = false;
-		onConfirm(parseInt(value));
+		const intVal = lo.clamp(parseInt(value), min, max);
+		onConfirm(intVal);
 		value = '';
-	};
-	$: inputKeydownHandler = (
-		ev: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement },
-	) => {
-		switch (ev.key) {
-			case 'Enter':
-				isActive = false;
-				onConfirm(parseInt(value));
-				value = '';
-		}
-	};
-	$: maxlength = String(max).length;
+	});
+	let inputKeydownHandler = $derived(
+		(ev: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }) => {
+			switch (ev.key) {
+				case 'Enter':
+					ev.preventDefault();
+					confirm();
+			}
+		},
+	);
+	let maxlength = $derived(String(max).length);
 </script>
 
 <div class="paginator-jumper">
@@ -42,13 +49,13 @@
 			name="page-jump"
 			type="number"
 			bind:value
-			on:keydown={inputKeydownHandler}
+			onkeydown={inputKeydownHandler}
 			{min}
 			{max}
 			{maxlength}
 			style={`width: ${maxlength + 1}em;`}
 		/>
-		<IconButton icon="tabler:check" onClick={confirm} />
+		<IconButton icon="tabler:check" onClick={confirm} isDisabled={value === '' || value === null} />
 	</Tooltip>
 </div>
 

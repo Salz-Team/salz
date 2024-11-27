@@ -2,18 +2,28 @@
 	import type { AriaRole } from 'svelte/elements';
 	import { Position } from '$lib/components/types/Tooltip';
 
-	export let isActive: boolean = false;
-	export let role: AriaRole | null = 'tooltip';
-	export let position: Position = Position.BottomCenter;
-	let className = '';
-	export { className as class };
+	interface Props {
+		isActive?: boolean;
+		role?: AriaRole | null;
+		position?: Position;
+		class?: string;
+		children?: import('svelte').Snippet;
+	}
 
-	$: computedClass = [className, position.toString()].join(' ');
+	let {
+		isActive = false,
+		role = 'tooltip',
+		position = Position.BottomCenter,
+		class: className = '',
+		children
+	}: Props = $props();
+
+	let computedClass = $derived([className, position.toString()].join(' '));
 </script>
 
 {#if isActive}
 	<div {role} class={computedClass}>
-		<slot></slot>
+		{@render children?.()}
 	</div>
 {/if}
 
