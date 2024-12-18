@@ -2,33 +2,28 @@
 	import Button from '$lib/components/Button.svelte';
 	import range from 'lodash/range';
 	import PaginatorJumper from './PaginatorJumper.svelte';
+	import {
+		createSlidingIntInterval,
+		type RangeSlider,
+	} from '$lib/arcana/sliding-range-window.svelte';
 
 	interface Props {
 		class?: string;
 		totalPages: number;
 		currentPage?: number;
 		maxPagesShown?: number;
-		noEdgeJumpers?: boolean;
 	}
 
 	let {
 		class: className = '',
 		totalPages,
 		currentPage = $bindable(1),
-		maxPagesShown = 7,
-		noEdgeJumpers = false,
+		maxPagesShown = 5,
 	}: Props = $props();
 
-	let halfMaxPagesShown = maxPagesShown % 2 === 0 ? maxPagesShown / 2 : (maxPagesShown + 1) / 2;
-
-	let rangeStart = $state(
-		currentPage <= halfMaxPagesShown
-			? 1
-			: totalPages - currentPage < halfMaxPagesShown
-				? totalPages - maxPagesShown + 1
-				: currentPage - halfMaxPagesShown + 1,
+	let { leftOffset, rightOffset, rangeStart, rangeEnd }: RangeSlider = $derived(
+    createSlidingIntInterval(currentPage, maxPagesShown, 2, totalPages),
 	);
-	let rangeEnd = $derived(Math.min(totalPages + 1, rangeStart + maxPagesShown));
 
 	let jumpToPage = (min: number, max: number) => (n: number) => {
 		currentPage = Math.min(Math.max(min, n), max);
@@ -40,11 +35,11 @@
 		1
 	</Button>
 
-	{#if currentPage - halfMaxPagesShown >= 1}
+	{#if rangeStart > 2}
 		<PaginatorJumper min={1} max={totalPages} onConfirm={jumpToPage(1, totalPages)} />
 	{/if}
 
-	{#each range(rangeStart + 1, rangeEnd - 1) as i (i)}
+	{#each range(rangeStart, rangeEnd + 1) as i}
 		<Button
 			class={currentPage === i ? 'active' : ''}
 			type="button"
@@ -54,7 +49,7 @@
 		</Button>
 	{/each}
 
-	{#if currentPage + halfMaxPagesShown <= totalPages}
+	{#if rangeEnd + 1 != totalPages}
 		<PaginatorJumper min={1} max={totalPages} onConfirm={jumpToPage(1, totalPages)} />
 	{/if}
 
