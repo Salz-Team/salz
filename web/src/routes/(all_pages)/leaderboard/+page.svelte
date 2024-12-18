@@ -34,7 +34,6 @@
 		{totalPages}
 		{currentPage}
 		{maxPagesShown}
-		noEdgeJumpers={true}
 	/>
 </main>
 
