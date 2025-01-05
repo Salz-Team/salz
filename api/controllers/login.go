@@ -57,6 +57,7 @@ func (ctrl *Controller) BasicAuthLoginHandler(c *gin.Context) {
 			IdentityProvider: "basicauth",
 			IdentityProviderId: user,
 		}
+		// WARNING: automatically creating users is _not best_ for a publicly accessible API.
 		salzUser, err = ctrl.cfg.ApiDBHandler.CreateUser(u)
 		if err != nil {
 			log.Error("Unable to create user", "error", err)
