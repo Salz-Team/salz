@@ -22,7 +22,7 @@ type Config struct {
 	OAuth2Config           *oauth2.Config
 	AuthTokenValidDuration time.Duration
 	MAX_FILE_SIZE_BYTES    int64
-	EnableBasicAuth 	   bool
+	EnableBasicAuth        bool
 	CorsConfig             gin.HandlerFunc
 	GinReleaseMode         string
 }

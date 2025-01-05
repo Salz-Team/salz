@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"strconv"
 
+	"database/sql"
 	"github.com/Salz-Team/salz/api/models"
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
-	"database/sql"
 
 	ghlib "github.com/google/go-github/v62/github"
 )
@@ -52,9 +52,9 @@ func (ctrl *Controller) BasicAuthLoginHandler(c *gin.Context) {
 		var err error
 		// Create the user
 		u := models.User{
-			UserName: user,
-			Elo:      DEFAULT_ELO,
-			IdentityProvider: "basicauth",
+			UserName:           user,
+			Elo:                DEFAULT_ELO,
+			IdentityProvider:   "basicauth",
 			IdentityProviderId: user,
 		}
 		// WARNING: automatically creating users is _not best_ for a publicly accessible API.
