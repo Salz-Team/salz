@@ -20,7 +20,7 @@ func main() {
 
 	// Public routes
 	r.GET("/health", controllers.Ping)
-	r.POST("/login", ctrl.BasicAuthLoginHandler)
+	r.POST("/login/basic", ctrl.BasicAuthLoginHandler)
 	r.GET("/login", ctrl.OAuthLoginHandler)
 	r.GET("/login/callback", ctrl.OAuthCallbackHandler)
 
