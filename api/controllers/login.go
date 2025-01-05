@@ -23,15 +23,15 @@ const (
 // Creates user if the user doesn't exist. Otherwise, authenticates against provided password.
 // Returns a token if the user is authenticated or was just created.
 func (ctrl *Controller) BasicAuthLoginHandler(c *gin.Context) {
-	user, pass, ok := c.Request.BasicAuth()
-	if !ok {
-		log.Warn("No basic auth header provided")
+	if !ctrl.cfg.EnableBasicAuth {
+		log.Warn("Basic auth is disabled")
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	if !ctrl.cfg.EnableBasicAuth {
-		log.Warn("Basic auth is disabled")
+	user, pass, ok := c.Request.BasicAuth()
+	if !ok {
+		log.Warn("No basic auth header provided")
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
