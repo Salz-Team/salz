@@ -12,6 +12,9 @@ func main() {
 	ctrl := controllers.NewController(cfg)
 
 	r := gin.Default()
+	r.Use(cfg.CorsConfig)
+	gin.SetMode(cfg.GinReleaseMode)
+	r.SetTrustedProxies(nil)
 
 	// All routes should start with /api
 

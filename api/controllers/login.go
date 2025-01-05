@@ -1,11 +1,15 @@
 package controllers
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
+
 	"github.com/Salz-Team/salz/api/models"
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
 	"database/sql"
 
 	ghlib "github.com/google/go-github/v62/github"
@@ -93,17 +97,39 @@ func (ctrl *Controller) BasicAuthLoginHandler(c *gin.Context) {
 	log.Warn("Authentication failed", "user", user)
 	c.AbortWithStatus(http.StatusUnauthorized)
 	return
+}
 
+type State struct {
+	Code        string `json:"code"`
+	RedirectUri string `json:"redirect_uri"`
 }
 
 func (ctrl *Controller) OAuthLoginHandler(c *gin.Context) {
-	url := ctrl.cfg.OAuth2Config.AuthCodeURL("ain't got no state yet")
-	log.Info("Login redirect", "url", url)
-	c.Redirect(http.StatusTemporaryRedirect, url)
+	state := State{
+		Code:        "ain't got no state yet",
+		RedirectUri: c.Query("redirect_uri"),
+	}
+	b, err := json.Marshal(state)
+	if err != nil {
+		log.Error("Could not create state for login", "error", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	authUrl := ctrl.cfg.OAuth2Config.AuthCodeURL(string(b[:]))
+	log.Info("Login redirect", "url", authUrl)
+	c.Redirect(http.StatusTemporaryRedirect, authUrl)
 }
 
 func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
-	// TODO Check the state to prevent CSRF attacks
+	// TODO Maybe redo encodedState message to do checks to prevent CSRF attacks?
+	encodedState := c.Query("state")
+	var state State
+	if err := json.Unmarshal([]byte(encodedState), &state); err != nil {
+		log.Error("Could not parse state", "error", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 	code := c.Query("code")
 	token, err := ctrl.cfg.OAuth2Config.Exchange(c, code)
 	if err != nil {
@@ -154,8 +180,34 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"access_token": userAuthToken.Token,
-		"expires_at":   userAuthToken.ExpiresAt,
-	})
+	c.Header("Set-Cookie", fmt.Sprintf("Access-Token=%s; Expires=%s; HttpOnly; Secure; SameSite=Lax; Path=/", userAuthToken.Token, userAuthToken.ExpiresAt.Format(http.TimeFormat)))
+
+	// If the redirect uri is empty, send the access token back to the client
+	if state.RedirectUri == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"access_token": userAuthToken.Token,
+			"expires_at":   userAuthToken.ExpiresAt,
+		})
+		return
+	}
+
+	webUrl, err := url.JoinPath(ctrl.cfg.WebBaseUrl, "/login/callback")
+	if err != nil {
+		log.Error("Unable to generate web redirect url", "error", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	redirectUrl, err := http.NewRequest("GET", webUrl, nil)
+	if err != nil {
+		log.Error("Could not create redirect url to web", "error", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	redirectUrl.URL.RawQuery = url.Values{
+		"redirect_uri": {state.RedirectUri},
+	}.Encode()
+
+	c.Redirect(http.StatusTemporaryRedirect, redirectUrl.URL.String())
 }

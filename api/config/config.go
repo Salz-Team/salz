@@ -4,6 +4,8 @@ import (
 	"github.com/Salz-Team/salz/api/db"
 	"github.com/Salz-Team/salz/api/objectstore"
 	"github.com/charmbracelet/log"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"os"
@@ -14,13 +16,15 @@ import (
 type Config struct {
 	ApiDBHandler           db.ApiDBHandler
 	AuthDBHandler          db.AuthDBHandler
+	WebBaseUrl             string
 	ObjectStoreHandler     objectstore.ObjectStoreHandler
 	LogLevel               log.Level
 	OAuth2Config           *oauth2.Config
 	AuthTokenValidDuration time.Duration
 	MAX_FILE_SIZE_BYTES    int64
 	EnableBasicAuth 	   bool
-
+	CorsConfig             gin.HandlerFunc
+	GinReleaseMode         string
 }
 
 func getEnvOrDie(key string, defaultValue string) string {
@@ -42,15 +46,25 @@ func NewLocalConfig() *Config {
 		Scopes:       []string{"read-user", "user-email"},
 		Endpoint:     github.Endpoint,
 	}
+
+	webBaseUrl := getEnvOrDie("WEB_BASEURL", "")
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{webBaseUrl}
+	corsConfig.AllowCredentials = true
+
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
+		WebBaseUrl:             webBaseUrl,
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               log.DebugLevel,
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
 		EnableBasicAuth:        true,
+		CorsConfig:             cors.New(corsConfig),
+		GinReleaseMode:         gin.DebugMode,
 	}
 }
 
@@ -64,15 +78,25 @@ func NewDevelopmentConfig() *Config {
 		Scopes:       []string{"read-user", "user-email"},
 		Endpoint:     github.Endpoint,
 	}
+
+	webBaseUrl := getEnvOrDie("WEB_BASEURL", "")
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{webBaseUrl}
+	corsConfig.AllowCredentials = true
+
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
+		WebBaseUrl:             webBaseUrl,
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               log.DebugLevel,
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
 		EnableBasicAuth:        true,
+		CorsConfig:             cors.Default(),
+		GinReleaseMode:         gin.DebugMode,
 	}
 }
 
@@ -100,15 +124,25 @@ func NewProductionConfig() *Config {
 		Scopes:       []string{"read-user", "user-email"},
 		Endpoint:     github.Endpoint,
 	}
+
+	webBaseUrl := getEnvOrDie("WEB_BASEURL", "")
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{webBaseUrl}
+	corsConfig.AllowCredentials = true
 	return &Config{
+
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
+		WebBaseUrl:             webBaseUrl,
 		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
 		LogLevel:               logLevel,
 		OAuth2Config:           oauthConfig,
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
 		EnableBasicAuth:        false,
+		CorsConfig:             cors.Default(),
+		GinReleaseMode:         gin.ReleaseMode,
 	}
 }
 
