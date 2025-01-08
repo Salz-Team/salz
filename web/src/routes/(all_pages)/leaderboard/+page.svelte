@@ -34,7 +34,6 @@
 		{totalPages}
 		{currentPage}
 		{maxPagesShown}
-		noEdgeJumpers={true}
 	/>
 </main>
 
@@ -61,6 +60,7 @@
 	}
 
 	main :global(.leaderboard-paginator) {
+		display: flex;
 		justify-content: space-between;
 		width: 100%;
 		margin-top: 1em;
