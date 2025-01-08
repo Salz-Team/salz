@@ -39,7 +39,7 @@
 		<PaginatorJumper min={1} max={totalPages} onConfirm={jumpToPage(1, totalPages)} />
 	{/if}
 
-	{#each range(rangeStart, rangeEnd + 1) as i}
+	{#each range(rangeStart, rangeEnd + 1) as i (i)}
 		<Button
 			class={currentPage === i ? 'active' : ''}
 			type="button"
