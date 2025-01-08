@@ -22,7 +22,7 @@
 	}: Props = $props();
 
 	let { leftOffset, rightOffset, rangeStart, rangeEnd }: RangeSlider = $derived(
-    createSlidingIntInterval(currentPage, maxPagesShown, 2, totalPages),
+    createSlidingIntInterval(currentPage, maxPagesShown, 2, totalPages - 1),
 	);
 
 	let jumpToPage = (min: number, max: number) => (n: number) => {
