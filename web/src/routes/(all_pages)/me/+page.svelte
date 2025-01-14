@@ -6,6 +6,7 @@
 	import RoundInitial from '$lib/components/RoundInitial.svelte';
 	import type { MatchResult as MatchResultModel } from '$lib/models';
 	import MatchResult from '$lib/components/MatchResult.svelte';
+	import ProfileIcon from '$lib/components/ProfileIcon.svelte';
 
 	// Mocked bot results
 	let botResults = $derived([
@@ -91,7 +92,11 @@
 <main>
 	<FancyHeader headerLevel="1">
 		{#snippet icon()}
-			<RoundInitial name={$userStore?.username} />
+			{#if $userStore?.iconUrl}
+				<ProfileIcon src={$userStore.iconUrl} alt={`${$userStore.username}'s profile image`} />
+			{:else}
+				<RoundInitial name={$userStore?.username} />
+			{/if}
 		{/snippet}
 		{$userStore?.username}
 	</FancyHeader>
