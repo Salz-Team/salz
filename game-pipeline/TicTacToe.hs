@@ -7,6 +7,8 @@ import System.IO
 import Data.Aeson
 import Data.Aeson.Types (Parser)
 import GHC.Generics
+import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Lazy as LB
 
 -- Types
 
@@ -139,6 +141,9 @@ liftEither (Right a) = return a
 flushedPutStrLn line = do
   putStrLn line
   hFlush stdout
+flushedPutStrLnB line = do
+  B.putStrLn (LB.toStrict line)
+  hFlush stdout
 
 intToPlayer 0 = X
 intToPlayer 1 = O
@@ -152,24 +157,24 @@ otherPlayer O = X
 applyMove :: Board -> Player -> PlayerResponse -> Either String Board
 applyMove board player playerResponse = do
     isValidMove board playerResponse
-    updateBoard board player playerResponse
+    return $ updateBoard board player playerResponse
 
 -- Main game loop
 playGame :: Board -> Player -> IO ()
 playGame board player
-  | checkWin X board = flushedPutStrLn $ encode $ GameEnd [(playerToInt X, 1), (playerToInt O, 0)]
-  | checkWin O board = flushedPutStrLn $ encode $ GameEnd [(playerToInt O, 1), (playerToInt X, 0)]
+  | checkWin X board = flushedPutStrLnB $ encode $ GameEnd [(playerToInt X, 1), (playerToInt O, 0)]
+  | checkWin O board = flushedPutStrLnB $ encode $ GameEnd [(playerToInt O, 1), (playerToInt X, 0)]
   | otherwise = do
-    flushedPutStrLn $ encode $ PlayerTurn [(player, board)]
-    imsg <- liftEither =<< eitherDecode =<< getLine
-    pr <- checkPlayerResponse imsg
-    newboard <- liftEither applyMove board player pr
+    flushedPutStrLnB $ encode $ PlayerTurn [(playerToInt player, board)]
+    imsg <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.getLine
+    pr <- liftEither (checkPlayerResponse imsg)
+    newboard <- liftEither (applyMove board player pr)
     playGame newboard (otherPlayer player)
 
 -- Start the game
 main :: IO ()
 main = do
-  message <- liftEither =<< eitherDecode <$> getLine
+  message <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.getLine
   liftEither (checkGameStart message)
   playGame initialBoard X
 
