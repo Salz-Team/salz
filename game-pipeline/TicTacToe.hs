@@ -6,6 +6,7 @@ import qualified Data.Vector as V
 import System.IO
 import Data.Aeson
 import Data.Aeson.Types (Parser)
+import Parsers
 import GHC.Generics
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
@@ -17,10 +18,6 @@ data Player = X | O deriving (Eq, Show, Generic, FromJSON, ToJSON)
 type Board = [[Maybe Player]]
 
 data PlayerResponse = PlayerResponse Int Int deriving (Show)
-
-data GameEngineInMessage = GameStart Int | PlayerResponses [(Int, Bool, PlayerResponse)] deriving (Show)
-
-data GameEngineOutMessage = GameEnd [(Int, Float)] | PlayerTurn [(Int, Board)] | DebugMessage String deriving (Show)
 
 -- JSON Parsers
 
@@ -35,38 +32,6 @@ instance FromJSON PlayerResponse where
     where
       inRange :: Int -> Int -> Bool
       inRange x y = x >= 0 && x <= 2 && y >= 0 && y <= 2
-
-instance FromJSON GameEngineInMessage where
-  parseJSON = withObject "GameEngineInMessage" $ \obj -> do
-    messageType <- (obj .: "messageType") :: (Parser String)
-    case messageType of
-      "gameStart" -> do
-        numPlayers <- obj .: "numberOfPlayers" 
-        return (GameStart numPlayers)
-      "playerResponses" -> do
-        responses <- obj .: "responses"
-        parsed_responses <- mapM parse_response responses
-        return (PlayerResponses parsed_responses)
-    where
-      parse_response = withObject "Player Response" $ \obj -> do
-        player <- obj .: "player"
-        response <- obj .: "response"
-        isValid <- obj .: "isValid"
-        return (player, isValid, response)
-
-instance ToJSON GameEngineOutMessage where
-  toJSON (DebugMessage message) = object [
-    "messageType" .= ("debugMessage" :: String),
-    "body" .= message
-    ]
-  toJSON (GameEnd scores) = object [
-    "messageType" .= ("gameEnd":: String),
-    "scores" .= map (\(player, score) -> object ["player" .= player, "score" .= score]) scores
-    ]
-  toJSON (PlayerTurn turns) = object [
-    "messageType" .= ("playerTurn":: String),
-    "scores" .= map (\(player, input) -> object ["player" .= player, "input" .= input]) turns
-    ]
 
 -- Initial empty board
 initialBoard :: Board
@@ -102,11 +67,11 @@ isFull = all (all isJust)
     isJust (Just _) = True
     isJust Nothing  = False
 
-checkGameStart :: GameEngineInMessage -> Either String Int
+checkGameStart :: GameEngineInMessage PlayerResponse -> Either String Int
 checkGameStart (GameStart i) = Right i
 checkGameStart _ = Left "Expected game start message"
 
-checkPlayerResponse :: GameEngineInMessage -> Either String PlayerResponse
+checkPlayerResponse :: GameEngineInMessage PlayerResponse -> Either String PlayerResponse
 checkPlayerResponse (PlayerResponses [(_, True, pr)]) = Right pr
 checkPlayerResponse _ = Left "Expected player responses"
 
@@ -162,8 +127,8 @@ applyMove board player playerResponse = do
 -- Main game loop
 playGame :: Board -> Player -> IO ()
 playGame board player
-  | checkWin X board = flushedPutStrLnB $ encode $ GameEnd [(playerToInt X, 1), (playerToInt O, 0)]
-  | checkWin O board = flushedPutStrLnB $ encode $ GameEnd [(playerToInt O, 1), (playerToInt X, 0)]
+  | checkWin X board = flushedPutStrLnB $ encode $ (GameEnd [(playerToInt X, 1), (playerToInt O, 0)] :: GameEngineOutMessage Board)
+  | checkWin O board = flushedPutStrLnB $ encode $ (GameEnd [(playerToInt O, 1), (playerToInt X, 0)] :: GameEngineOutMessage Board)
   | otherwise = do
     flushedPutStrLnB $ encode $ PlayerTurn [(playerToInt player, board)]
     imsg <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.getLine
