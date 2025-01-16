@@ -43,6 +43,20 @@ build-type:         Simple
 common warnings
     ghc-options: -Wall
 
+library parsers
+    exposed-modules: Parsers
+
+    default-extensions:
+        DeriveGeneric,
+        DeriveAnyClass,
+        OverloadedStrings
+
+    build-depends:
+        base ^>=4.18.2.1,
+        aeson,
+
+    default-language: Haskell2010
+
 executable tic-tac-toe
     -- Import common warning flags.
     import:           warnings
@@ -68,6 +82,7 @@ executable tic-tac-toe
         parsec,
         vector,
         bytestring,
+        parsers
 
     -- Directories containing source files.
 
