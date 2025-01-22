@@ -5,9 +5,10 @@ export interface UserStore {
 	// Bigint in database, but we'll treat it as a string
 	id: string;
 	username: string;
+	iconUrl: string;
 }
 
-export const initialValue = { id: '', username: '' };
+export const initialValue = { id: '', username: '', iconUrl: '' };
 
 export const userStore = localWritable('userStore')<UserStore>(initialValue);
 

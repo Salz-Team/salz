@@ -20,8 +20,9 @@
 			const userResponse = userResult.unwrap();
 			const userid: string = userResponse.body['userid'] as string;
 			const username: string = userResponse.body['username'] as string;
+			const iconUrl: string = userResponse.body['iconpath'] as string;
 
-			userStore.set({ id: userid, username });
+			userStore.set({ id: userid, username, iconUrl });
 
 			goto(redirectUrl);
 		}
