@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import MatchResultList from '$lib/components/MatchResultList.svelte';
-	import Paginator from '$lib/components/Paginator.svelte';
+	import FixedPaginator from '$lib/components/FixedPaginator.svelte';
 	import type { MatchResult } from '$lib/models';
 	import { Temporal } from 'temporal-polyfill';
 
 	let currentPage = $state(1);
 
-	let matchId = $derived($page.url.searchParams.get('id'));
+	let matchId = $derived(page.url.searchParams.get('id'));
 	let botResults = $derived([
 		{
 			id: 'match111',
@@ -74,7 +74,7 @@
 
 	<MatchResultList matchResults={botResults} />
 
-	<Paginator class="paginator" totalPages={10} bind:currentPage />
+	<FixedPaginator class="paginator" totalPages={10} bind:currentPage />
 {:else}
 	{matchId}<br />
 
