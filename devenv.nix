@@ -13,6 +13,7 @@
     pkgs.git
     pkgs.graphviz
     pkgs.devenv
+    pkgs.sqlfluff
     (pkgs.callPackage ./nix/hcp.nix {})
     pkgs.jsonschema
 
