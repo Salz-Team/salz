@@ -1,0 +1,8 @@
+[sqlfluff:rules:layout.long_lines]
+max_line_length = 120
+
+[sqlfluff:rules:ambiguous.join]
+fully_qualify_join_types = outer
+
+[sqlfluff]
+exclude_rules = LT05, AL01, ST06
