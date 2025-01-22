@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS salz.users (
     identity_provider_id TEXT NOT NULL, -- not all providers use numeric ids?
     elo FLOAT
 );
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_username ON salz.users (username);
 
 -- upload_path is null when status is pending
 -- status can be 'No status', 'Healthy', 'Unhealthy'
@@ -61,9 +62,15 @@ CREATE TABLE IF NOT EXISTS auth.sessions (
     expires_at TIMESTAMP NOT NULL
 );
 
--- only one active session token per user.
-CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_user_id_token ON auth.sessions (user_id);
--- Index to speed up session lookup by token
-CREATE INDEX IF NOT EXISTS idx_sessions_token ON auth.sessions (token);
--- Index to speed up session cleanup
-CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON auth.sessions (expires_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_user_id_token ON auth.sessions (user_id); -- only one active session token per user.
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON auth.sessions (token); -- Index to speed up session lookup by token
+CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON auth.sessions (expires_at); -- Index to speed up session cleanup
+
+-- Tables used for basic auth
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE IF NOT EXISTS auth.basic_auth_logins (
+    user_id BIGINT NOT NULL PRIMARY KEY,
+    pw_hash TEXT NOT NULL
+);

@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"database/sql"
 	"github.com/Salz-Team/salz/api/models"
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,86 @@ import (
 const (
 	DEFAULT_ELO = 1000.0
 )
+
+// Creates user if the user doesn't exist. Otherwise, authenticates against provided password.
+// Returns a token if the user is authenticated or was just created.
+func (ctrl *Controller) BasicAuthLoginHandler(c *gin.Context) {
+	if !ctrl.cfg.EnableBasicAuth {
+		log.Warn("Basic auth is disabled")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	user, pass, ok := c.Request.BasicAuth()
+	if !ok {
+		log.Warn("No basic auth header provided")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	// Check if the user already exists
+	salzUser, userLookupErr := ctrl.cfg.ApiDBHandler.GetUserByLogin(user)
+	var authenticated bool
+
+	if userLookupErr == nil {
+		var err error
+		authenticated, err = ctrl.cfg.AuthDBHandler.CheckPassword(salzUser.Id, pass)
+		if err != nil {
+			log.Error("Unable to check password", "error", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	} else if userLookupErr == sql.ErrNoRows {
+		var err error
+		// Create the user
+		u := models.User{
+			UserName:           user,
+			Elo:                DEFAULT_ELO,
+			IdentityProvider:   "basicauth",
+			IdentityProviderId: user,
+		}
+		// WARNING: automatically creating users is _not best_ for a publicly accessible API.
+		salzUser, err = ctrl.cfg.ApiDBHandler.CreateUser(u)
+		if err != nil {
+			log.Error("Unable to create user", "error", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		// Create the password
+		err = ctrl.cfg.AuthDBHandler.CreatePassword(salzUser.Id, pass)
+		if err != nil {
+			log.Error("Unable to create password", "error", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		authenticated = true
+	} else {
+		log.Error("Unable to get user by login", "error", userLookupErr)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if authenticated {
+		// Create a token for the user
+		userAuthToken := models.NewAuthTokenForUser(salzUser.Id, ctrl.cfg.AuthTokenValidDuration)
+		err := ctrl.cfg.AuthDBHandler.CreateToken(*userAuthToken)
+		if err != nil {
+			log.Error("Unable to create token", "error", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"access_token": userAuthToken.Token,
+			"expires_at":   userAuthToken.ExpiresAt,
+		})
+		return
+	}
+	log.Warn("Authentication failed", "user", user)
+	c.AbortWithStatus(http.StatusUnauthorized)
+	return
+}
 
 type State struct {
 	Code        string `json:"code"`
