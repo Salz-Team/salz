@@ -15,7 +15,7 @@
 		role = 'tooltip',
 		position = Position.BottomCenter,
 		class: className = '',
-		children
+		children,
 	}: Props = $props();
 
 	let computedClass = $derived([className, position.toString()].join(' '));
