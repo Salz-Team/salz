@@ -14,7 +14,7 @@
 		type = 'button',
 		isDisabled = false,
 		class: className = '',
-		icon
+		icon,
 	}: Props = $props();
 </script>
 
