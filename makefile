@@ -17,6 +17,9 @@ clean:
 	rm -r .devenv/state/minio
 	rm -r .devenv/state/postgres
 
+game-pipeline:
+	cd game-pipeline; \
+	 cabal run game-engine
 
 ################################################################################
 # Test
