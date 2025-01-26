@@ -47,8 +47,7 @@ spawn path = do
   (stdin, stdout, stderr, ph) <- createProcess
     (shell path){
       std_in = CreatePipe,
-      std_out = CreatePipe,
-      std_err = CreatePipe
+      std_out = CreatePipe
     }
   return $ Process ph (fromJust stdin) (fromJust stdout) stderr
 
@@ -59,7 +58,7 @@ liftEither (Right a) = return a
 botInteract :: Process -> TicTacToeBoard -> IO TicTacToePlayerResponse
 botInteract bot botin = do
   flushedPutStrLnB (stdIn bot) (encode botin)
-  fromJust <$> decode <$> LB.fromStrict <$> B.hGetLine (stdOut bot)
+  liftEither =<< eitherDecode <$> LB.fromStrict <$> B.hGetLine (stdOut bot)
 
 handleCommand :: Process -> [Process] -> GameEngineOutMessage TicTacToeBoard -> IO ()
 handleCommand gameEngine _ (GameEnd scores) = do
