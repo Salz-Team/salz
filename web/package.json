@@ -23,6 +23,7 @@
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
 		"@types/eslint": "^9.6.1",
 		"@types/lodash": "^4.17.5",
+		"@vitest/web-worker": "^3.0.4",
 		"eslint": "^9.0.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.45.1",
@@ -39,7 +40,7 @@
 		"typescript-language-server": "^4.3.3",
 		"typescript-svelte-plugin": "^0.3.39",
 		"vite": "^6.0.3",
-		"vitest": "^2.1.8"
+		"vitest": "^3.0.4"
 	},
 	"type": "module",
 	"dependencies": {
