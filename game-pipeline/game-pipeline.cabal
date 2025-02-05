@@ -9,8 +9,8 @@ build-type:         Simple
 common warnings
     ghc-options: -Wall
 
-library parsers
-    exposed-modules: Parsers
+library types
+    exposed-modules: Types
 
     default-extensions:
         DeriveGeneric,
@@ -42,7 +42,7 @@ executable tic-tac-toe
         parsec,
         vector,
         bytestring,
-        parsers
+        types
 
     default-language: Haskell2010
 
@@ -65,7 +65,7 @@ executable match-handler
         parsec,
         vector,
         bytestring,
-        parsers
+        types
 
     default-language: Haskell2010
 
@@ -88,6 +88,6 @@ executable tic-tac-toe-player
         parsec,
         vector,
         bytestring,
-        parsers
+        types
 
     default-language: Haskell2010

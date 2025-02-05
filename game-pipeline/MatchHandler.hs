@@ -11,7 +11,7 @@ import Data.Aeson
 import GHC.Generics
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
-import Parsers
+import Types
 
 data Args = Args
   { _gameEngine :: String
