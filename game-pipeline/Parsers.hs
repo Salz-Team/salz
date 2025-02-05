@@ -7,7 +7,7 @@ import GHC.Generics
 -- Types
 
 data GameEngineInMessage x = GameStart Int | PlayerResponses [(Int, Bool, x)] deriving (Show)
-data GameEngineOutMessage x = GameEnd [(Int, Float)] | PlayerTurn [(Int, x)] | DebugMessage String deriving (Show)
+data GameEngineOutMessage x = GameEnd [(Int, Float)] | PlayerTurn [(Int, x)] | DebugMessage String | GameOStart String deriving (Show)
 
 data GameHistoryLine x = HGameStart Int String | HGameEnd [(Int, Float)] | HPlayerResponses [(Int, x, Bool, String, String)] | HDebug String
 
@@ -99,6 +99,9 @@ instance FromJSON x => FromJSON (GameEngineOutMessage x) where
   parseJSON = withObject "GameEngineOutMessage" $ \obj -> do
     messageType <- (obj .: "messageType") :: (Parser String)
     case messageType of
+      "gameStart" -> do
+        gameType <- obj .: "gameType"
+        return (GameOStart gameType)
       "debugMessage" -> do
         body <- obj .: "body"
         return (DebugMessage body)
@@ -124,6 +127,10 @@ instance ToJSON x => ToJSON (GameEngineOutMessage x) where
   toJSON (DebugMessage message) = object [
     "messageType" .= ("debugMessage" :: String),
     "body" .= message
+    ]
+  toJSON (GameOStart gameType) = object [
+    "messageType" .= ("gameStart" :: String),
+    "gameType" .= gameType
     ]
   toJSON (GameEnd scores) = object [
     "messageType" .= ("gameEnd":: String),
