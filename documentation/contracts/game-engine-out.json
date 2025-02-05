@@ -42,6 +42,12 @@
         "messageType": { "const": "debugMessage" },
         "body": { "type": "string"}
       }
+    },
+    {
+      "properties": {
+        "messageType": { "const": "gameStart" },
+        "gameType": { "type": "string"}
+      }
     }
   ]
 }

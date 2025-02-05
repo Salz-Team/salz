@@ -51,6 +51,10 @@ spawn path = do
     }
   return $ Process ph (fromJust stdin) (fromJust stdout) stderr
 
+getGameType :: GameEngineOutMessage Value -> Either String String
+getGameType (GameOStart i) = Right i
+getGameType _ = Left "Expected game engine message"
+
 liftEither :: Either String a -> IO  a
 liftEither (Left errmsg) = error errmsg
 liftEither (Right a) = return a
@@ -83,6 +87,9 @@ main = do
   args <- execParser opts
   gameEngine <- spawn (_gameEngine args)
   bots <- mapM spawn (_bots args)
-  flushedPutStrLnB stdout $ encode $ (HGameStart (length bots) "" :: GameHistoryLine Value)
+  imsg <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.hGetLine (stdOut gameEngine)
+  gameType <- liftEither $ getGameType imsg
+
+  flushedPutStrLnB stdout $ encode $ (HGameStart (length bots) gameType :: GameHistoryLine Value)
   flushedPutStrLnB (stdIn gameEngine) $ encode $ (GameStart (length bots) :: GameEngineInMessage Value)
   gameLoop gameEngine bots
