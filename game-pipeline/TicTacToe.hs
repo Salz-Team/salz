@@ -1,6 +1,5 @@
 module Main where
 
-
 import Data.List (intercalate)
 import Data.Int (Int8)
 import qualified Data.Vector as V
@@ -118,6 +117,7 @@ playGame board player
 -- Start the game
 main :: IO ()
 main = do
+  flushedPutStrLnB $ encode $ (GameOStart "tic-tac-toe" :: GameEngineOutMessage TicTacToeBoard)
   message <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.getLine
   liftEither (checkGameStart message)
   playGame initialBoard X
