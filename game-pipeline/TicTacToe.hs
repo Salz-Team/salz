@@ -6,7 +6,7 @@ import qualified Data.Vector as V
 import System.IO
 import Data.Aeson
 import Data.Aeson.Types (Parser)
-import Parsers
+import Types
 import GHC.Generics
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
