@@ -55,17 +55,17 @@ liftEither :: Either String a -> IO  a
 liftEither (Left errmsg) = error errmsg
 liftEither (Right a) = return a
 
-botInteract :: Process -> TicTacToeBoard -> IO TicTacToePlayerResponse
+botInteract :: Process -> Value -> IO Value
 botInteract bot botin = do
   flushedPutStrLnB (stdIn bot) (encode botin)
   liftEither =<< eitherDecode <$> LB.fromStrict <$> B.hGetLine (stdOut bot)
 
-handleCommand :: Process -> [Process] -> GameEngineOutMessage TicTacToeBoard -> IO ()
+handleCommand :: Process -> [Process] -> GameEngineOutMessage Value-> IO ()
 handleCommand gameEngine _ (GameEnd scores) = do
-  flushedPutStrLnB stdout $ encode $ (HGameEnd scores :: GameHistoryLine TicTacToePlayerResponse)
+  flushedPutStrLnB stdout $ encode $ (HGameEnd scores :: GameHistoryLine Value)
   exitWith ExitSuccess
 handleCommand gameEngine bots (DebugMessage msg) = do
-  flushedPutStrLnB stdout $ encode $ (HDebug msg :: GameHistoryLine TicTacToePlayerResponse)
+  flushedPutStrLnB stdout $ encode $ (HDebug msg :: GameHistoryLine Value)
   gameLoop gameEngine bots
 handleCommand gameEngine bots (PlayerTurn playercmds) = do
   botOuts <- mapM (\(p, c) -> botInteract (bots!!p) c) playercmds
@@ -83,6 +83,6 @@ main = do
   args <- execParser opts
   gameEngine <- spawn (_gameEngine args)
   bots <- mapM spawn (_bots args)
-  flushedPutStrLnB stdout $ encode $ (HGameStart (length bots) "" :: GameHistoryLine TicTacToePlayerResponse)
-  flushedPutStrLnB (stdIn gameEngine) $ encode $ (GameStart (length bots) :: GameEngineInMessage TicTacToeBoard)
+  flushedPutStrLnB stdout $ encode $ (HGameStart (length bots) "" :: GameHistoryLine Value)
+  flushedPutStrLnB (stdIn gameEngine) $ encode $ (GameStart (length bots) :: GameEngineInMessage Value)
   gameLoop gameEngine bots
