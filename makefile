@@ -27,6 +27,12 @@ game-pipeline:
 
 test: test/contracts/examples
 
+pipeline-seed:
+	cd game-pipeline && bash seed.sh
+
+pipeline-run:
+	cd game-pipeline && bash MatchMaker.sh
+
 #########################################
 # JSON Contracts
 #########################################
