@@ -12,17 +12,32 @@ run:
 sql-lint:
 	sqlfluff lint --config .sqlfluff --dialect postgres --format human .
 
+haskell-format:
+	ormolu --mode inplace $$(find . -name '*.hs')
+
+haskell-lint:
+	hlint $$(find . -name '*.hs')
+
 clean:
 	devenv processes down || true
 	rm -r .devenv/state/minio
 	rm -r .devenv/state/postgres
 
+game-pipeline:
+	cd game-pipeline; \
+	 cabal run game-engine
 
 ################################################################################
 # Test
 ################################################################################
 
 test: test/contracts/examples
+
+pipeline-seed:
+	cd game-pipeline && bash seed.sh
+
+pipeline-run:
+	cd game-pipeline && bash MatchMaker.sh
 
 #########################################
 # JSON Contracts

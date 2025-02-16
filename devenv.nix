@@ -17,6 +17,9 @@
     (pkgs.callPackage ./nix/hcp.nix {})
     pkgs.jsonschema
 
+    pkgs.ormolu
+    pkgs.hlint
+
     pkgs.nodePackages.npm
     pkgs.nodePackages.typescript-language-server
     pkgs.nodePackages.svelte-language-server
@@ -38,8 +41,8 @@
     listenAddress = "127.0.0.1:9110";
     buckets = ["salz"];
   };
-  services.caddy.enable = true;
 
+  services.caddy.enable = true;
   languages.go.enable = true;
 
   processes = {
@@ -53,4 +56,5 @@
     export PGDATABASE=salz
     psql "$@"
   '';
+  languages.haskell.enable = true;
 }
