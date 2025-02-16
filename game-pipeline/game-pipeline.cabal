@@ -7,25 +7,35 @@ license:            MIT
 build-type:         Simple
 
 common warnings
-    ghc-options: -Wall
+    ghc-options:
+      -Wall
+      -Wcompat
+      -Wincomplete-record-updates
+      -Wincomplete-uni-patterns
+      -Wredundant-constraints
+
+    default-extensions:
+        DeriveGeneric,
+        DeriveAnyClass,
+        OverloadedStrings,
+        DuplicateRecordFields
+
+    build-depends:
+        base ^>=4.18.2.1,
+
+    default-language: Haskell2010
 
 executable tic-tac-toe
     import:           warnings
 
     main-is:          TicTacToe/GameEngine.hs
 
-    default-extensions:
-        DeriveGeneric,
-        DeriveAnyClass,
-        OverloadedStrings
-
     other-modules:
         Utils
         Types
         TicTacToe.Types
 
     build-depends:
-        base ^>=4.18.2.1,
         optparse-applicative,
         process,
         aeson,
@@ -33,25 +43,17 @@ executable tic-tac-toe
         vector,
         bytestring,
 
-    default-language: Haskell2010
 
 executable match-handler
     import:           warnings
 
     main-is:          MatchHandler.hs
 
-    default-extensions:
-        DeriveGeneric,
-        DeriveAnyClass,
-        OverloadedStrings,
-        DuplicateRecordFields
-
     other-modules:
         Utils
         Types
 
     build-depends:
-        base ^>=4.18.2.1,
         optparse-applicative,
         process,
         aeson,
@@ -59,18 +61,11 @@ executable match-handler
         vector,
         bytestring,
 
-    default-language: Haskell2010
 
 executable tic-tac-toe-player
     import:           warnings
 
     main-is:          TicTacToe/Player.hs
-
-    default-extensions:
-        DeriveGeneric,
-        DeriveAnyClass,
-        OverloadedStrings,
-        DuplicateRecordFields
 
     other-modules:
         Utils
@@ -78,7 +73,6 @@ executable tic-tac-toe-player
         TicTacToe.Types
 
     build-depends:
-        base ^>=4.18.2.1,
         optparse-applicative,
         process,
         aeson,
@@ -86,4 +80,3 @@ executable tic-tac-toe-player
         vector,
         bytestring,
 
-    default-language: Haskell2010
