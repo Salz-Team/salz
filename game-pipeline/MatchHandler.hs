@@ -1,17 +1,15 @@
 module Main where
 
 import Options.Applicative
-import Control.Monad
 import System.Process
 import System.IO
 import System.Exit
 import Data.Maybe
-import Data.List
 import Data.Aeson
-import GHC.Generics
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import Types
+import Utils
 
 data Args = Args
   { _gameEngine :: String
@@ -27,13 +25,10 @@ argparser = Args
     (short 'b'
     <> help "path to bots"))
 
+opts :: ParserInfo Args
 opts = info (argparser <**> helper)
          ( fullDesc
         <> progDesc "Run a match")
-
-flushedPutStrLnB handle line = do
-  B.hPutStrLn handle (LB.toStrict line)
-  hFlush handle
 
 data Process = Process
   { processHandle :: ProcessHandle
@@ -44,12 +39,12 @@ data Process = Process
 
 spawn :: String -> IO Process
 spawn path = do
-  (stdin, stdout, stderr, ph) <- createProcess
+  (pstdin, pstdout, pstderr, ph) <- createProcess
     (shell path){
       std_in = CreatePipe,
       std_out = CreatePipe
     }
-  return $ Process ph (fromJust stdin) (fromJust stdout) stderr
+  return $ Process ph (fromJust pstdin) (fromJust pstdout) pstderr
 
 getGameType :: GameEngineOutMessage Value -> Either String String
 getGameType (GameOStart i) = Right i
@@ -65,7 +60,7 @@ botInteract bot botin = do
   liftEither =<< eitherDecode <$> LB.fromStrict <$> B.hGetLine (stdOut bot)
 
 handleCommand :: Process -> [Process] -> GameEngineOutMessage Value-> IO ()
-handleCommand gameEngine _ (GameEnd scores) = do
+handleCommand _ _ (GameEnd scores) = do
   flushedPutStrLnB stdout $ encode $ (HGameEnd scores :: GameHistoryLine Value)
   exitWith ExitSuccess
 handleCommand gameEngine bots (DebugMessage msg) = do
@@ -76,6 +71,8 @@ handleCommand gameEngine bots (PlayerTurn playercmds) = do
   flushedPutStrLnB stdout $ encode $ HPlayerResponses (map (\(x, (p, _)) -> (p, x, True, "", "")) (zip botOuts playercmds))
   flushedPutStrLnB (stdIn gameEngine) $ encode $ PlayerResponses (map (\(x, (p, _)) -> (p, True, x)) (zip botOuts playercmds))
   gameLoop gameEngine bots
+handleCommand _ _ (GameOStart _) = do
+  exitWith (ExitFailure 1)
 
 gameLoop :: Process -> [Process] -> IO ()
 gameLoop gameEngine bots = do

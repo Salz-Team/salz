@@ -2,7 +2,6 @@ module Types where
 
 import Data.Aeson
 import Data.Aeson.Types (Parser)
-import GHC.Generics
 
 -- Types
 
@@ -51,6 +50,7 @@ instance FromJSON x => FromJSON (GameEngineInMessage x) where
         responses <- obj .: "responses"
         parsed_responses <- mapM parse_response responses
         return (PlayerResponses parsed_responses)
+      _ -> fail ("Unknown messageType: " ++ messageType)
     where
       parse_response = withObject "Player Response" $ \obj -> do
         player <- obj .: "player"
@@ -92,6 +92,7 @@ instance FromJSON x => FromJSON (GameEngineOutMessage x) where
         inputs <- obj .: "inputs"
         parsed_inputs <- mapM parse_input inputs
         return (PlayerTurn parsed_inputs)
+      _ -> fail ("Unknown messageType: " ++ messageType)
     where
       parse_score = withObject "Score" $ \obj -> do
         player <- obj .: "player"

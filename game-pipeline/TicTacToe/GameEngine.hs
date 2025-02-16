@@ -1,16 +1,12 @@
 module Main where
 
-import Data.List (intercalate)
-import Data.Int (Int8)
-import qualified Data.Vector as V
 import System.IO
 import Data.Aeson
-import Data.Aeson.Types (Parser)
 import Types
 import TicTacToe.Types
-import GHC.Generics
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
+import Utils
 
 -- Initial empty board
 initialBoard :: TicTacToeBoard
@@ -57,7 +53,7 @@ checkPlayerResponse _ = Left "Expected player responses"
 -- Check if the move is valid (within bounds and cell is empty)
 isValidMove :: TicTacToeBoard -> TicTacToePlayerResponse -> Either String Bool
 isValidMove board (TicTacToePlayerResponse col row) = do
-    if row >= 0 && row < 3 && col >= 0 && col < 3
+    _ <- if row >= 0 && row < 3 && col >= 0 && col < 3
       then
         Right True
       else
@@ -82,44 +78,33 @@ liftEither :: Either String a -> IO  a
 liftEither (Left errmsg) = error errmsg
 liftEither (Right a) = return a
 
-flushedPutStrLn line = do
-  putStrLn line
-  hFlush stdout
-flushedPutStrLnB line = do
-  B.putStrLn (LB.toStrict line)
-  hFlush stdout
-
-intToPlayer 0 = X
-intToPlayer 1 = O
-
-playerToInt X = 0
-playerToInt O = 1
-
-otherPlayer X = O
-otherPlayer O = X
-
 applyMove :: TicTacToeBoard -> TicTacToePlayer -> TicTacToePlayerResponse -> Either String TicTacToeBoard
 applyMove board player playerResponse = do
-    isValidMove board playerResponse
+    _ <- isValidMove board playerResponse
     return $ updateBoard board player playerResponse
 
 -- Main game loop
 playGame :: TicTacToeBoard -> TicTacToePlayer -> IO ()
 playGame board player
-  | checkWin X board = flushedPutStrLnB $ encode $ (GameEnd [(playerToInt X, 1), (playerToInt O, 0)] :: GameEngineOutMessage TicTacToeBoard)
-  | checkWin O board = flushedPutStrLnB $ encode $ (GameEnd [(playerToInt O, 1), (playerToInt X, 0)] :: GameEngineOutMessage TicTacToeBoard)
+  | checkWin X board = flushedPutStrLnB stdout $ encode $ (GameEnd [(playerToInt X, 1), (playerToInt O, 0)] :: GameEngineOutMessage TicTacToeBoard)
+  | checkWin O board = flushedPutStrLnB stdout $ encode $ (GameEnd [(playerToInt O, 1), (playerToInt X, 0)] :: GameEngineOutMessage TicTacToeBoard)
   | otherwise = do
-    flushedPutStrLnB $ encode $ PlayerTurn [(playerToInt player, board)]
+    flushedPutStrLnB stdout $ encode $ PlayerTurn [(playerToInt player, board)]
     imsg <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.getLine
     pr <- liftEither (checkPlayerResponse imsg)
     newboard <- liftEither (applyMove board player pr)
     playGame newboard (otherPlayer player)
+    where
+      otherPlayer X = O
+      otherPlayer O = X
+      playerToInt X = 0
+      playerToInt O = 1
 
 -- Start the game
 main :: IO ()
 main = do
-  flushedPutStrLnB $ encode $ (GameOStart "tic-tac-toe" :: GameEngineOutMessage TicTacToeBoard)
+  flushedPutStrLnB stdout $ encode $ (GameOStart "tic-tac-toe" :: GameEngineOutMessage TicTacToeBoard)
   message <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.getLine
-  liftEither (checkGameStart message)
+  _ <- liftEither (checkGameStart message)
   playGame initialBoard X
 
