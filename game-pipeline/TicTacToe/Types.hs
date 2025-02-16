@@ -1,7 +1,6 @@
 module TicTacToe.Types where
 
 import Data.Aeson
-import Data.Aeson.Types (Parser)
 import GHC.Generics
 
 data TicTacToePlayerResponse = TicTacToePlayerResponse Int Int deriving (Show)
