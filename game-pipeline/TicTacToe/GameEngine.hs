@@ -18,7 +18,7 @@ checkWin player board =
     || checkDiagonals board
   where
     checkRow :: [Maybe TicTacToePlayer] -> Bool
-    checkRow row = all (== Just player) row
+    checkRow = all (== Just player)
 
     columns :: TicTacToeBoard -> TicTacToeBoard
     columns = foldr (zipWith (:)) (repeat [])
@@ -104,13 +104,13 @@ playGame :: TicTacToeBoard -> TicTacToePlayer -> IO ()
 playGame board player
   | checkWin X board =
       flushedPutStrLnB stdout $
-        encode $
+        encode
           ( GameEnd [(playerToInt X, 1), (playerToInt O, 0)] ::
               GameEngineOutMessage TicTacToeBoard
           )
   | checkWin O board =
       flushedPutStrLnB stdout $
-        encode $
+        encode
           ( GameEnd [(playerToInt O, 1), (playerToInt X, 0)] ::
               GameEngineOutMessage TicTacToeBoard
           )
@@ -118,7 +118,7 @@ playGame board player
       flushedPutStrLnB stdout $
         encode $
           PlayerTurn [(playerToInt player, board)]
-      imsg <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.getLine
+      imsg <- liftEither . eitherDecode . LB.fromStrict =<< B.getLine
       pr <- liftEither (checkPlayerResponse imsg)
       newboard <- liftEither (applyMove board player pr)
       playGame newboard (otherPlayer player)
@@ -131,8 +131,8 @@ playGame board player
 main :: IO ()
 main = do
   flushedPutStrLnB stdout $
-    encode $
+    encode
       (GameOStart "tic-tac-toe" :: GameEngineOutMessage TicTacToeBoard)
-  message <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.getLine
+  message <- liftEither . eitherDecode . LB.fromStrict =<< B.getLine
   _ <- liftEither (checkGameStart message)
   playGame initialBoard X

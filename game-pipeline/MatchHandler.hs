@@ -67,30 +67,32 @@ liftEither (Right a) = return a
 botInteract :: Process -> Value -> IO Value
 botInteract bot botin = do
   flushedPutStrLnB (stdIn bot) (encode botin)
-  liftEither =<< eitherDecode <$> LB.fromStrict <$> B.hGetLine (stdOut bot)
+  liftEither . eitherDecode . LB.fromStrict =<< B.hGetLine (stdOut bot)
 
 handleCommand :: Process -> [Process] -> GameEngineOutMessage Value -> IO ()
 handleCommand _ _ (GameEnd scores) = do
-  flushedPutStrLnB stdout $ encode $ (HGameEnd scores :: GameHistoryLine Value)
-  exitWith ExitSuccess
+  flushedPutStrLnB stdout $ encode (HGameEnd scores :: GameHistoryLine Value)
+  exitSuccess
 handleCommand gameEngine bots (DebugMessage msg) = do
-  flushedPutStrLnB stdout $ encode $ (HDebug msg :: GameHistoryLine Value)
+  flushedPutStrLnB stdout $ encode (HDebug msg :: GameHistoryLine Value)
   gameLoop gameEngine bots
 handleCommand gameEngine bots (PlayerTurn playercmds) = do
   botOuts <- mapM (\(p, c) -> botInteract (bots !! p) c) playercmds
   flushedPutStrLnB stdout $
     encode $
       HPlayerResponses
-        ( map
-            (\(x, (p, _)) -> (p, x, True, "", ""))
-            (zip botOuts playercmds)
+        ( zipWith
+            (curry (\(x, (p, _)) -> (p, x, True, "", "")))
+            botOuts
+            playercmds
         )
   flushedPutStrLnB (stdIn gameEngine) $
     encode $
       PlayerResponses
-        ( map
-            (\(x, (p, _)) -> (p, True, x))
-            (zip botOuts playercmds)
+        ( zipWith
+            (curry (\(x, (p, _)) -> (p, True, x)))
+            botOuts
+            playercmds
         )
   gameLoop gameEngine bots
 handleCommand _ _ (GameOStart _) = do
@@ -100,9 +102,8 @@ gameLoop :: Process -> [Process] -> IO ()
 gameLoop gameEngine bots = do
   imsg <-
     liftEither
-      =<< eitherDecode
-        <$> LB.fromStrict
-        <$> B.hGetLine (stdOut gameEngine)
+      . (eitherDecode <$> LB.fromStrict)
+      =<< B.hGetLine (stdOut gameEngine)
   handleCommand gameEngine bots imsg
 
 main :: IO ()
@@ -112,15 +113,14 @@ main = do
   bots <- mapM spawn (_bots args)
   imsg <-
     liftEither
-      =<< eitherDecode
-        <$> LB.fromStrict
-        <$> B.hGetLine (stdOut gameEngine)
+      . (eitherDecode <$> LB.fromStrict)
+      =<< B.hGetLine (stdOut gameEngine)
   gameType <- liftEither $ getGameType imsg
 
   flushedPutStrLnB stdout $
-    encode $
+    encode
       (HGameStart (length bots) gameType :: GameHistoryLine Value)
   flushedPutStrLnB (stdIn gameEngine) $
-    encode $
+    encode
       (GameStart (length bots) :: GameEngineInMessage Value)
   gameLoop gameEngine bots
