@@ -78,15 +78,31 @@ handleCommand gameEngine bots (DebugMessage msg) = do
   gameLoop gameEngine bots
 handleCommand gameEngine bots (PlayerTurn playercmds) = do
   botOuts <- mapM (\(p, c) -> botInteract (bots !! p) c) playercmds
-  flushedPutStrLnB stdout $ encode $ HPlayerResponses (map (\(x, (p, _)) -> (p, x, True, "", "")) (zip botOuts playercmds))
-  flushedPutStrLnB (stdIn gameEngine) $ encode $ PlayerResponses (map (\(x, (p, _)) -> (p, True, x)) (zip botOuts playercmds))
+  flushedPutStrLnB stdout $
+    encode $
+      HPlayerResponses
+        ( map
+            (\(x, (p, _)) -> (p, x, True, "", ""))
+            (zip botOuts playercmds)
+        )
+  flushedPutStrLnB (stdIn gameEngine) $
+    encode $
+      PlayerResponses
+        ( map
+            (\(x, (p, _)) -> (p, True, x))
+            (zip botOuts playercmds)
+        )
   gameLoop gameEngine bots
 handleCommand _ _ (GameOStart _) = do
   exitWith (ExitFailure 1)
 
 gameLoop :: Process -> [Process] -> IO ()
 gameLoop gameEngine bots = do
-  imsg <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.hGetLine (stdOut gameEngine)
+  imsg <-
+    liftEither
+      =<< eitherDecode
+        <$> LB.fromStrict
+        <$> B.hGetLine (stdOut gameEngine)
   handleCommand gameEngine bots imsg
 
 main :: IO ()
@@ -94,9 +110,17 @@ main = do
   args <- execParser opts
   gameEngine <- spawn (_gameEngine args)
   bots <- mapM spawn (_bots args)
-  imsg <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.hGetLine (stdOut gameEngine)
+  imsg <-
+    liftEither
+      =<< eitherDecode
+        <$> LB.fromStrict
+        <$> B.hGetLine (stdOut gameEngine)
   gameType <- liftEither $ getGameType imsg
 
-  flushedPutStrLnB stdout $ encode $ (HGameStart (length bots) gameType :: GameHistoryLine Value)
-  flushedPutStrLnB (stdIn gameEngine) $ encode $ (GameStart (length bots) :: GameEngineInMessage Value)
+  flushedPutStrLnB stdout $
+    encode $
+      (HGameStart (length bots) gameType :: GameHistoryLine Value)
+  flushedPutStrLnB (stdIn gameEngine) $
+    encode $
+      (GameStart (length bots) :: GameEngineInMessage Value)
   gameLoop gameEngine bots

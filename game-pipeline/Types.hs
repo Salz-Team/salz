@@ -5,11 +5,23 @@ import Data.Aeson.Types (Parser)
 
 -- Types
 
-data GameEngineInMessage x = GameStart Int | PlayerResponses [(Int, Bool, x)] deriving (Show)
+data GameEngineInMessage x
+  = GameStart Int
+  | PlayerResponses [(Int, Bool, x)]
+  deriving (Show)
 
-data GameEngineOutMessage x = GameEnd [(Int, Float)] | PlayerTurn [(Int, x)] | DebugMessage String | GameOStart String deriving (Show)
+data GameEngineOutMessage x
+  = GameEnd [(Int, Float)]
+  | PlayerTurn [(Int, x)]
+  | DebugMessage String
+  | GameOStart String
+  deriving (Show)
 
-data GameHistoryLine x = HGameStart Int String | HGameEnd [(Int, Float)] | HPlayerResponses [(Int, x, Bool, String, String)] | HDebug String
+data GameHistoryLine x
+  = HGameStart Int String
+  | HGameEnd [(Int, Float)]
+  | HPlayerResponses [(Int, x, Bool, String, String)]
+  | HDebug String
 
 -- JSON Parsers
 
@@ -23,7 +35,10 @@ instance (ToJSON x) => ToJSON (GameHistoryLine x) where
   toJSON (HGameEnd scores) =
     object
       [ "messageType" .= ("gameEnd" :: String),
-        "scores" .= map (\(player, score) -> object ["player" .= player, "score" .= score]) scores
+        "scores"
+          .= map
+            (\(player, score) -> object ["player" .= player, "score" .= score])
+            scores
       ]
   toJSON (HPlayerResponses turns) =
     object
@@ -126,10 +141,16 @@ instance (ToJSON x) => ToJSON (GameEngineOutMessage x) where
   toJSON (GameEnd scores) =
     object
       [ "messageType" .= ("gameEnd" :: String),
-        "scores" .= map (\(player, score) -> object ["player" .= player, "score" .= score]) scores
+        "scores"
+          .= map
+            (\(player, score) -> object ["player" .= player, "score" .= score])
+            scores
       ]
   toJSON (PlayerTurn turns) =
     object
       [ "messageType" .= ("playerTurn" :: String),
-        "inputs" .= map (\(player, input) -> object ["player" .= player, "input" .= input]) turns
+        "inputs"
+          .= map
+            (\(player, input) -> object ["player" .= player, "input" .= input])
+            turns
       ]
