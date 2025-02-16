@@ -16,6 +16,7 @@
     pkgs.sqlfluff
     (pkgs.callPackage ./nix/hcp.nix {})
     pkgs.jsonschema
+    pkgs.ormolu
 
     pkgs.nodePackages.npm
     pkgs.nodePackages.typescript-language-server

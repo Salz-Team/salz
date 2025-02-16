@@ -12,6 +12,9 @@ run:
 sql-lint:
 	sqlfluff lint --config .sqlfluff --dialect postgres --format human .
 
+haskell-lint:
+	ormolu --mode inplace $$(find . -name '*.hs')
+
 clean:
 	devenv processes down || true
 	rm -r .devenv/state/minio

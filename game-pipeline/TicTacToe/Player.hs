@@ -1,16 +1,15 @@
 module Main where
 
-import System.IO
-import Data.Maybe
-import qualified Data.List as L
 import Data.Aeson
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
-
+import qualified Data.List as L
+import Data.Maybe
+import System.IO
 import TicTacToe.Types
 import Utils
 
-liftEither :: Either String a -> IO  a
+liftEither :: Either String a -> IO a
 liftEither (Left errmsg) = error errmsg
 liftEither (Right a) = return a
 
