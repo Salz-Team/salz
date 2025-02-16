@@ -24,10 +24,25 @@ library types
 
     default-language: Haskell2010
 
+library tic-tac-toe-types
+    exposed-modules: TicTacToe.Types
+
+    default-extensions:
+        DeriveGeneric,
+        DeriveAnyClass,
+        OverloadedStrings,
+        DuplicateRecordFields,
+
+    build-depends:
+        base ^>=4.18.2.1,
+        aeson,
+
+    default-language: Haskell2010
+
 executable tic-tac-toe
     import:           warnings
 
-    main-is:          TicTacToe.hs
+    main-is:          TicTacToe/GameEngine.hs
 
     default-extensions:
         DeriveGeneric,
@@ -42,7 +57,8 @@ executable tic-tac-toe
         parsec,
         vector,
         bytestring,
-        types
+        types,
+        tic-tac-toe-types,
 
     default-language: Haskell2010
 
@@ -72,7 +88,7 @@ executable match-handler
 executable tic-tac-toe-player
     import:           warnings
 
-    main-is:          TicTacToePlayer.hs
+    main-is:          TicTacToe/Player.hs
 
     default-extensions:
         DeriveGeneric,
@@ -88,6 +104,7 @@ executable tic-tac-toe-player
         parsec,
         vector,
         bytestring,
-        types
+        types,
+        tic-tac-toe-types
 
     default-language: Haskell2010

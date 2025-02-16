@@ -11,28 +11,7 @@ data GameEngineOutMessage x = GameEnd [(Int, Float)] | PlayerTurn [(Int, x)] | D
 
 data GameHistoryLine x = HGameStart Int String | HGameEnd [(Int, Float)] | HPlayerResponses [(Int, x, Bool, String, String)] | HDebug String
 
-data TicTacToePlayerResponse = TicTacToePlayerResponse Int Int deriving (Show)
-type TicTacToeBoard = [[Maybe TicTacToePlayer]]
-data TicTacToePlayer = X | O deriving (Eq, Show, Generic, FromJSON, ToJSON)
-
 -- JSON Parsers
-
-instance FromJSON TicTacToePlayerResponse where
-  parseJSON = withObject "PlayerResponse" $ \obj -> do
-    [x, y] <- obj .: "move"
-    if inRange x y
-      then
-        return (TicTacToePlayerResponse x y)
-      else
-        fail "Coordinates out of bounds"
-    where
-      inRange :: Int -> Int -> Bool
-      inRange x y = x >= 0 && x <= 2 && y >= 0 && y <= 2
-
-instance ToJSON TicTacToePlayerResponse where
-  toJSON (TicTacToePlayerResponse x y) = object [
-    "move" .= [x, y]
-    ]
 
 instance ToJSON x => ToJSON (GameHistoryLine x) where
   toJSON (HGameStart numPlayers gameType) = object [

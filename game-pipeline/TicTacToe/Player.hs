@@ -14,6 +14,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 
 import Types
+import TicTacToe.Types
 
 liftEither :: Either String a -> IO  a
 liftEither (Left errmsg) = error errmsg
