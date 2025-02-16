@@ -3,8 +3,6 @@ module Types where
 import Data.Aeson
 import Data.Aeson.Types (Parser)
 
--- Types
-
 data GameEngineInMessage x
   = GameStart Int
   | PlayerResponses [(Int, Bool, x)]
@@ -22,8 +20,6 @@ data GameHistoryLine x
   | HGameEnd [(Int, Float)]
   | HPlayerResponses [(Int, x, Bool, String, String)]
   | HDebug String
-
--- JSON Parsers
 
 instance (ToJSON x) => ToJSON (GameHistoryLine x) where
   toJSON (HGameStart numPlayers gameType) =

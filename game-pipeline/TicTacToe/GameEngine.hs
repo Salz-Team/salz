@@ -8,17 +8,14 @@ import TicTacToe.Types
 import Types
 import Utils
 
--- Initial empty board
 initialBoard :: TicTacToeBoard
 initialBoard = replicate 3 (replicate 3 Nothing)
 
--- Check if a player has won
 checkWin :: TicTacToePlayer -> TicTacToeBoard -> Bool
 checkWin player board =
   any checkRow board
-    || any checkRow (columns board) -- Check rows
-    || checkDiagonals board -- Check columns
-    -- Check diagonals
+    || any checkRow (columns board)
+    || checkDiagonals board
   where
     checkRow :: [Maybe TicTacToePlayer] -> Bool
     checkRow row = all (== Just player) row
@@ -39,7 +36,6 @@ checkWin player board =
     diag2 :: TicTacToeBoard -> [Maybe TicTacToePlayer]
     diag2 bd = [bd !! i !! (length bd - 1 - i) | i <- [0 .. length bd - 1]]
 
--- Check if the board is full (tie game)
 isFull :: TicTacToeBoard -> Bool
 isFull = all (all isJust)
   where
@@ -59,7 +55,6 @@ checkPlayerResponse ::
 checkPlayerResponse (PlayerResponses [(_, True, pr)]) = Right pr
 checkPlayerResponse _ = Left "Expected player responses"
 
--- Check if the move is valid (within bounds and cell is empty)
 isValidMove ::
   TicTacToeBoard ->
   TicTacToePlayerResponse ->
@@ -73,7 +68,6 @@ isValidMove board (TicTacToePlayerResponse col row) = do
     Nothing -> Right True
     _ -> Left "Invalid move"
 
--- Update the board with the player's move
 updateBoard ::
   TicTacToeBoard ->
   TicTacToePlayer ->
@@ -89,7 +83,6 @@ updateBoard board player (TicTacToePlayerResponse col row) =
        ]
     ++ drop (row + 1) board
 
--- Determine the next player
 nextPlayer :: TicTacToePlayer -> TicTacToePlayer
 nextPlayer X = O
 nextPlayer O = X
@@ -107,7 +100,6 @@ applyMove board player playerResponse = do
   _ <- isValidMove board playerResponse
   return $ updateBoard board player playerResponse
 
--- Main game loop
 playGame :: TicTacToeBoard -> TicTacToePlayer -> IO ()
 playGame board player
   | checkWin X board =
@@ -136,7 +128,6 @@ playGame board player
     playerToInt X = 0
     playerToInt O = 1
 
--- Start the game
 main :: IO ()
 main = do
   flushedPutStrLnB stdout $
