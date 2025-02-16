@@ -21,6 +21,6 @@ play board = fromJust $ do
 
 main :: IO ()
 main = do
-  board <- liftEither =<< eitherDecode <$> LB.fromStrict <$> B.getLine
+  board <- liftEither . (eitherDecode <$> LB.fromStrict) =<< B.getLine
   flushedPutStrLnB stdout $ encode $ play board
   main

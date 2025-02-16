@@ -63,6 +63,7 @@
 
                         # Haskell
                         pkgs.ormolu
+                        pkgs.hlint
                     ];
                     shellHook = ''
                         export STATEDIR="$PWD/.state"
