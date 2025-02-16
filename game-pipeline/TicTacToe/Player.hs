@@ -2,7 +2,7 @@ module Main where
 
 import System.IO
 import Data.Maybe
-import Data.List
+import qualified Data.List as L
 import Data.Aeson
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
@@ -16,8 +16,8 @@ liftEither (Right a) = return a
 
 play :: TicTacToeBoard -> TicTacToePlayerResponse
 play board = fromJust $ do
-  y <- findIndex (any isNothing) board
-  x <- findIndex isNothing (board !! y)
+  y <- L.findIndex (any isNothing) board
+  x <- L.findIndex isNothing (board !! y)
   return $ TicTacToePlayerResponse x y
 
 main :: IO ()
