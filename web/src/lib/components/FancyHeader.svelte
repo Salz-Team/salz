@@ -20,7 +20,7 @@
 <style>
 	.fancy-header {
 		--slant-px: 4rem;
-		background: lightgray;
+		background: var(--colour-link-background);
 		padding: 0.6em 2.5em 0.6em 1em;
 		/* Should hold the negative of the horizontal size of the fold */
 		margin-left: -10px;
@@ -47,7 +47,7 @@
 		left: -10px;
 		width: 20px;
 		height: 20px;
-		background: gray;
+		background: darkgray;
 		clip-path: polygon(50% 50%, 100% 100%, 100% 50%);
 	}
 
