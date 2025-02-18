@@ -7,13 +7,17 @@ import (
 	"net/http"
 
 	"strconv"
-	"strings"
 )
 
+type MatchesRequest struct {
+    FilterStatusBy string `form:"filterStatusBy"`
+    SortBy string `form:"sortBy"`
+    MatchIds []int64 `form:"matchIds"`
+    Limit int64 `form:"limit"`
+    Offset int64 `form:"offset"`
+}
 func (ctrl *Controller) GetMatches(c *gin.Context) {
 	// Filter and sort parameters
-	// Default: filter completed, sort by completed at descending
-
 	allowedStatusFilters := map[string]bool{
 		"Finished": true,
 		"Crashed":  true,
@@ -29,72 +33,52 @@ func (ctrl *Controller) GetMatches(c *gin.Context) {
 		"createdAtDesc": true,
 	}
 
-	filterBy := c.DefaultQuery("filterStatusBy", "Finished")
-	sortBy := c.DefaultQuery("sortBy", "updatedAtDesc")
-	matchIdsStr := strings.Split(c.DefaultQuery("matchIds", ""), ",")
-	limitStr := c.DefaultQuery("limit", "1000")
-	offsetStr := c.DefaultQuery("offset", "0")
+	// Default: filter completed, sort by completed at descending
+    matchesRequest := MatchesRequest{
+        FilterStatusBy: "Finished",
+        SortBy: "updatedAtDesc",
+        MatchIds: []int64{},
+        Limit: 1000,
+        Offset: 0,
+    }
+    err := c.Bind(&matchesRequest)
+    if err != nil {
+        log.Error("Unable to bind request", "error", err)
+        c.AbortWithStatus(http.StatusBadRequest)
+        return
+    }
+
+    log.Debug("MatchesRequest", "matchesRequest", matchesRequest)
 
 	// Validate filterBy and sortBy
-	if _, ok := allowedStatusFilters[filterBy]; !ok {
-		log.Error("Invalid filterBy parameter", "filterBy", filterBy)
+	if _, ok := allowedStatusFilters[matchesRequest.FilterStatusBy]; !ok {
+		log.Error("Invalid filterBy parameter", "filterBy", matchesRequest.FilterStatusBy)
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	var filterByParam sql.NullString
-	if filterBy == "All" {
-		filterByParam = sql.NullString{Valid: false}
+	var filterBy sql.NullString
+    // "All" is represented in the db query as a null filter.
+	if matchesRequest.FilterStatusBy == "All" {
+		filterBy = sql.NullString{Valid: false}
 	} else {
-		filterByParam = sql.NullString{Valid: true, String: filterBy}
+		filterBy = sql.NullString{Valid: true, String: matchesRequest.FilterStatusBy}
 	}
 
-	if _, ok := allowedSorts[sortBy]; !ok {
-		log.Error("Invalid sortBy parameter", "sortBy", sortBy)
+	if _, ok := allowedSorts[matchesRequest.SortBy]; !ok {
+		log.Error("Invalid sortBy parameter", "sortBy", matchesRequest.SortBy)
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	// Convert matchIdsParam to int64
-	var matchIdsParam []int64
-	if len(matchIdsStr) == 1 && matchIdsStr[0] == "" {
-		matchIdsParam = []int64{}
-	} else {
-		matchIdsParam = make([]int64, len(matchIdsStr))
-		for _, matchIdStr := range matchIdsStr {
-			matchId, err := strconv.ParseInt(matchIdStr, 10, 64)
-			if err != nil {
-				log.Error("Unable to parse matchIds", "matchIds", matchIdsStr)
-				c.AbortWithStatus(http.StatusBadRequest)
-				return
-			}
-			matchIdsParam = append(matchIdsParam, matchId)
-		}
-	}
-
-	// Convert limitParam and offset to int64
-	limitParam, err := strconv.ParseInt(limitStr, 10, 64)
-	if err != nil {
-		log.Error("Unable to parse limit", "limit", limitStr)
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	offsetParam, err := strconv.ParseInt(offsetStr, 10, 64)
-	if err != nil {
-		log.Error("Unable to parse offset", "offset", offsetStr)
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	matches, err := ctrl.cfg.ApiDBHandler.GetMatches(
-		filterByParam,
-		sortBy,
-		matchIdsParam,
-		offsetParam,
-		limitParam,
+	matches, hasMore, err := ctrl.cfg.ApiDBHandler.GetMatches(
+		filterBy,
+		matchesRequest.SortBy,
+		matchesRequest.MatchIds,
+		matchesRequest.Offset,
+		matchesRequest.Limit,
 	)
 	if err != nil {
-		log.Error("Unable to get matches", "filterBy", filterBy, "sortBy", sortBy)
+		log.Error("Unable to get matches", "matchesRequest", matchesRequest)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
