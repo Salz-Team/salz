@@ -7,7 +7,10 @@ import (
 	"net/http"
 
 	"strconv"
+
+    "github.com/Salz-Team/salz/api/models"
 )
+
 
 type MatchesRequest struct {
     FilterStatusBy string `form:"filterStatusBy"`
@@ -16,6 +19,12 @@ type MatchesRequest struct {
     Limit int64 `form:"limit"`
     Offset int64 `form:"offset"`
 }
+
+type MatchesResponse struct {
+    Matches []models.Match `json:"matches"`
+    HasMore bool `json:"hasMore"`
+}
+
 func (ctrl *Controller) GetMatches(c *gin.Context) {
 	// Filter and sort parameters
 	allowedStatusFilters := map[string]bool{
@@ -83,7 +92,7 @@ func (ctrl *Controller) GetMatches(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, matches)
+    c.JSON(http.StatusOK, MatchesResponse{Matches: matches, HasMore: hasMore})
 }
 
 func (ctrl *Controller) GetMatch(c *gin.Context) {
@@ -95,7 +104,7 @@ func (ctrl *Controller) GetMatch(c *gin.Context) {
 		return
 	}
 
-	match, err := ctrl.cfg.ApiDBHandler.GetMatches(
+	match, _, err := ctrl.cfg.ApiDBHandler.GetMatches(
 		sql.NullString{},
 		"updatedAtDesc",
 		[]int64{matchId},

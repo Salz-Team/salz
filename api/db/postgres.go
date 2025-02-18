@@ -109,7 +109,7 @@ func (p *PostgresHandler) ConfirmBotFile(bot models.BotFile) error {
 	return nil
 }
 
-func (p *PostgresHandler) GetMatches(filterBy sql.NullString, sortBy string, matchIds []int64, offset int64, limit int64) ([]models.Match, error) {
+func (p *PostgresHandler) GetMatches(filterBy sql.NullString, sortBy string, matchIds []int64, offset int64, limit int64) ([]models.Match, bool, error) {
 	type MatchData struct {
 		MatchId      int64
 		MatchCreated time.Time
@@ -155,7 +155,8 @@ func (p *PostgresHandler) GetMatches(filterBy sql.NullString, sortBy string, mat
             CASE WHEN $3::varchar = 'createdAtDesc' THEN g.created_at END DESC
 	`
 
-	rows, err := p.DB.Query(query, pq.Array(matchIds), filterBy, sortBy, offset, limit)
+    // We ask for one more than the user intends in order to figure out if hasMore should be true or false.
+	rows, err := p.DB.Query(query, pq.Array(matchIds), filterBy, sortBy, offset, limit + 1)
 	defer rows.Close()
 
 	if err != nil {
@@ -165,7 +166,7 @@ func (p *PostgresHandler) GetMatches(filterBy sql.NullString, sortBy string, mat
 		} else {
 			log.Error("Unable to query match", "filterBy", filterBy, "sortBy", sortBy, "matchIds", matchIds, "limit", limit, "offset", offset, err)
 		}
-		return nil, err
+		return nil, false, err
 	}
 
 	groupedParticipants := make(map[MatchData][]models.MatchParticipant, 0)
@@ -177,7 +178,7 @@ func (p *PostgresHandler) GetMatches(filterBy sql.NullString, sortBy string, mat
 			&p.UserId, &p.BotId, &p.Score)
 		if err != nil {
 			log.Error("Unable to scan row for matches", err)
-			return nil, err
+			return nil, false, err
 		}
 
 		_, ok := groupedParticipants[md]
@@ -201,7 +202,15 @@ func (p *PostgresHandler) GetMatches(filterBy sql.NullString, sortBy string, mat
 		matches = append(matches, match)
 	}
 
-	return matches, nil
+    var hasMore bool
+    if int64(len(groupedParticipants)) <= limit {
+        hasMore = false
+    } else {
+        hasMore = true
+        matches = matches[0:limit + 1] // Go slices are [)
+    }
+
+	return matches, hasMore, nil
 }
 
 func (p *PostgresHandler) GetToken(token string) (models.AuthToken, error) {
