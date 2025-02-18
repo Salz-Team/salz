@@ -20,6 +20,7 @@
     pkgs.nodePackages.npm
     pkgs.nodePackages.typescript-language-server
     pkgs.nodePackages.svelte-language-server
+    pkgs.vscode-langservers-extracted
   ];
 
   services.postgres = {

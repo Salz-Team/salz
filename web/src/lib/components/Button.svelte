@@ -25,21 +25,21 @@
 		--slant-px: 1rem;
 		padding: 0.5em 1.5em;
 		border: none;
-		background: lightgray;
+		background: var(--colour-link-background);
 		transition: background 0.2s ease-in-out;
 		clip-path: polygon(var(--slant-px) 0, 100% 0, calc(100% - var(--slant-px)) 100%, 0 100%);
 	}
 
 	button:hover {
 		cursor: pointer;
-		background: rgb(183, 183, 183);
+		filter: brightness(75%);
 	}
 
 	button:focus {
-		background: rgb(154, 154, 154);
+		background: var(--colour-darkgray);
 	}
 
 	button:disabled:hover {
-		background: lightgray;
+		background: var(--colour-darkgray);
 	}
 </style>
