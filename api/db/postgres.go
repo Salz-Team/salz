@@ -155,8 +155,8 @@ func (p *PostgresHandler) GetMatches(filterBy sql.NullString, sortBy string, mat
             CASE WHEN $3::varchar = 'createdAtDesc' THEN g.created_at END DESC
 	`
 
-    // We ask for one more than the user intends in order to figure out if hasMore should be true or false.
-	rows, err := p.DB.Query(query, pq.Array(matchIds), filterBy, sortBy, offset, limit + 1)
+	// We ask for one more than the user intends in order to figure out if hasMore should be true or false.
+	rows, err := p.DB.Query(query, pq.Array(matchIds), filterBy, sortBy, offset, limit+1)
 	defer rows.Close()
 
 	if err != nil {
@@ -202,13 +202,13 @@ func (p *PostgresHandler) GetMatches(filterBy sql.NullString, sortBy string, mat
 		matches = append(matches, match)
 	}
 
-    var hasMore bool
-    if int64(len(groupedParticipants)) <= limit {
-        hasMore = false
-    } else {
-        hasMore = true
-        matches = matches[0:limit + 1] // Go slices are [)
-    }
+	var hasMore bool
+	if int64(len(groupedParticipants)) <= limit {
+		hasMore = false
+	} else {
+		hasMore = true
+		matches = matches[0 : limit+1] // Go slices are [)
+	}
 
 	return matches, hasMore, nil
 }

@@ -8,21 +8,20 @@ import (
 
 	"strconv"
 
-    "github.com/Salz-Team/salz/api/models"
+	"github.com/Salz-Team/salz/api/models"
 )
 
-
 type MatchesRequest struct {
-    FilterStatusBy string `form:"filterStatusBy"`
-    SortBy string `form:"sortBy"`
-    MatchIds []int64 `form:"matchIds"`
-    Limit int64 `form:"limit"`
-    Offset int64 `form:"offset"`
+	FilterStatusBy string  `form:"filterStatusBy"`
+	SortBy         string  `form:"sortBy"`
+	MatchIds       []int64 `form:"matchIds"`
+	Limit          int64   `form:"limit"`
+	Offset         int64   `form:"offset"`
 }
 
 type MatchesResponse struct {
-    Matches []models.Match `json:"matches"`
-    HasMore bool `json:"hasMore"`
+	Matches []models.Match `json:"matches"`
+	HasMore bool           `json:"hasMore"`
 }
 
 func (ctrl *Controller) GetMatches(c *gin.Context) {
@@ -43,21 +42,21 @@ func (ctrl *Controller) GetMatches(c *gin.Context) {
 	}
 
 	// Default: filter completed, sort by completed at descending
-    matchesRequest := MatchesRequest{
-        FilterStatusBy: "Finished",
-        SortBy: "updatedAtDesc",
-        MatchIds: []int64{},
-        Limit: 1000,
-        Offset: 0,
-    }
-    err := c.Bind(&matchesRequest)
-    if err != nil {
-        log.Error("Unable to bind request", "error", err)
-        c.AbortWithStatus(http.StatusBadRequest)
-        return
-    }
+	matchesRequest := MatchesRequest{
+		FilterStatusBy: "Finished",
+		SortBy:         "updatedAtDesc",
+		MatchIds:       []int64{},
+		Limit:          1000,
+		Offset:         0,
+	}
+	err := c.Bind(&matchesRequest)
+	if err != nil {
+		log.Error("Unable to bind request", "error", err)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
-    log.Debug("MatchesRequest", "matchesRequest", matchesRequest)
+	log.Debug("MatchesRequest", "matchesRequest", matchesRequest)
 
 	// Validate filterBy and sortBy
 	if _, ok := allowedStatusFilters[matchesRequest.FilterStatusBy]; !ok {
@@ -66,7 +65,7 @@ func (ctrl *Controller) GetMatches(c *gin.Context) {
 		return
 	}
 	var filterBy sql.NullString
-    // "All" is represented in the db query as a null filter.
+	// "All" is represented in the db query as a null filter.
 	if matchesRequest.FilterStatusBy == "All" {
 		filterBy = sql.NullString{Valid: false}
 	} else {
@@ -92,7 +91,7 @@ func (ctrl *Controller) GetMatches(c *gin.Context) {
 		return
 	}
 
-    c.JSON(http.StatusOK, MatchesResponse{Matches: matches, HasMore: hasMore})
+	c.JSON(http.StatusOK, MatchesResponse{Matches: matches, HasMore: hasMore})
 }
 
 func (ctrl *Controller) GetMatch(c *gin.Context) {
