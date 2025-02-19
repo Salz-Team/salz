@@ -5,8 +5,10 @@ import (
 	"errors"
 	"github.com/Salz-Team/salz/api/models"
 	"github.com/charmbracelet/log"
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"os"
+	"time"
 )
 
 // TODO: refactor so that we can optionally run database ops in a transaction
@@ -105,6 +107,110 @@ func (p *PostgresHandler) ConfirmBotFile(bot models.BotFile) error {
 		return err
 	}
 	return nil
+}
+
+func (p *PostgresHandler) GetMatches(filterBy sql.NullString, sortBy string, matchIds []int64, offset int64, limit int64) ([]models.Match, bool, error) {
+	type MatchData struct {
+		MatchId      int64
+		MatchCreated time.Time
+		MatchUpdated time.Time
+		MatchStatus  string
+	}
+
+	// I've heard the performance can be pretty bad with queries like this, but :shrug:
+	// Let's deal with it when it becomes a problem.
+	query := `
+        WITH games AS (
+            SELECT
+                g.id,
+                g.created_at,
+                g.updated_at,
+                g.status
+            FROM salz.games g
+            WHERE 1=1
+                AND (cardinality($1::bigint[]) = 0 OR g.id = ANY($1))
+                AND ($2::varchar IS NULL OR g.status = $2)
+            ORDER BY 
+                CASE WHEN $3::varchar = 'updatedAtAsc' THEN g.updated_at END ASC,
+                CASE WHEN $3::varchar = 'updatedAtDesc' THEN g.updated_at END DESC,
+                CASE WHEN $3::varchar = 'createdAtAsc' THEN g.created_at END ASC,
+                CASE WHEN $3::varchar = 'createdAtDesc' THEN g.created_at END DESC
+            OFFSET $4 LIMIT $5
+        )
+		SELECT
+            g.id as match_id,
+            g.created_at as match_created,
+            g.updated_at as match_updated,
+            g.status as match_status,
+			gp.user_id as participant_id,
+			gp.bot_id as participant_bot_id,
+			coalesce(gp.score, -1.0) as participant_score
+		FROM games g
+		JOIN salz.game_participants gp
+			on g.id = gp.game_id
+        ORDER BY 
+            CASE WHEN $3::varchar = 'updatedAtAsc' THEN g.updated_at END ASC,
+            CASE WHEN $3::varchar = 'updatedAtDesc' THEN g.updated_at END DESC,
+            CASE WHEN $3::varchar = 'createdAtAsc' THEN g.created_at END ASC,
+            CASE WHEN $3::varchar = 'createdAtDesc' THEN g.created_at END DESC
+	`
+
+	// We ask for one more than the user intends in order to figure out if hasMore should be true or false.
+	rows, err := p.DB.Query(query, pq.Array(matchIds), filterBy, sortBy, offset, limit+1)
+	defer rows.Close()
+
+	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			log.Error("Unable to query match", "filterBy", filterBy, "sortBy", sortBy, "matchIds", matchIds, "limit", limit, "offset", offset, "pqErr", pqErr)
+		} else {
+			log.Error("Unable to query match", "filterBy", filterBy, "sortBy", sortBy, "matchIds", matchIds, "limit", limit, "offset", offset, err)
+		}
+		return nil, false, err
+	}
+
+	groupedParticipants := make(map[MatchData][]models.MatchParticipant, 0)
+
+	for rows.Next() {
+		var md MatchData
+		var p models.MatchParticipant
+		err := rows.Scan(&md.MatchId, &md.MatchCreated, &md.MatchUpdated, &md.MatchStatus,
+			&p.UserId, &p.BotId, &p.Score)
+		if err != nil {
+			log.Error("Unable to scan row for matches", err)
+			return nil, false, err
+		}
+
+		_, ok := groupedParticipants[md]
+		if ok {
+			groupedParticipants[md] = append(groupedParticipants[md], p)
+		} else {
+			groupedParticipants[md] = []models.MatchParticipant{p}
+		}
+	}
+
+	matches := make([]models.Match, 0)
+
+	for k, v := range groupedParticipants {
+		match := models.Match{
+			Id:           k.MatchId,
+			CreatedAt:    k.MatchCreated,
+			UpdatedAt:    k.MatchUpdated,
+			Status:       k.MatchStatus,
+			Participants: v,
+		}
+		matches = append(matches, match)
+	}
+
+	var hasMore bool
+	if int64(len(groupedParticipants)) <= limit {
+		hasMore = false
+	} else {
+		hasMore = true
+		matches = matches[0 : limit+1] // Go slices are [)
+	}
+
+	return matches, hasMore, nil
 }
 
 func (p *PostgresHandler) GetToken(token string) (models.AuthToken, error) {
