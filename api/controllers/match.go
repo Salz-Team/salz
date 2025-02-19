@@ -116,5 +116,11 @@ func (ctrl *Controller) GetMatch(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, match)
+    if len(match) == 0 {
+        log.Error("Could not find match")
+        c.AbortWithStatus(http.StatusNotFound)
+        return
+    }
+
+	c.JSON(http.StatusOK, match[0])
 }
