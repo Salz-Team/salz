@@ -4,12 +4,20 @@
 
 	import NavLink from '$lib/components/NavLink.svelte';
 	import Logo from './Logo.svelte';
+
+	interface Props {
+		hideLogo?: boolean;
+	}
+
+	const { hideLogo = false }: Props = $props();
 </script>
 
 <nav>
 	<div class="left">
 		<ul>
-			<NavLink href="/" canBeActivated={false}><Logo /></NavLink>
+			{#if !hideLogo}
+				<NavLink href="/" canBeActivated={false}><Logo /></NavLink>
+			{/if}
 		</ul>
 	</div>
 	<div class="right">
