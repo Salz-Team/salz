@@ -14,5 +14,5 @@ export const load: PageLoad = ({ params }) => {
 {"messageType":"playerResponses","responses":[{"errorMessage":"","errorType":"","isValid":true,"player":0,"response":{"move":[0,2]}}]}
 {"messageType":"gameEnd","scores":[{"player":0,"score":1},{"player":1,"score":0}]}`;
 
-	return { gameHistory: sample };
+	return { gameHistory: sample, matchId: params.match_id };
 };
