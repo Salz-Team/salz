@@ -1,6 +1,6 @@
 import type { ValuesOf } from '$lib/type-helpers';
 import type { TASK_CONTROLS } from '$workers/game-history-parsers/constants';
-import type { STATUSES } from "../constants";
+import type { STATUSES } from '../constants';
 
 export type Request = {
 	task: TASK_CONTROLS;
@@ -64,21 +64,21 @@ export type ResponseCompleted = {
 
 export const PlaySymbol = {
 	X: 'x',
-	O: 'o'
+	O: 'o',
 } as const;
 export type PlaySymbolValue = ValuesOf<typeof PlaySymbol>;
 
 export type PlayerDrawInfo = {
 	playerId: number;
 	colour: string;
-	playerSymbol: PlaySymbolValue,
-}
+	playerSymbol: PlaySymbolValue;
+};
 
 export type BoardDrawingState = {
 	state: [[number, number], PlayerDrawInfo][];
-	winningLine?: [[number, number], [number, number], [number, number]];
+	winningLines?: [[number, number], [number, number], [number, number]][];
 	errors?: {
 		offendingPlayer: number;
 		message: string;
 	}[];
-}
+};

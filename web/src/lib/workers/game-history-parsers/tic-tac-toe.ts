@@ -1,12 +1,5 @@
-import {
-	TASK_START,
-	TASK_STOP,
-} from './constants';
-import {
-	STATUS_ABORTED,
-	STATUS_IDLE,
-	STATUS_PROCESSING
-} from "$workers/constants";
+import { TASK_START, TASK_STOP } from './constants';
+import { STATUS_ABORTED, STATUS_IDLE, STATUS_PROCESSING } from '$workers/constants';
 import localforage from 'localforage';
 import {
 	ErrorCode,
@@ -21,7 +14,10 @@ import {
 import { STORE_PREFIX } from './tic-tac-toe.constants';
 import _ from 'lodash';
 
-const PLAYER_APPEARANCE: [PlaySymbolValue, string][] = [[PlaySymbol.X, "#e94584"], [PlaySymbol.O, "#24aadb"]];
+const PLAYER_APPEARANCE: [PlaySymbolValue, string][] = [
+	[PlaySymbol.X, '#e94584'],
+	[PlaySymbol.O, '#24aadb'],
+];
 
 let abortController: AbortController | null = null;
 
@@ -65,11 +61,11 @@ async function parseHistory(s: string, matchId: string, { signal }: { signal: Ab
 		totalFrames: 0,
 		endState: {
 			isDraw: true,
-		}
+		},
 	};
 	const lastBoardState: BoardDrawingState = {
 		state: [],
-		winningLine: undefined,
+		winningLines: undefined,
 		errors: undefined,
 	};
 	const playerAppearances: Record<number, [PlaySymbolValue, string]> = {};
@@ -105,10 +101,10 @@ async function parseHistory(s: string, matchId: string, { signal }: { signal: Ab
 				// do nothing
 				break;
 			case 'playerResponses':
-				var playerResponse = frame["responses"][0];
-				const playerId = playerResponse["player"];
-				if (playerResponse["isValid"]) {
-					const coords = playerResponse["response"]["move"];
+				var playerResponse = frame['responses'][0];
+				const playerId = playerResponse['player'];
+				if (playerResponse['isValid']) {
+					const coords = playerResponse['response']['move'];
 
 					if (!Object.hasOwn(playerAppearances, playerId)) {
 						playerAppearances[playerId] = playerAppearanceCopy.pop()!;
@@ -122,18 +118,101 @@ async function parseHistory(s: string, matchId: string, { signal }: { signal: Ab
 					lastBoardState.state.push([coords, playerDrawInfo]);
 					lastBoardState.errors = undefined;
 
-					let winningLine: [[number, number], [number, number], [number, number]] | null = null;
+					let winningLines: [[number, number], [number, number], [number, number]][] = [];
+
+					// check horizontals
+					const indexes = [0, 1, 2];
+					const horizontallyMatchingRows = indexes
+						.map((n) =>
+							lastBoardState.state.filter((s: [[number, number], PlayerDrawInfo]) => s[0][1] === n),
+						)
+						.filter(
+							(row: [[number, number], PlayerDrawInfo][]) =>
+								row.length === 3 &&
+								// make sure that all of the cells are marked by the same player
+								row
+									.map((c) => c[1])
+									.every((cur, idx, arr) => idx === 0 || playerDrawInfoAreEqual(cur, arr[idx - 1])),
+						);
+
+					if (horizontallyMatchingRows.length > 0) {
+						winningLines.push(...horizontallyMatchingRows.map(boardThreeStatesToCoords));
+					}
+
+					const verticallyMatchingRows = indexes
+						.map((n) =>
+							lastBoardState.state.filter((s: [[number, number], PlayerDrawInfo]) => s[0][0] === n),
+						)
+						.filter(
+							(col: [[number, number], PlayerDrawInfo][]) =>
+								col.length === 3 &&
+								// make sure that all of the cells are marked by the same player
+								col
+									.map((c) => c[1])
+									.every((cur, idx, arr) => idx === 0 || playerDrawInfoAreEqual(cur, arr[idx - 1])),
+						);
+
+					if (verticallyMatchingRows.length > 0) {
+						winningLines.push(...verticallyMatchingRows.map(boardThreeStatesToCoords));
+					}
+
+					const rightSlantingDiagonal = lastBoardState.state.filter(
+						(s: [[number, number], PlayerDrawInfo]) => {
+							const c = s[0];
+							return (
+								(c[0] === 2 && c[1] === 0) ||
+								(c[0] === 1 && c[1] === 1) ||
+								(c[0] === 0 && c[1] === 2)
+							);
+						},
+					);
+					if (
+						rightSlantingDiagonal.length === 3 &&
+						rightSlantingDiagonal
+							.map((c) => c[1])
+							.every((cur, idx, arr) => idx === 0 || playerDrawInfoAreEqual(cur, arr[idx - 1]))
+					) {
+						winningLines.push(boardThreeStatesToCoords(rightSlantingDiagonal));
+					}
+
+					const leftSlantingDiagonal = lastBoardState.state.filter(
+						(s: [[number, number], PlayerDrawInfo]) => {
+							const c = s[0];
+							return (
+								(c[0] === 0 && c[1] === 0) ||
+								(c[0] === 1 && c[1] === 1) ||
+								(c[0] === 2 && c[1] === 2)
+							);
+						},
+					);
+					if (
+						leftSlantingDiagonal.length === 3 &&
+						leftSlantingDiagonal
+							.map((c) => c[1])
+							.every((cur, idx, arr) => idx === 0 || playerDrawInfoAreEqual(cur, arr[idx - 1]))
+					) {
+						winningLines.push(boardThreeStatesToCoords(leftSlantingDiagonal));
+					}
+
+					lastBoardState.winningLines = winningLines.length > 0 ? winningLines : undefined;
 				} else {
 					lastBoardState.errors = [
 						{
 							offendingPlayer: playerId,
-							message: playerResponse["errorMessage"]
-						}
+							message: playerResponse['errorMessage'],
+						},
 					];
 				}
 
-				await localforage.setItem(`${STORE_PREFIX}/${matchId}/${ticTacToeGame.totalFrames}`, lastBoardState);
+				await localforage.setItem(
+					`${STORE_PREFIX}/${matchId}/${ticTacToeGame.totalFrames}`,
+					lastBoardState,
+				);
 				ticTacToeGame.totalFrames++;
+				postMessage({
+					type: 'status',
+					status: { type: STATUS_PROCESSING, roundsProcessed: ticTacToeGame.totalFrames },
+				} as Response<'status'>);
 				break;
 			case 'gameEnd':
 				hasEnded = true;
@@ -159,12 +238,6 @@ async function parseHistory(s: string, matchId: string, { signal }: { signal: Ab
 				}
 				break;
 		}
-
-		await sleep(Math.random() * 100);
-		postMessage({
-			type: 'status',
-			status: { type: STATUS_PROCESSING, roundsProcessed: i + 1 },
-		} as Response<'status'>);
 	}
 
 	if (signal.aborted || hasError || !hasEnded) {
@@ -195,6 +268,13 @@ async function parseHistory(s: string, matchId: string, { signal }: { signal: Ab
 	abortController = null;
 }
 
-function sleep(ms: number) {
-	return new Promise((resolve) => setTimeout(resolve, ms));
-}
+const boardThreeStatesToCoords = (
+	threeStates: [[number, number], PlayerDrawInfo][],
+): [[number, number], [number, number], [number, number]] => [
+	threeStates[0][0],
+	threeStates[1][0],
+	threeStates[2][0],
+];
+
+const playerDrawInfoAreEqual = (a: PlayerDrawInfo, b: PlayerDrawInfo) =>
+	a.playerId === b.playerId && a.playerSymbol === b.playerSymbol;
