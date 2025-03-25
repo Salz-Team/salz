@@ -38,7 +38,7 @@
 		"typescript-eslint": "^8.14.0",
 		"typescript-language-server": "^4.3.3",
 		"typescript-svelte-plugin": "^0.3.39",
-		"vite": "^6.0.3",
+		"vite": "^6.2.3",
 		"vitest": "^2.1.8"
 	},
 	"type": "module",
