@@ -60,10 +60,6 @@ getGameType :: GameEngineOutMessage Value -> Either String String
 getGameType (GameOStart i) = Right i
 getGameType _ = Left "Expected game engine message"
 
-liftEither :: Either String a -> IO a
-liftEither (Left errmsg) = error errmsg
-liftEither (Right a) = return a
-
 botInteract :: Process -> Value -> IO Value
 botInteract bot botin = do
   flushedPutStrLnB (stdIn bot) (encode botin)

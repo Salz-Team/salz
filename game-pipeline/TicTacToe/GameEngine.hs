@@ -87,10 +87,6 @@ nextPlayer :: TicTacToePlayer -> TicTacToePlayer
 nextPlayer X = O
 nextPlayer O = X
 
-liftEither :: Either String a -> IO a
-liftEither (Left errmsg) = error errmsg
-liftEither (Right a) = return a
-
 applyMove ::
   TicTacToeBoard ->
   TicTacToePlayer ->

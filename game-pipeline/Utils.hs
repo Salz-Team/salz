@@ -8,3 +8,7 @@ flushedPutStrLnB :: Handle -> LB.ByteString -> IO ()
 flushedPutStrLnB handle line = do
   B.hPutStrLn handle (LB.toStrict line)
   hFlush handle
+
+liftEither :: Either String a -> IO a
+liftEither (Left errmsg) = error errmsg
+liftEither (Right a) = return a

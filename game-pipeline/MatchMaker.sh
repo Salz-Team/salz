@@ -26,7 +26,7 @@ done
 
 cabal run match-handler -- -g "cabal run tic-tac-toe" -b "bash ${BOTPATHS[0]}" -b "bash ${BOTPATHS[1]}" > $TMPDIR/gamefile
 
-UPLOADPATH="gamefile/$(date -Ins).json"
+UPLOADPATH="gamefile/$(date -Ins).jsonl"
 echo $UPLOADPATH
 mc cp "$TMPDIR/gamefile" "local/salz/$UPLOADPATH"
 

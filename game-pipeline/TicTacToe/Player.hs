@@ -9,10 +9,6 @@ import System.IO
 import TicTacToe.Types
 import Utils
 
-liftEither :: Either String a -> IO a
-liftEither (Left errmsg) = error errmsg
-liftEither (Right a) = return a
-
 play :: TicTacToeBoard -> TicTacToePlayerResponse
 play board = fromJust $ do
   y <- L.findIndex (any isNothing) board
