@@ -75,7 +75,8 @@
                         export PGDATABASE=salz
                         export PGDATA="$STATEDIR/db"
                         export PGHOST=$PGDATA
-                        export PG_URI="postgres://salz:superdupersecret@localhost:5432/salz?sslmode=disable"
+                        export PGUSER=salz
+                        export PGPASSWORD=superdupersecret
 
                         # Web
                         export WEB_BASEURL="http://localhost:5173"
@@ -84,10 +85,10 @@
                         export MINIO_ENDPOINT="localhost:9000"
                         export MINIO_DATA_DIR="$STATEDIR/minio/data"
                         export MINIO_CONFIG_DIR="$STATEDIR/minio/config"
-                        export MC_CONFIG_DIR="$STATEDIR/minio/mc"
                         export MINIO_ROOT_USER="minioadmin"
                         export MINIO_ROOT_PASSWORD="minioadmin"
                         export MINIO_USE_SSL="false"
+                        export MC_CONFIG_DIR="$STATEDIR/minio/mc"
 
                         trap \
                           "
