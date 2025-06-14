@@ -90,6 +90,32 @@
                         export MINIO_USE_SSL="false"
                         export MC_CONFIG_DIR="$STATEDIR/minio/mc"
 
+                        mkdir -p "$MC_CONFIG_DIR"
+                        cat <<EOF > "$MC_CONFIG_DIR/config.json"
+                        {
+                            "version": "10",
+                            "aliases": {
+                                "local": {
+                                    "url": "http://$MINIO_ENDPOINT",
+                                    "accessKey": "$MINIO_ROOT_USER",
+                                    "secretKey": "$MINIO_ROOT_PASSWORD",
+                                    "api": "S3v4",
+                                    "path": "auto"
+                                }
+                            }
+                        }
+                        EOF
+
+                        #API
+                        hcp auth print-access-token >/dev/null 2>&1 || { echo >&2 "Not logged into HCP -- login via hcp auth login"; exit 1; }
+                        export OAUTH_CLIENT_KEY=$(hcp vault-secrets secrets open github_oauth_client_id --format json | jq -r '.static_version.value')
+                        export OAUTH_CLIENT_SECRET=$(hcp vault-secrets secrets open github_oauth_client_secret --format json | jq -r '.static_version.value')
+                        export PG_URI="postgres://$PGUSER:$PGPASSWORD@localhost:5432/$PGDATABASE?sslmode=disable"
+                        export MINIO_ACCESS_KEY="$MINIO_ROOT_USER"
+                        export MINIO_SECRET_KEY="$MINIO_ROOT_PASSWORD"
+
+
+
                         trap \
                           "
                           cd $PWD
