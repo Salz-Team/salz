@@ -82,10 +82,12 @@
 
                         # Minio
                         export MINIO_ENDPOINT="localhost:9000"
-                        export MINIO_ACCESS_KEY="minioadmin"
-                        export MINIO_SECRET_KEY="minioadmin"
+                        export MINIO_DATA_DIR="$STATEDIR/minio/data"
+                        export MINIO_CONFIG_DIR="$STATEDIR/minio/config"
+                        export MC_CONFIG_DIR="$STATEDIR/minio/mc"
+                        export MINIO_ROOT_USER="minioadmin"
+                        export MINIO_ROOT_PASSWORD="minioadmin"
                         export MINIO_USE_SSL="false"
-
 
                         trap \
                           "
