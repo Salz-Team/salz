@@ -107,6 +107,12 @@
                         EOF
 
                         #API
+                        export VAULT_ORG_ID="25ee0d1b-4e14-42f8-bf34-d3191ff704b7"
+                        export VAULT_PROJECT_ID="3196ec06-6d59-4fc4-affa-fa3fdd12cd1c"
+                        export VAULT_APP_NAME="salz"
+                        hcp profile set organization_id "$VAULT_ORG_ID" --quiet
+                        hcp profile set project_id "$VAULT_PROJECT_ID" --quiet
+                        hcp profile set vault-secrets/app "$VAULT_APP_NAME" --quiet
                         hcp auth print-access-token >/dev/null 2>&1 || { echo >&2 "Not logged into HCP -- login via hcp auth login"; exit 1; }
                         export OAUTH_CLIENT_KEY=$(hcp vault-secrets secrets open github_oauth_client_id --format json | jq -r '.static_version.value')
                         export OAUTH_CLIENT_SECRET=$(hcp vault-secrets secrets open github_oauth_client_secret --format json | jq -r '.static_version.value')
