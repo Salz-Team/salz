@@ -5,4 +5,4 @@ then
     exit 1
 fi
 
-minio server --json .state/minio
+minio server --json "$STATEDIR/minio"

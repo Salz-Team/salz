@@ -5,10 +5,6 @@ then
     exit 1
 fi
 
-export PGDATABASE=salz
-export PGDATA=.state/postgres/db
-export PGHOST=$PGDATA
-
 echo "PGDATABASE $PGDATABASE"
 echo "PGDATA $PGDATA"
 echo "PGHOST $PGHOST"
