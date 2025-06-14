@@ -125,12 +125,12 @@
                         export PC_PORT_NUM=8081
 
                         trap \
-                          "
-                          cd $PWD
-                          rm -rf $NIX_SHELL_DIR
-                          process-compose down
-                          " \
-                          EXIT
+                            "
+                            cd $PWD
+                            rm -rf $NIX_SHELL_DIR
+                            process-compose down
+                            " \
+                            EXIT
 
                         process-compose -D -f $PWD/process-compose.yaml
                     '';
