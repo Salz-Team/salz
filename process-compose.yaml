@@ -30,7 +30,8 @@ processes:
         condition: process_log_ready
 
   api:
-    command: "nix run .#api"
+    command: "go run ."
+    working_dir: "./api"
     availability:
       restart: "always"
     ready_log_line: "Listening and serving HTTP"
