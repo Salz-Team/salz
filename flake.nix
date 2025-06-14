@@ -115,6 +115,8 @@
                         export MINIO_SECRET_KEY="$MINIO_ROOT_PASSWORD"
 
 
+                        # process Compose
+                        export PC_PORT_NUM=8081
 
                         trap \
                           "
