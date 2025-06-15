@@ -46,7 +46,7 @@ FROM created;
 
 
 # Seed Bots for our Players
-echo "cabal run tic-tac-toe-player" > run.sh
+echo "cabal run tic-tac-toe-starter-bot" > run.sh
 zip bot.zip run.sh
 for i in {0..10}; do
   mc cp bot.zip local/salz/bots/${i}.zip

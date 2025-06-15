@@ -62,10 +62,10 @@ executable match-handler
         bytestring,
 
 
-executable tic-tac-toe-player
+executable tic-tac-toe-starter-bot
     import:           warnings
 
-    main-is:          TicTacToe/Player.hs
+    main-is:          TicTacToe/StarterBot.hs.hs
 
     other-modules:
         Utils
