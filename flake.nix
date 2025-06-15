@@ -15,7 +15,6 @@
                     function system (import nixpkgs {
                         inherit system;
                         config.allowUnfree = true;
-                        overlays = [];
                     }));
             forAllSystemsPkgsOnly = function: (forAllSystems (_: pkgs: function pkgs));
         in {
@@ -32,6 +31,9 @@
                     src = ./web;
                     npmDepsHash = "sha256-+uK8EW08Cq2hfaQdT/e8cg4SXD7Qixlq9bIs/C5+rWI=";
                 });
+                game-pipeline = pkgs.haskellPackages.developPackage {
+                  root = ./game-pipeline;
+                };
             });
             devShells = forAllSystems (system: pkgs: {
                 default = pkgs.mkShell {
@@ -39,6 +41,7 @@
                     inputsFrom = [
                         self.packages.${system}.api
                         self.packages.${system}.web
+                        self.packages.${system}.game-pipeline
                     ];
 
                     # Development-only packages
@@ -62,6 +65,8 @@
                         pkgs.nodePackages.svelte-language-server
 
                         # Haskell
+                        pkgs.ghcid
+                        pkgs.cabal-install
                         pkgs.ormolu
                         pkgs.hlint
                     ];

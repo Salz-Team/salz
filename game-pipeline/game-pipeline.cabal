@@ -21,7 +21,7 @@ common warnings
         DuplicateRecordFields
 
     build-depends:
-        base ^>=4.18.2.1,
+        base
 
     default-language: Haskell2010
 
