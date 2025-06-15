@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ppsql -c "
+psql -c "
 INSERT INTO salz.users (username, created_at, updated_at, icon_path, identity_provider, identity_provider_id, elo)
 WITH created_at AS (
     SELECT

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-USERBOTS=$(ppsql -t -c "select salz.users.id, salz.bots.upload_path, salz.bots.id from salz.users inner join salz.bots on salz.users.id=bots.user_id order by random() limit 2;" salz --csv)
+USERBOTS=$(psql -t -c "select salz.users.id, salz.bots.upload_path, salz.bots.id from salz.users inner join salz.bots on salz.users.id=bots.user_id order by random() limit 2;" salz --csv)
 
 TMPDIR=$(mktemp -d -p . gamerunXXX)
 echo Tempdir: $TMPDIR
@@ -47,9 +47,9 @@ SCORES+=($(jq -r --slurp '.[-1].scores.[] | select(.player==0) | .score' $TMPDIR
 SCORES+=($(jq -r --slurp '.[-1].scores.[] | select(.player==1) | .score' $TMPDIR/gamefile))
 
 TIME=$(date -Iseconds)
-GAMEID=$(ppsql -t -c "INSERT INTO salz.games (created_at, updated_at, status, upload_path) VALUES ('$TIME', '$TIME', '$STATUS', '$UPLOADPATH') RETURNING salz.games.id;" --csv | head -n1)
+GAMEID=$(psql -t -c "INSERT INTO salz.games (created_at, updated_at, status, upload_path) VALUES ('$TIME', '$TIME', '$STATUS', '$UPLOADPATH') RETURNING salz.games.id;" --csv | head -n1)
 
 echo GameID: $GAMEID
 
-ppsql -c "INSERT INTO salz.game_participants (game_id, user_id, bot_id, score, updated_at) VALUES ($GAMEID, ${USER_IDS[0]}, ${BOT_IDS[0]}, ${SCORES[0]}, '$TIME')"
-ppsql -c "INSERT INTO salz.game_participants (game_id, user_id, bot_id, score, updated_at) VALUES ($GAMEID, ${USER_IDS[1]}, ${BOT_IDS[1]}, ${SCORES[1]}, '$TIME')"
+psql -c "INSERT INTO salz.game_participants (game_id, user_id, bot_id, score, updated_at) VALUES ($GAMEID, ${USER_IDS[0]}, ${BOT_IDS[0]}, ${SCORES[0]}, '$TIME')"
+psql -c "INSERT INTO salz.game_participants (game_id, user_id, bot_id, score, updated_at) VALUES ($GAMEID, ${USER_IDS[1]}, ${BOT_IDS[1]}, ${SCORES[1]}, '$TIME')"
