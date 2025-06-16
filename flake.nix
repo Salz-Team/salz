@@ -106,7 +106,7 @@
                         }
                         EOF
 
-                        #API
+                        # API
                         export VAULT_ORG_ID="25ee0d1b-4e14-42f8-bf34-d3191ff704b7"
                         export VAULT_PROJECT_ID="3196ec06-6d59-4fc4-affa-fa3fdd12cd1c"
                         export VAULT_APP_NAME="salz"
@@ -121,18 +121,8 @@
                         export MINIO_SECRET_KEY="$MINIO_ROOT_PASSWORD"
 
 
-                        # process Compose
+                        # Process Compose
                         export PC_PORT_NUM=8081
-
-                        trap \
-                            "
-                            cd $PWD
-                            rm -rf $NIX_SHELL_DIR
-                            process-compose down
-                            " \
-                            EXIT
-
-                        process-compose -D -f $PWD/process-compose.yaml
                     '';
                 };
             });
