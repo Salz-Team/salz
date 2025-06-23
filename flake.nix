@@ -91,7 +91,7 @@
                         export MC_CONFIG_DIR="$STATEDIR/minio/mc"
 
                         mkdir -p "$MC_CONFIG_DIR"
-                        cat <<EOF > "$MC_CONFIG_DIR/config.json"
+                        cat <<EOF >| "$MC_CONFIG_DIR/config.json"
                         {
                             "version": "10",
                             "aliases": {
