@@ -1,0 +1,42 @@
+version: "0.5"
+
+log_location: salz.log
+log_level: debug
+
+processes:
+  postgres:
+    command: "./db/db-up.sh" # process-compose doesn't like variables in commands, so moved it out to its own script
+    availability:
+      restart: "always"
+    ready_log_line: "database system is ready to accept connections"
+
+  minio:
+    command: "./minio/minio-up.sh"
+    availability:
+      restart: "always"
+    ready_log_line: "MinIO Object Storage Server"
+
+  minio-ready:
+    command: "./minio/minio-ready.sh"
+    depends_on:
+      minio:
+        condition: process_log_ready
+
+  web:
+    command: "npm run dev"
+    working_dir: "./web"
+    depends_on:
+      minio:
+        condition: process_log_ready
+
+  api:
+    command: "go run ."
+    working_dir: "./api"
+    availability:
+      restart: "always"
+    ready_log_line: "Listening and serving HTTP"
+    depends_on:
+      postgres:
+        condition: process_log_ready
+      minio-ready:
+        condition: process_completed
