@@ -132,7 +132,7 @@
 		min-height: 30vh;
 		width: 60vw;
 		margin: 2em auto 5em auto;
-		background: white;
+		background: var(--colour-background);
 	}
 
 	main :global(.fancy-header) {
@@ -165,13 +165,13 @@
 		left: 0;
 		width: 100%;
 		height: 0.3rem;
-		background: black;
+		background: var(--colour-foreground);
 	}
 
 	.match-result-group > h3 span {
 		position: relative;
 		padding: 0 1em;
-		background: white;
+		background: var(--colour-background);
 		z-index: 1;
 	}
 </style>
