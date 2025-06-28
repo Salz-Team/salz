@@ -1,6 +1,8 @@
 module github.com/Salz-Team/salz/api
 
-go 1.22.3
+go 1.22.12
+
+toolchain go1.24.3
 
 require (
 	github.com/charmbracelet/log v0.4.0
@@ -29,6 +31,7 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/guregu/null/v6 v6.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect

@@ -23,7 +23,7 @@ type Config struct {
 	AuthTokenValidDuration time.Duration
 	MAX_FILE_SIZE_BYTES    int64
 	EnableBasicAuth        bool
-	CorsConfig             gin.HandlerFunc
+	GinMiddlewares         []gin.HandlerFunc
 	GinReleaseMode         string
 }
 
@@ -53,6 +53,11 @@ func NewLocalConfig() *Config {
 	corsConfig.AllowOrigins = []string{webBaseUrl}
 	corsConfig.AllowCredentials = true
 
+	logger := gin.Logger()
+	recovery := gin.Recovery()
+
+	middlewares := []gin.HandlerFunc{cors.New(corsConfig), logger, recovery}
+
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
@@ -63,7 +68,41 @@ func NewLocalConfig() *Config {
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
 		EnableBasicAuth:        true,
-		CorsConfig:             cors.New(corsConfig),
+		GinMiddlewares:         middlewares,
+		GinReleaseMode:         gin.DebugMode,
+	}
+}
+
+func NewITestConfig() *Config {
+	oauthConfig := &oauth2.Config{
+		ClientID:     getEnvOrDie("OAUTH_CLIENT_KEY", ""),
+		ClientSecret: getEnvOrDie("OAUTH_CLIENT_SECRET", ""),
+		RedirectURL:  "", // Dynamically constructed in /login controller
+		Scopes:       []string{"read-user", "user-email"},
+		Endpoint:     github.Endpoint,
+	}
+
+	webBaseUrl := getEnvOrDie("WEB_BASEURL", "")
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{webBaseUrl}
+	corsConfig.AllowCredentials = true
+
+    // Omit the logger -- too verbose for testing?
+    // Omit the panic recovery -- just fail if we panic cuz we shouldn't be.
+	middlewares := []gin.HandlerFunc{cors.New(corsConfig)}
+
+	return &Config{
+		ApiDBHandler:           db.NewPostgresHandler(),
+		AuthDBHandler:          db.NewPostgresHandler(),
+		WebBaseUrl:             webBaseUrl,
+		ObjectStoreHandler:     objectstore.NewMinIOHandler(),
+		LogLevel:               log.DebugLevel,
+		OAuth2Config:           oauthConfig,
+		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
+		AuthTokenValidDuration: time.Hour * 24,
+		EnableBasicAuth:        true,
+		GinMiddlewares:         middlewares,
 		GinReleaseMode:         gin.DebugMode,
 	}
 }
@@ -85,6 +124,11 @@ func NewDevelopmentConfig() *Config {
 	corsConfig.AllowOrigins = []string{webBaseUrl}
 	corsConfig.AllowCredentials = true
 
+	logger := gin.Logger()
+	recovery := gin.Recovery()
+
+	middlewares := []gin.HandlerFunc{cors.New(corsConfig), logger, recovery}
+
 	return &Config{
 		ApiDBHandler:           db.NewPostgresHandler(),
 		AuthDBHandler:          db.NewPostgresHandler(),
@@ -95,7 +139,7 @@ func NewDevelopmentConfig() *Config {
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
 		EnableBasicAuth:        true,
-		CorsConfig:             cors.Default(),
+		GinMiddlewares:         middlewares,
 		GinReleaseMode:         gin.DebugMode,
 	}
 }
@@ -130,6 +174,12 @@ func NewProductionConfig() *Config {
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{webBaseUrl}
 	corsConfig.AllowCredentials = true
+
+	logger := gin.Logger()
+	recovery := gin.Recovery()
+
+	middlewares := []gin.HandlerFunc{cors.New(corsConfig), logger, recovery}
+
 	return &Config{
 
 		ApiDBHandler:           db.NewPostgresHandler(),
@@ -141,7 +191,7 @@ func NewProductionConfig() *Config {
 		MAX_FILE_SIZE_BYTES:    25 << 20, // 25 MB
 		AuthTokenValidDuration: time.Hour * 24,
 		EnableBasicAuth:        false,
-		CorsConfig:             cors.Default(),
+		GinMiddlewares:         middlewares,
 		GinReleaseMode:         gin.ReleaseMode,
 	}
 }
@@ -150,6 +200,8 @@ func NewConfig() *Config {
 	env := getEnvOrDie("ENV", "development")
 	log.Info("Environment configuration", "env", env)
 	switch env {
+	case "itest":
+		return NewITestConfig()
 	case "local":
 		return NewLocalConfig()
 	case "development":

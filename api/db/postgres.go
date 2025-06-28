@@ -38,7 +38,7 @@ func (p *PostgresHandler) GetDB() *sql.DB {
 
 func (p *PostgresHandler) GetUser(id int) (models.User, error) {
 	user := models.User{}
-	row := p.DB.QueryRow("SELECT * FROM salz.users WHERE id = $1", id)
+	row := p.DB.QueryRow("SELECT * FROM spicerack.users WHERE id = $1", id)
 	err := row.Scan(&user.Id, &user.UserName, &user.CreatedAt, &user.UpdatedAt, &user.IconPath, &user.IdentityProvider, &user.IdentityProviderId, &user.Elo)
 	if err != nil {
 		log.Error("Unable to get user by id", "error", err)
@@ -49,7 +49,7 @@ func (p *PostgresHandler) GetUser(id int) (models.User, error) {
 
 func (p *PostgresHandler) GetUserByLogin(username string) (models.User, error) {
 	user := models.User{}
-	row := p.DB.QueryRow("SELECT * FROM salz.users WHERE username = $1", username)
+	row := p.DB.QueryRow("SELECT * FROM spicerack.users WHERE username = $1", username)
 	err := row.Scan(&user.Id, &user.UserName, &user.CreatedAt, &user.UpdatedAt, &user.IconPath, &user.IdentityProvider, &user.IdentityProviderId, &user.Elo)
 	if err != nil {
 		return models.User{}, err
@@ -62,7 +62,7 @@ func (p *PostgresHandler) GetUserByLogin(username string) (models.User, error) {
 // static ID that Github assigns to each user (since usernames can be changed).
 func (p *PostgresHandler) GetUserByIdentity(identityProvider, identityProviderId string) (models.User, error) {
 	user := models.User{}
-	row := p.DB.QueryRow("SELECT * FROM salz.users WHERE identity_provider = $1 and identity_provider_id = $2", identityProvider, identityProviderId)
+	row := p.DB.QueryRow("SELECT * FROM spicerack.users WHERE identity_provider = $1 and identity_provider_id = $2", identityProvider, identityProviderId)
 	err := row.Scan(&user.Id, &user.UserName, &user.CreatedAt, &user.UpdatedAt, &user.IconPath, &user.IdentityProvider, &user.IdentityProviderId, &user.Elo)
 	if err != nil {
 		log.Error("Unable to get user by idp", "error", err)
@@ -72,7 +72,7 @@ func (p *PostgresHandler) GetUserByIdentity(identityProvider, identityProviderId
 }
 
 func (p *PostgresHandler) CreateUser(user models.User) (models.User, error) {
-	_, err := p.DB.Exec("INSERT INTO salz.users (username, icon_path, identity_provider, identity_provider_id, elo) VALUES ($1, $2, $3, $4, $5)", user.UserName, user.IconPath, user.IdentityProvider, user.IdentityProviderId, user.Elo)
+	_, err := p.DB.Exec("INSERT INTO spicerack.users (username, icon_path, identity_provider, identity_provider_id, elo) VALUES ($1, $2, $3, $4, $5)", user.UserName, user.IconPath, user.IdentityProvider, user.IdentityProviderId, user.Elo)
 	if err != nil {
 		log.Error("Unable to create user", "error", err)
 		return models.User{}, err
@@ -84,9 +84,10 @@ func (p *PostgresHandler) CreateUser(user models.User) (models.User, error) {
 func (p *PostgresHandler) CreateBotFile(botFile models.BotFile) (models.BotFile, error) {
 	r := p.DB.QueryRow(
 		`
-      INSERT INTO salz.bots (user_id, status) VALUES ($1, $2)
+      INSERT INTO spicerack.bots (game_id, user_id, status) VALUES ($1, $2, $3)
       RETURNING id, created_at, updated_at, user_id, status
     `,
+		botFile.GameId,
 		botFile.UserId,
 		models.BOT_STATUS_PENDING,
 	)
@@ -99,12 +100,40 @@ func (p *PostgresHandler) CreateBotFile(botFile models.BotFile) (models.BotFile,
 }
 
 func (p *PostgresHandler) ConfirmBotFile(bot models.BotFile) error {
-	_, err := p.DB.Exec("UPDATE salz.bots SET status = $1, upload_path = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3", models.BOT_STATUS_UPLOADED, bot.UploadPath, bot.BotId)
+	_, err := p.DB.Exec("UPDATE spicerack.bots SET status = $1, upload_path = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3", models.BOT_STATUS_UPLOADED, bot.UploadPath, bot.BotId)
 	if err != nil {
 		log.Error("Unable to confirm bot file", "error", err)
 		return err
 	}
 	return nil
+}
+
+func (p *PostgresHandler) ListGames(limit int, offset int) ([]models.Game, bool, error) {
+	rows, err := p.DB.Query("SELECT id, name, created_at, updated_at, created_by, icon_path FROM spicerack.games ORDER BY created_at LIMIT $1 OFFSET $2", limit+1, offset)
+	if err != nil {
+		log.Error("Unable to list games", "error", err)
+		return []models.Game{}, false, err
+	}
+	defer rows.Close()
+
+	games := make([]models.Game, 0)
+
+	for rows.Next() {
+		var g models.Game
+		err := rows.Scan(&g.Id, &g.Name, &g.CreatedAt, &g.UpdatedAt, &g.CreatedBy, &g.IconPath)
+		if err != nil {
+			log.Error("Unable to scan game", "error", err)
+			return []models.Game{}, false, err
+		}
+		games = append(games, g)
+	}
+
+	hasMore := false
+	if len(games) > limit {
+		hasMore = true
+	}
+
+	return games[:min(len(games), limit)], hasMore, nil
 }
 
 func (p *PostgresHandler) GetToken(token string) (models.AuthToken, error) {

@@ -7,12 +7,13 @@ import (
 
 type ApiDBHandler interface {
 	GetDB() *sql.DB
-	GetUser(int) (models.User, error)
-	GetUserByLogin(string) (models.User, error)
-	GetUserByIdentity(string, string) (models.User, error)
-	CreateUser(models.User) (models.User, error)
-	CreateBotFile(models.BotFile) (models.BotFile, error)
-	ConfirmBotFile(models.BotFile) error
+	GetUser(id int) (models.User, error)
+	GetUserByLogin(username string) (models.User, error)
+	GetUserByIdentity(identityProvider string, identityProviderId string) (models.User, error)
+	CreateUser(user models.User) (models.User, error)
+	CreateBotFile(botFile models.BotFile) (models.BotFile, error)
+	ConfirmBotFile(botFile models.BotFile) error
+	ListGames(limit int, offset int) ([]models.Game, bool, error)
 }
 
 type AuthDBHandler interface {

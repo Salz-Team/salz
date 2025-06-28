@@ -47,6 +47,7 @@
                         pkgs.git
                         (pkgs.callPackage ./nix/hcp.nix {})
                         pkgs.process-compose
+                        pkgs.hurl
 
                         # Minio
                         pkgs.minio
@@ -60,6 +61,9 @@
                         # Node
                         pkgs.nodePackages.typescript-language-server
                         pkgs.nodePackages.svelte-language-server
+
+                        # Go
+                        pkgs.gopls
                     ];
                     shellHook = ''
                         export STATEDIR="$PWD/.state"
@@ -88,7 +92,7 @@
                         export MINIO_ROOT_USER="minioadmin"
                         export MINIO_ROOT_PASSWORD="minioadmin"
                         export MINIO_USE_SSL="false"
-                        export MC_CONFIG_DIR="$STATEDIR/minio/mc"
+                        export MC_CONFIG_DIR="$STATEDIR/mc"
 
                         mkdir -p "$MC_CONFIG_DIR"
                         cat <<EOF >| "$MC_CONFIG_DIR/config.json"

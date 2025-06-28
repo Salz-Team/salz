@@ -20,17 +20,14 @@ SELECT
     elo
 FROM created_at;
 
--- Create a "game" called salz
-INSERT INTO spicerack.games (name, created_by) VALUES ('Salz', (select id from spicerack.users order by id limit 1));
-
 -- Create a bot for each user
 INSERT INTO spicerack.bots (user_id, game_id, upload_path, status, created_at, updated_at)
 WITH created AS (
     SELECT
         id,
-        (select id from spicerack.games where name = 'Salz') as game_id,
+        (select id from spicerack.games where name = 'salz') as game_id,
         -- s3://games/<game_id>/bots/<user_id>/<bot_id>.zip
-        's3://games/' || (select id::text from spicerack.games where name = 'Salz') || '/bots/' || id || '/' || gen_random_uuid() || '.zip' AS upload_path,
+        's3://games/' || (select id::text from spicerack.games where name = 'salz') || '/bots/' || id || '/' || gen_random_uuid() || '.zip' AS upload_path,
         'healthy' AS status,
         updated_at + (random() * interval '14 days') AS created_at
     FROM spicerack.users
@@ -57,7 +54,7 @@ WITH created_status AS (
 )
 
 SELECT -- fill in the end date depending on the status
-    (select id from spicerack.games where name = 'Salz') as game_id,
+    (select id from spicerack.games where name = 'salz') as game_id,
     created_at,
     CASE
         WHEN status = 'Pending' THEN created_at
@@ -105,7 +102,7 @@ match_random_participants AS (
 )
 
 SELECT
-    (select id from spicerack.games where name = 'Salz') as game_id,
+    (select id from spicerack.games where name = 'salz') as game_id,
     match_id,
     user_id,
     bot_id,

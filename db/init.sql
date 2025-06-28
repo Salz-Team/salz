@@ -5,29 +5,40 @@ CREATE TABLE IF NOT EXISTS spicerack.users (
     username TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    icon_path TEXT NOT NULL,
+    icon_path TEXT,
     identity_provider TEXT NOT NULL, -- only Github for now
     identity_provider_id TEXT NOT NULL, -- not all providers use numeric ids?
     elo FLOAT
 );
+
+INSERT INTO spicerack.users (username, identity_provider, identity_provider_id) 
+VALUES ('admin@salz.life', 'noauth', 'admin@salz.life')
+ON CONFLICT DO NOTHING;
+
+
 CREATE UNIQUE INDEX IF NOT EXISTS uq_users_username ON spicerack.users (username);
 
 CREATE TABLE IF NOT EXISTS spicerack.games (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
+    updated_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     created_by BIGINT NOT NULL,
+    icon_path TEXT,
     FOREIGN KEY (created_by) REFERENCES spicerack.users (id)
 );
+
+INSERT INTO spicerack.games (name, created_by)
+VALUES ('salz', (select id from spicerack.users where username = 'admin@salz.life' limit 1))
+ON CONFLICT DO NOTHING;
 
 -- upload_path is null when status is pending
 -- status can be 'No status', 'Healthy', 'Unhealthy'
 CREATE TABLE IF NOT EXISTS spicerack.bots (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     game_id BIGINT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
+    updated_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     upload_path TEXT,
     user_id BIGINT NOT NULL,
     status TEXT NOT NULL,
@@ -41,8 +52,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_bots_upload_path ON spicerack.bots (upload_
 CREATE TABLE IF NOT EXISTS spicerack.matches (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     game_id BIGINT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
+    updated_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     status TEXT NOT NULL, -- 'Pending', 'Running', 'Finished', 'Crashed'
     upload_path TEXT, -- Where to upload match logs to (S3 key)
     FOREIGN KEY (game_id) REFERENCES spicerack.games (id),
@@ -72,7 +83,7 @@ CREATE SCHEMA auth;
 CREATE TABLE IF NOT EXISTS auth.sessions (
     user_id BIGINT NOT NULL,
     token TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     expires_at TIMESTAMP NOT NULL
 );
 
