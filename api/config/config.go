@@ -88,8 +88,8 @@ func NewITestConfig() *Config {
 	corsConfig.AllowOrigins = []string{webBaseUrl}
 	corsConfig.AllowCredentials = true
 
-    // Omit the logger -- too verbose for testing?
-    // Omit the panic recovery -- just fail if we panic cuz we shouldn't be.
+	// Omit the logger -- too verbose for testing?
+	// Omit the panic recovery -- just fail if we panic cuz we shouldn't be.
 	middlewares := []gin.HandlerFunc{cors.New(corsConfig)}
 
 	return &Config{
