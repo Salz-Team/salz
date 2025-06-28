@@ -84,7 +84,6 @@ cat ../db/init.sql \
 podman exec -i ${TEST_PREFIX}-minio /bin/bash -c "MC_HOST_local=http://minioadmin:minioadmin@localhost:9000 mc mb local/${MINIO_BUCKET}"
 
 # Run the integration tests
-command -v hcp >/dev/null 2>&1 || { echo >&2 "The hcp command is required but it's not installed. Aborting."; exit 1; }
 
 export ENV="itest"
 
