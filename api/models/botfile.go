@@ -14,8 +14,14 @@ const (
 	BOT_STATUS_FAILED   = "failed"   // File has been uploaded and has participated in a game, but crashed. Exclude from future games.
 )
 
+type BotUploadResponse struct {
+	GameId int `json:"game_id"`
+	BotId  int `json:"bot_id"`
+}
+
 type BotFile struct {
 	BotId      int       `json:"bot_id"`
+	GameId     int       `json:"game_id"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 	UploadPath string    `json:"upload_path"`
@@ -32,8 +38,9 @@ func (b BotFile) BotPathBuilder(extension string) string {
 	return path.Join("bots", strconv.Itoa(b.UserId), strconv.Itoa(b.BotId)) + needDot + extension
 }
 
-func NewBotFile(userId int, extension string) BotFile {
+func NewBotFile(userId int, gameId int, extension string) BotFile {
 	return BotFile{
+		GameId: gameId,
 		UserId: userId,
 		Status: BOT_STATUS_PENDING,
 	}

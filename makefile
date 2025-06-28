@@ -13,10 +13,12 @@ sql-lint:
 	sqlfluff lint --config .sqlfluff --dialect postgres --format human .
 
 clean:
-	devenv processes down || true
-	rm -r .devenv/state/minio
-	rm -r .devenv/state/postgres
+	process-compose down || true
+	rm -rf ${STATEDIR}/minio
+	rm -rf ${STATEDIR}/db
 
+db-seed:
+	psql -f db/seed.sql
 
 ################################################################################
 # Test

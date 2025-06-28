@@ -1,0 +1,30 @@
+name: API Integration Test
+
+on:
+  pull_request:
+    paths:
+      - 'api/**'
+      - 'db/**'
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install podman
+
+      - name: Run integration tests
+        run: |
+          pushd api > /dev/null
+          ./itest.sh

@@ -1,4 +1,5 @@
 <script lang="ts">
+        import { browser } from '$app/env'
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { getMe } from '$lib/api/api';
@@ -8,7 +9,9 @@
 
 	onMount(async () => {
 		if (isLoggedIn) {
-			goto('/');
+		        if(browser){
+				goto('/');
+			}
 		}
 
 		let redirectUrl = decodeURIComponent($page.url.searchParams.get('redirect_uri') ?? '%2F');
@@ -24,7 +27,9 @@
 
 			userStore.set({ id: userid, username, iconUrl });
 
-			goto(redirectUrl);
+		        if(browser){
+				goto(redirectUrl);
+			}
 		}
 	});
 </script>

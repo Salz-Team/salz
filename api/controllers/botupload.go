@@ -5,11 +5,17 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
 func (ctrl *Controller) BotUploadHandler(c *gin.Context) {
 	userId := c.GetInt("userid")
+	gameId, err := strconv.Atoi(c.Param("gameid"))
+	if err != nil {
+		log.Error("Unable to read gameId", "gameId", c.Param("gameid"), "error", err)
+		return
+	}
 
 	// Note that file is a multipart.File which implements io.Reader
 	file, fileHeader, err := c.Request.FormFile("data")
@@ -27,6 +33,7 @@ func (ctrl *Controller) BotUploadHandler(c *gin.Context) {
 	// Transaction might not be a good idea if the upload takes a while
 	// Create a new file in the database, note that upload path is null until file is uploaded.
 	bot, err := ctrl.cfg.ApiDBHandler.CreateBotFile(models.BotFile{
+		GameId: gameId,
 		UserId: userId,
 	})
 
@@ -48,7 +55,5 @@ func (ctrl *Controller) BotUploadHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"bot_id": bot.BotId,
-	})
+	c.JSON(http.StatusCreated, models.BotUploadResponse{GameId: bot.GameId, BotId: bot.BotId})
 }

@@ -1,54 +1,79 @@
-CREATE SCHEMA IF NOT EXISTS salz;
+CREATE SCHEMA IF NOT EXISTS spicerack;
 
-CREATE TABLE IF NOT EXISTS salz.users (
+CREATE TABLE IF NOT EXISTS spicerack.users (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     username TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    icon_path TEXT NOT NULL,
+    icon_path TEXT,
     identity_provider TEXT NOT NULL, -- only Github for now
     identity_provider_id TEXT NOT NULL, -- not all providers use numeric ids?
     elo FLOAT
 );
-CREATE UNIQUE INDEX IF NOT EXISTS uq_users_username ON salz.users (username);
+
+INSERT INTO spicerack.users (username, identity_provider, identity_provider_id) 
+VALUES ('admin@salz.life', 'noauth', 'admin@salz.life')
+ON CONFLICT DO NOTHING;
+
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_username ON spicerack.users (username);
+
+CREATE TABLE IF NOT EXISTS spicerack.games (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
+    updated_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
+    created_by BIGINT NOT NULL,
+    icon_path TEXT,
+    FOREIGN KEY (created_by) REFERENCES spicerack.users (id)
+);
+
+INSERT INTO spicerack.games (name, created_by)
+VALUES ('salz', (select id from spicerack.users where username = 'admin@salz.life' limit 1))
+ON CONFLICT DO NOTHING;
 
 -- upload_path is null when status is pending
 -- status can be 'No status', 'Healthy', 'Unhealthy'
-CREATE TABLE IF NOT EXISTS salz.bots (
+CREATE TABLE IF NOT EXISTS spicerack.bots (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    game_id BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
+    updated_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     upload_path TEXT,
     user_id BIGINT NOT NULL,
     status TEXT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES salz.users (id)
+    FOREIGN KEY (user_id) REFERENCES spicerack.users (id),
+    FOREIGN KEY (game_id) REFERENCES spicerack.games (id)
 );
-CREATE INDEX IF NOT EXISTS idx_bots_user_id ON salz.bots (user_id);
+CREATE INDEX IF NOT EXISTS idx_bots_gameid_userid ON spicerack.bots (game_id, user_id);
 -- prevent name collisions in s3?
-CREATE UNIQUE INDEX IF NOT EXISTS uq_bots_upload_path ON salz.bots (upload_path);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_bots_upload_path ON spicerack.bots (upload_path);
 
--- Status could have been an enumm. Allowable values:
---     'Pending', 'Running', 'Finished', 'Crashed'
-CREATE TABLE IF NOT EXISTS salz.games (
+CREATE TABLE IF NOT EXISTS spicerack.matches (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    game_id BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
+    updated_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     status TEXT NOT NULL, -- 'Pending', 'Running', 'Finished', 'Crashed'
-    upload_path TEXT -- Where to upload game logs to
+    upload_path TEXT, -- Where to upload match logs to (S3 key)
+    FOREIGN KEY (game_id) REFERENCES spicerack.games (id),
+    CHECK (status in ('Pending', 'Running', 'Finished', 'Crashed'))
 );
 
--- Score determins the winner of the game by comparing against
--- other participants. Is null until game finishes successfully.
-CREATE TABLE IF NOT EXISTS salz.game_participants (
+-- Score determins the winner of the match by comparing against
+-- other participants. Is null until match finishes successfully.
+CREATE TABLE IF NOT EXISTS spicerack.match_participants (
     game_id BIGINT NOT NULL,
+    match_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     bot_id BIGINT NOT NULL,
     score FLOAT,
     updated_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (game_id) REFERENCES salz.games (id),
-    FOREIGN KEY (user_id) REFERENCES salz.users (id),
-    FOREIGN KEY (bot_id) REFERENCES salz.bots (id),
-    PRIMARY KEY (game_id, user_id)
+    FOREIGN KEY (game_id) REFERENCES spicerack.games (id),
+    FOREIGN KEY (match_id) REFERENCES spicerack.matches (id),
+    FOREIGN KEY (user_id) REFERENCES spicerack.users (id),
+    FOREIGN KEY (bot_id) REFERENCES spicerack.bots (id),
+    PRIMARY KEY (game_id, match_id, user_id)
 );
 
 CREATE SCHEMA auth;
@@ -58,7 +83,7 @@ CREATE SCHEMA auth;
 CREATE TABLE IF NOT EXISTS auth.sessions (
     user_id BIGINT NOT NULL,
     token TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     expires_at TIMESTAMP NOT NULL
 );
 

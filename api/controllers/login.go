@@ -13,6 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	ghlib "github.com/google/go-github/v62/github"
+
+	"github.com/guregu/null/v6"
 )
 
 // TODO find a good place for this
@@ -89,10 +91,7 @@ func (ctrl *Controller) BasicAuthLoginHandler(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{
-			"access_token": userAuthToken.Token,
-			"expires_at":   userAuthToken.ExpiresAt,
-		})
+		c.JSON(http.StatusOK, userAuthToken)
 		return
 	}
 	log.Warn("Authentication failed", "user", user)
@@ -158,7 +157,7 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
 		// Create the user
 		u = models.User{
 			UserName:           *user.Login,
-			IconPath:           *user.AvatarURL,
+			IconPath:           null.StringFromPtr(user.AvatarURL),
 			IdentityProvider:   idp,
 			IdentityProviderId: userId,
 			Elo:                DEFAULT_ELO,
@@ -185,10 +184,7 @@ func (ctrl *Controller) OAuthCallbackHandler(c *gin.Context) {
 
 	// If the redirect uri is empty, send the access token back to the client
 	if state.RedirectUri == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"access_token": userAuthToken.Token,
-			"expires_at":   userAuthToken.ExpiresAt,
-		})
+		c.JSON(http.StatusOK, userAuthToken)
 		return
 	}
 
