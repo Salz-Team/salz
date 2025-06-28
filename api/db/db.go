@@ -13,6 +13,7 @@ type ApiDBHandler interface {
 	CreateUser(models.User) (models.User, error)
 	CreateBotFile(models.BotFile) (models.BotFile, error)
 	ConfirmBotFile(models.BotFile) error
+	GetMatches(sql.NullString, string, []int64, int64, int64) ([]models.Match, bool, error)
 }
 
 type AuthDBHandler interface {

@@ -23,6 +23,8 @@ func main() {
 	r.POST("/login/basic", ctrl.BasicAuthLoginHandler)
 	r.GET("/login", ctrl.OAuthLoginHandler)
 	r.GET("/login/callback", ctrl.OAuthCallbackHandler)
+	r.GET("/matches", ctrl.GetMatches)
+	r.GET("/matches/:matchid", ctrl.GetMatch)
 
 	// Protected routes
 	protectedRoutes := r.Group("")
