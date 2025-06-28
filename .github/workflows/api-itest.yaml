@@ -29,4 +29,6 @@ jobs:
           sudo apt-get -y install podman
 
       - name: Run integration tests
-        run: ./api/itest.sh
+        run: |
+          pushd api > /dev/null
+          ./itest.sh
