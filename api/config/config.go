@@ -75,8 +75,8 @@ func NewLocalConfig() *Config {
 
 func NewITestConfig() *Config {
 	oauthConfig := &oauth2.Config{
-		ClientID:     getEnvOrDie("OAUTH_CLIENT_KEY", ""),
-		ClientSecret: getEnvOrDie("OAUTH_CLIENT_SECRET", ""),
+		ClientID:     getEnvOrDie("OAUTH_CLIENT_KEY", " "),
+		ClientSecret: getEnvOrDie("OAUTH_CLIENT_SECRET", " "),
 		RedirectURL:  "", // Dynamically constructed in /login controller
 		Scopes:       []string{"read-user", "user-email"},
 		Endpoint:     github.Endpoint,
