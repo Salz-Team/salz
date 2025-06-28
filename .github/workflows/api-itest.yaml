@@ -1,10 +1,6 @@
 name: API Integration Test
 
 on:
-  push:
-    paths:
-      - 'api/**'
-      - 'db/**'
   pull_request:
     paths:
       - 'api/**'
