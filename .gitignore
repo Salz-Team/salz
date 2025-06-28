@@ -1,17 +1,8 @@
 build
 .go/
-# Devenv
-.devenv*
-devenv.local.nix
-
-# direnv
-.direnv
 
 # pre-commit
 .pre-commit-config.yaml
-# Devenv
-.devenv*
-devenv.local.nix
 
 # direnv
 .direnv
@@ -20,5 +11,6 @@ devenv.local.nix
 .pre-commit-config.yaml
 
 .state/
-
 salz.log
+
+game-pipeline/dist-newstyle

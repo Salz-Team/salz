@@ -1,0 +1,82 @@
+cabal-version:      3.0
+name:               game-pipeline
+version:            0.1.0.0
+
+license:            MIT
+
+build-type:         Simple
+
+common warnings
+    ghc-options:
+      -Wall
+      -Wcompat
+      -Wincomplete-record-updates
+      -Wincomplete-uni-patterns
+      -Wredundant-constraints
+
+    default-extensions:
+        DeriveGeneric,
+        DeriveAnyClass,
+        OverloadedStrings,
+        DuplicateRecordFields
+
+    build-depends:
+        base
+
+    default-language: Haskell2010
+
+executable tic-tac-toe
+    import:           warnings
+
+    main-is:          TicTacToe/GameEngine.hs
+
+    other-modules:
+        Utils
+        Types
+        TicTacToe.Types
+
+    build-depends:
+        optparse-applicative,
+        process,
+        aeson,
+        parsec,
+        vector,
+        bytestring,
+
+
+executable match-handler
+    import:           warnings
+
+    main-is:          MatchHandler.hs
+
+    other-modules:
+        Utils
+        Types
+
+    build-depends:
+        optparse-applicative,
+        process,
+        aeson,
+        parsec,
+        vector,
+        bytestring,
+
+
+executable tic-tac-toe-starter-bot
+    import:           warnings
+
+    main-is:          TicTacToe/StarterBot.hs.hs
+
+    other-modules:
+        Utils
+        Types
+        TicTacToe.Types
+
+    build-depends:
+        optparse-applicative,
+        process,
+        aeson,
+        parsec,
+        vector,
+        bytestring,
+
