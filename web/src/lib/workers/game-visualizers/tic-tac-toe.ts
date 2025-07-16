@@ -75,10 +75,10 @@ function draw(
 			ctx.moveTo(getX(winningLine[0][0]), getY(winningLine[0][1]));
 			for (const coords of winningLine) {
 				ctx.lineTo(getX(coords[0]), getY(coords[1]));
-				ctx.stroke();
-				ctx.closePath();
-				ctx.fill();
 			}
+			ctx.stroke();
+			ctx.closePath();
+			ctx.fill();
 		}
 	}
 }
