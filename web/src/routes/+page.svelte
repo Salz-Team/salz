@@ -72,13 +72,13 @@
 	}
 
 	main .logo-container {
-		--slant-px: 1rem;
+		--slant-px: 1.5rem;
 		padding: 0.7em 2.3em 0.2em 2em;
 		position: absolute;
 		top: -3em;
 		left: 50%;
 		transform: translateX(-50%);
-		background: lightgray;
+		background: var(--colour-link-background);
 		clip-path: polygon(var(--slant-px) 0, 100% 0, calc(100% - var(--slant-px)) 100%, 0 100%);
 	}
 

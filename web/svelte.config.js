@@ -14,6 +14,9 @@ const config = {
 		adapter: adapter({
 			precompress: true,
 		}),
+		alias: {
+			$workers: 'src/lib/workers',
+		},
 	},
 };
 

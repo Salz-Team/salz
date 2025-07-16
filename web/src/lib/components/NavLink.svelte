@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 
 	interface Props {
 		href: string;
@@ -12,7 +12,7 @@
 
 	let shouldBeActive = $derived(
 		canBeActivated &&
-			(!useExactPath ? $page.url.pathname.startsWith(href) : $page.url.pathname === href),
+			(!useExactPath ? page.url.pathname.startsWith(href) : page.url.pathname === href),
 	);
 </script>
 
@@ -26,7 +26,8 @@
 	a:link,
 	a:visited {
 		text-decoration: none;
-		color: inherit;
+		color: var(--colour-black);
+		background: var(--colour-link-background);
 	}
 
 	a:link {
@@ -35,7 +36,6 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		background: lightgray;
 		transition:
 			background 0.2s ease-in-out,
 			filter 0.2s ease-in-out;

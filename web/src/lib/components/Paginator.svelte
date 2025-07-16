@@ -90,7 +90,7 @@
 	}
 
 	nav :global(button.active::after) {
-		background: lightgray;
+		background: var(--colour-link-background);
 		content: '';
 		position: absolute;
 		width: 90%;

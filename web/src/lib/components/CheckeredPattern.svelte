@@ -23,7 +23,7 @@
 
 	<radialGradient id={`${color}-grad`} cx="50%" cy="50%" r="0.5">
 		<stop opacity="1" offset="0" class="gradient-start-color" />
-		<stop opacity="0" offset="100%" stop-color="white" class="gradient-stop-color" />
+		<stop opacity="0" offset="100%" class="gradient-stop-color" />
 	</radialGradient>
 
 	<radialGradient id="colorful" cx="50%" cy="50%" r="0.45">
@@ -35,7 +35,7 @@
 				repeatCount="indefinite"
 			/>
 		</stop>
-		<stop opacity="0" offset="100%" stop-color="white" />
+		<stop opacity="0" offset="100%" class="gradient-stop-color" />
 	</radialGradient>
 
 	<mask id="mask">
@@ -56,7 +56,7 @@
 	}
 
 	.gradient-stop-color {
-		stop-color: white;
+		stop-color: var(--colour-background);
 	}
 
 	svg.colorful {
@@ -64,7 +64,7 @@
 	}
 
 	.colorful .main {
-		fill: black;
+		fill: var(--colour-foreground);
 	}
 
 	.colorful .sub {
@@ -72,7 +72,7 @@
 	}
 
 	.colorful .gradient-start-color {
-		stop-color: black;
+		stop-color: var(--colour-background);
 	}
 
 	.red .main {

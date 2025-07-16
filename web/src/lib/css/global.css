@@ -14,6 +14,43 @@
 		#ffdc18,
 		#ff3706
 	);
+
+	--colour-black: #1e1e1e;
+	--colour-white: #efefef;
+	--colour-lightgray: lightgray;
+	--colour-darkgray: darkgray;
+
+	--colour-bright-red: #fa233e;
+	--colour-bright-green: #44d492;
+	--colour-bright-yellow: #f5eb67;
+	--colour-bright-blue: #1b76ff;
+	--colour-bright-purple: #732dd9;
+	--colour-bright-orange: #ffa15c;
+
+	--colour-dark-red: #b22729;
+	--colour-dark-green: #35ad3b;
+	--colour-dark-yellow: #ffdc18;
+	--colour-dark-blue: #24aadb;
+	--colour-dark-purple: #5020bf;
+	--colour-dark-orange: #f17c58;
+}
+
+body.theme-light,
+.theme-light {
+	--colour-foreground: var(--colour-black);
+	--colour-background: var(--colour-white);
+	--colour-link: var(--colour-darkgray);
+	--colour-link-background: var(--colour-lightgray);
+	--colour-link-hover: var(--colour-lightgray);
+}
+
+body.theme-dark,
+.theme-dark {
+	--colour-foreground: var(--colour-white);
+	--colour-background: var(--colour-black);
+	--colour-link: var(--colour-darkgray);
+	--colour-link-background: var(--colour-darkgray);
+	--colour-link-hover: var(--colour-lightgray);
 }
 
 body {
@@ -21,17 +58,19 @@ body {
 	line-height: 1.5;
 	font-size: 24px;
 	font-family: sans-serif;
+	color: var(--colour-foreground);
+	background: var(--colour-background);
 }
 
 a:link,
 a:visited {
-	color: darkgray;
+	color: var(--colour-link);
 	transition: color 0.2s ease-in-out;
 }
 
 a:hover,
 a:focus {
-	color: black;
+	color: var(--colour-link-hover);
 }
 
 @keyframes background-scroll {
@@ -40,5 +79,25 @@ a:focus {
 	}
 	100% {
 		background-position: 100%;
+	}
+}
+
+@media (prefers-color-scheme: light) {
+	body {
+		--colour-foreground: var(--colour-black);
+		--colour-background: var(--colour-white);
+		--colour-link: var(--colour-darkgray);
+		--colour-link-background: var(--colour-lightgray);
+		--colour-link-hover: var(--colour-lightgray);
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+	body {
+		--colour-foreground: var(--colour-white);
+		--colour-background: var(--colour-black);
+		--colour-link: var(--colour-darkgray);
+		--colour-link-background: var(--colour-darkgray);
+		--colour-link-hover: var(--colour-lightgray);
 	}
 }

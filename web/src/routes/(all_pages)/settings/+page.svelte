@@ -166,7 +166,7 @@
 		min-height: 30vh;
 		width: 60vw;
 		margin: 2em auto 5em auto;
-		background: white;
+		background: var(--colour-background);
 	}
 
 	main > form {
