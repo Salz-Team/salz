@@ -1,6 +1,6 @@
 <script lang="ts">
 	import FancyHeader from '$lib/components/FancyHeader.svelte';
-	import Paginator from '$lib/components/Paginator.svelte';
+	import FixedPaginator from '$lib/components/FixedPaginator.svelte';
 	import RoundInitial from '$lib/components/RoundInitial.svelte';
 	import type { Player } from '$lib/models/player.model';
 
@@ -29,12 +29,7 @@
 		{/each}
 	</section>
 
-	<Paginator
-		class="leaderboard-paginator"
-		{totalPages}
-		{currentPage}
-		{maxPagesShown}
-	/>
+	<FixedPaginator class="leaderboard-paginator" {totalPages} {currentPage} {maxPagesShown} />
 </main>
 
 <style>
