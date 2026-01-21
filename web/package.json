@@ -43,7 +43,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"lodash": "^4.17.21",
+		"lodash": "^4.17.23",
 		"rust-optionals": "^3.0.0",
 		"temporal-polyfill": "^0.2.5"
 	}
